@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Hàm kiểm tra quyền Admin (Hardcode email admin hoặc check list admin)
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'test@test.com';
+    }
+    
+    // Hàm kiểm tra chủ sở hữu tài nguyên
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Luật cho Collection 'users' (Thông tin cá nhân)
+    match /users/{userId} {
+      // Cho phép Read: Nếu là Admin hoặc Chủ tài khoản
+      allow read: if isAdmin() || isOwner(userId);
+      
+      // Cho phép Create: Bất kỳ ai đăng nhập đều có thể tự tạo profile lần đầu
+      allow create: if isOwner(userId);
+      
+      // Cho phép Update:
+      allow update: if isAdmin() || (
+        isOwner(userId)
+        // Chống Hack: Không cho phép tự ý sửa cấm tài khoản
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isBanned', 'banUntil']))
+        // Chống Hack: Giới hạn buff bẩn LexiCredit tối đa 100 điểm/lần thao tác client
+        && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lexiCredit']) || 
+            (request.resource.data.lexiCredit <= resource.data.lexiCredit + 100)
+        )
+        && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalLexiCredit']) || 
+            (request.resource.data.totalLexiCredit <= resource.data.totalLexiCredit + 100)
+        )
+      );
+      
+      // Chỉ Admin mới được quyền xóa User Profile
+      allow delete: if false; // Disable delete to enforce Soft Delete
+    }
+
+    // Luật cho Collection 'decks' (Bộ thẻ học)
+    match /decks/{deckId} {
+      // Cho phép Read: Nếu bộ thẻ đó là của mình, hoặc là Admin
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      
+      // Cho phép Create: Bắt buộc userId của deck phải khớp với người tạo
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Cho phép Update: Phải là chủ bộ thẻ hoặc Admin
+      allow update: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow delete: if false; // Disable delete to enforce Soft Delete
+    }
+    
+    // Khóa toàn bộ các đường dẫn khác không được khai báo
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

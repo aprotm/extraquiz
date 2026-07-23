@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6d55d1">
+    <title>ExtraQuiz Flashcards Pro</title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./assets/logo.png">
+    <!-- Cài đặt Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
+            },
+            animation: {
+              'pulse-rainbow': 'rainbow 3s linear infinite',
+            },
+            keyframes: {
+              rainbow: {
+                '0%, 100%': { filter: 'hue-rotate(0deg)' },
+                '50%': { filter: 'hue-rotate(180deg)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Hand-Drawn Theme -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style-dark.css">
+    
+    <!-- Canvas Confetti cho Gamification -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Import Map cho ES Modules -->
+    <script type="importmap">
+      {
+        "imports": {
+          "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js",
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+          "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
+          "firebase/storage": "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js",
+          "firebase/app-check": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js"
+        }
+      }
+    </script>
+</head>
+<body>
+    <!-- Ứng dụng Vue -->
+    <div id="app" v-cloak class="min-h-screen flex flex-col">
+        <!-- Nội dung sẽ được Vue mount vào đây -->
+    </div>
+    
+    <!-- Code chính của App -->
+    <script type="module" src="./js/app.js"></script>
+
+    <!-- Kích hoạt PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('PWA ServiceWorker đăng ký thành công với scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('PWA ServiceWorker đăng ký thất bại: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
