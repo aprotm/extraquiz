@@ -71,10 +71,12 @@ export default {
         };
 
         const toggleFloatingCredit = () => {
-            if (typeof store.settings.showFloatingCredit === 'undefined') {
-                store.settings.showFloatingCredit = true;
-            }
-            store.settings.showFloatingCredit = !store.settings.showFloatingCredit;
+            store.settings.showFloatingCredit = store.settings.showFloatingCredit === false ? true : false;
+            store.saveSettings();
+        };
+
+        const toggleLevelUpNotification = () => {
+            store.settings.showLevelUpNotification = store.settings.showLevelUpNotification === false ? true : false;
             store.saveSettings();
         };
 
@@ -88,7 +90,7 @@ export default {
             store.saveSettings();
         };
 
-        return { isOpen, toggleMenu, closeMenu, store, changeTheme, toggleLanguage, adjustFontSize, adjustDailyTarget, toggleFocusMode, toggleChestAnimation, toggleFloatingCredit, voices, handleVoiceChange, toggleDesignStyle, t };
+        return { isOpen, toggleMenu, closeMenu, store, changeTheme, toggleLanguage, adjustFontSize, adjustDailyTarget, toggleFocusMode, toggleChestAnimation, toggleFloatingCredit, toggleLevelUpNotification, voices, handleVoiceChange, toggleDesignStyle, t };
     },
     template: `
         <div id="user-tool-widget" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50" @keydown.escape="isOpen = false">
@@ -186,6 +188,14 @@ export default {
                             <span class="font-semibold text-gray-700 dark:text-gray-300" title="Hiển thị popup +1 LexiCredit khi học"><i class="fa-solid fa-arrow-up text-amber-400 mr-2 w-4"></i>Popup Cầm Tay</span>
                             <button @click="toggleFloatingCredit" role="switch" :aria-checked="store.settings.showFloatingCredit !== false" aria-label="Hiển thị popup LexiCredit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.showFloatingCredit !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.showFloatingCredit !== false ? 'translate-x-6' : 'translate-x-1'"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Level Up Notification -->
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
+                            <span class="font-semibold text-gray-700 dark:text-gray-300" title="Hiển thị thông báo khi thăng cấp"><i class="fa-solid fa-level-up text-amber-400 mr-2 w-4"></i>Thông báo Level Up</span>
+                            <button @click="toggleLevelUpNotification" role="switch" :aria-checked="store.settings.showLevelUpNotification !== false" aria-label="Hiển thị thông báo Level Up" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.showLevelUpNotification !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
+                                <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.showLevelUpNotification !== false ? 'translate-x-6' : 'translate-x-1'"></span>
                             </button>
                         </div>
                         

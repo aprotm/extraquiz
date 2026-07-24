@@ -7,6 +7,7 @@ import { RANK_LIST, getLevelProgressInfo, getRankFromLevel } from '../ranks.js';
 
 // Generate a consistent color accent index from deck title
 function getDeckAccent(title) {
+    if (!title) return 0;
     let hash = 0;
     for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
     return Math.abs(hash) % 8;
@@ -140,12 +141,24 @@ export default {
 
         const rankGuideList = RANK_LIST;
 
+        const dailyMissions = ref([
+            { id: 1, title: 'Học 20 từ mới', max: 20, current: 0 },
+            { id: 2, title: 'Ôn tập 50 từ cũ', max: 50, current: 0 },
+            { id: 3, title: 'Hoàn thành 1 bài Speaking', max: 1, current: 0 }
+        ]);
+
+        if (stats.value) {
+            dailyMissions.value[0].current = Math.min(20, stats.value.todayWords || 0);
+            dailyMissions.value[1].current = Math.min(50, Math.floor((stats.value.todayWords || 0) * 1.5));
+            dailyMissions.value[2].current = stats.value.todayWords > 30 ? 1 : 0;
+        }
+
         return { 
             store, searchQuery, filteredDecks, openDeck, 
             isSelectMode, selectedDecks, toggleSelectMode, deleteSelected, stats,
             todayProgress, ringCircumference, ringOffset, getDeckAccent, t,
             levelProgress, currentRank, showRankGuide, rankGuideList,
-            vocabStats, aiVocabRecommendation
+            vocabStats, aiVocabRecommendation, dailyMissions
         };
     },
     template: `
@@ -244,6 +257,51 @@ export default {
                         <button @click="store.navigate('roadmap')" class="flex-1 py-2.5 text-sm rounded-xl font-bold border-2 border-purple-200 text-purple-600 hover:bg-purple-50 transition flex items-center justify-center gap-1.5">
                             <i class="fa-regular fa-map text-xs"></i> Lộ trình
                         </button>
+                    </div>
+                </div>
+
+                <!-- Daily Missions (Task) -->
+                <div class="glass-panel-strong p-6 rounded-3xl mt-4 border border-gray-100">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wider"><i class="fa-solid fa-list-check text-purple-500 mr-2"></i> Nhiệm vụ hôm nay</h3>
+                        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">{{ dailyMissions.filter(m => m.current >= m.max).length }}/{{ dailyMissions.length }}</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div v-for="mission in dailyMissions" :key="mission.id" class="group flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                                 :class="mission.current >= mission.max ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 text-transparent'">
+                                <i class="fa-solid fa-check text-[10px]"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-sm mb-1.5">
+                                    <span class="font-semibold" :class="mission.current >= mission.max ? 'text-gray-400 line-through' : 'text-gray-700'">{{ mission.title }}</span>
+                                    <span class="text-gray-500 text-xs font-bold">{{ mission.current }}/{{ mission.max }}</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-1000"
+                                         :class="mission.current >= mission.max ? 'bg-green-500' : 'bg-purple-500'"
+                                         :style="{ width: (mission.current / mission.max * 100) + '%' }">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner to LexiLearn Dashboard -->
+                <div class="mt-4 p-6 rounded-3xl bg-gradient-to-br from-[#0B1020] to-[#1E2540] text-white shadow-xl relative overflow-hidden group cursor-pointer border border-[#2A3459] transform transition hover:-translate-y-1 hover:shadow-2xl" @click="store.navigate('lexilearn-dashboard')">
+                    <div class="absolute -right-4 -top-4 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
+                    <div class="relative z-10 flex items-center gap-5">
+                        <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-crown text-amber-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-black text-lg mb-1 flex items-center gap-2 tracking-tight">LexiLearn Pro Dashboard <span class="bg-indigo-500 text-[10px] px-2 py-0.5 rounded-md text-white uppercase tracking-wider font-bold">New</span></h3>
+                            <p class="text-sm text-gray-400 font-medium leading-tight">Truy cập giao diện Heatmap, LexiCredit & Huy hiệu siêu mượt!</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
+                            <i class="fa-solid fa-arrow-right text-white"></i>
+                        </div>
                     </div>
                 </div>
 

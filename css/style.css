@@ -75,6 +75,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(109, 85, 209, 0.25); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(109, 85, 209, 0.45); }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ===== FLASHCARD TERM ===== */
 .flashcard-term {

@@ -12,7 +12,7 @@ export const store = reactive({
     activeCards: [],
     isLoading: true,
     authError: '',
-    currentRoute: 'dashboard', // Màn hình hiện tại
+    currentRoute: (window.location.hash && window.location.hash.length > 1) ? window.location.hash.slice(1) : 'dashboard', // Màn hình hiện tại
     editDeckData: null, // Dữ liệu bộ thẻ đang muốn sửa
     
     // User Profile (Gamification)
@@ -68,6 +68,15 @@ export const store = reactive({
             return;
         }
 
+        if (route === 'study' && (!this.activeCards || this.activeCards.length === 0)) {
+            console.warn("No active cards. Redirecting to dashboard.");
+            route = 'dashboard';
+        }
+        if (route === 'deck-detail' && !this.activeDeck && !data) {
+            console.warn("No active deck. Redirecting to dashboard.");
+            route = 'dashboard';
+        }
+
         if (data && route === 'deck-detail') {
             this.activeDeck = data;
         }
@@ -75,6 +84,7 @@ export const store = reactive({
             this.editDeckData = data; // Truyền data bộ thẻ sang màn chỉnh sửa
         }
         this.currentRoute = route;
+        window.location.hash = route;
     },
     
     showLoading() { this.isLoading = true; },
@@ -249,13 +259,15 @@ export const store = reactive({
             this.userProfile.rank = newRank.title;
             
             if (leveledUp) {
-                // Dispatch event for the Level Up animation popup
-                window.dispatchEvent(new CustomEvent('level-up', {
-                    detail: {
-                        level: newLevel,
-                        rank: newRank
-                    }
-                }));
+                // Dispatch event for the Level Up animation popup if not disabled
+                if (this.settings.showLevelUpNotification !== false) {
+                    window.dispatchEvent(new CustomEvent('level-up', {
+                        detail: {
+                            level: newLevel,
+                            rank: newRank
+                        }
+                    }));
+                }
             }
         }
 

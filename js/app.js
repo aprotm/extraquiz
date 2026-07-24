@@ -23,6 +23,7 @@ import UserTool from './components/usertool.js';
 import Guide from './components/guide.js';
 import LevelUpPopup from './components/LevelUpPopup.js';
 import Activate from './components/activate.js';
+import LexiLearnDashboard from './components/lexilearndashboard.js';
 import { t } from './i18n.js';
 
 // ===== TOAST SYSTEM =====
@@ -42,7 +43,7 @@ export function showToast(message, type = 'info', duration = 3000) {
 
 const App = {
     components: {
-        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, LevelUpPopup, Activate
+        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, LevelUpPopup, Activate, LexiLearnDashboard
     },
     setup() {
         const isLoginMode = ref(true);
@@ -51,6 +52,14 @@ const App = {
         onMounted(() => {
             // Apply initial settings
             store.saveSettings();
+
+            // Hash Routing Listener
+            window.addEventListener('hashchange', () => {
+                const hash = window.location.hash.slice(1);
+                if (hash && store.currentRoute !== hash) {
+                    store.currentRoute = hash;
+                }
+            });
 
             // Set default Gemini API key so users don't need to enter it
             if (!localStorage.getItem('gemini_api_key')) {
@@ -289,7 +298,7 @@ const App = {
             <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
             
             <!-- Floating Back Button for Focus Mode & AI Tools -->
-            <button v-if="store.currentRoute !== 'dashboard' && (store.settings?.focusMode || ['paraphrase', 'writing'].includes(store.currentRoute))" 
+            <button v-if="store.currentRoute !== 'dashboard' && store.currentRoute !== 'lexilearn-dashboard' && (store.settings?.focusMode || ['paraphrase', 'writing'].includes(store.currentRoute))" 
                     @click="store.navigate('dashboard')"
                     class="fixed top-4 left-4 z-50 w-10 h-10 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-500 hover:text-purple-600 hover:bg-purple-50 border border-gray-100 transition-all hover:scale-105" title="Quay lại Dashboard">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -299,7 +308,7 @@ const App = {
             
             <!-- Header -->
             <header class="glass-panel-strong sticky top-0 z-40 px-4 sm:px-6 py-3.5 flex justify-between items-center relative hide-in-focus" 
-                    v-show="!['paraphrase', 'writing'].includes(store.currentRoute)" 
+                    v-show="!['paraphrase', 'writing', 'lexilearn-dashboard'].includes(store.currentRoute)" 
                     style="border-bottom: 1px solid rgba(109,85,209,0.1);">
                 <div class="flex items-center gap-3 cursor-pointer group" @click="store.navigate('dashboard')">
                     <div class="w-9 h-9 rounded-xl flex items-center justify-center transition group-hover:scale-105 bg-white shadow-sm overflow-hidden p-0.5 border border-gray-100">
@@ -314,6 +323,9 @@ const App = {
                     </button>
                     <button @click="triggerBgUpload" class="btn-ghost text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-medium" title="Hình nền">
                         <i class="fa-regular fa-image text-xs"></i> <span class="hidden sm:inline">Hình nền</span>
+                    </button>
+                    <button @click="store.navigate('lexilearn-dashboard')" class="bg-indigo-600 text-white hover:bg-indigo-700 text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-bold rounded-lg shadow-sm transition-all hover:scale-105" title="LexiLearn Pro">
+                        <i class="fa-solid fa-crown text-xs"></i> <span class="hidden sm:inline">LexiLearn Pro</span>
                     </button>
                     <button @click="store.navigate('guide')" class="btn-ghost text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-medium" :class="store.currentRoute === 'guide' ? 'bg-purple-100 text-purple-700' : ''" title="Hướng dẫn">
                         <i class="fa-solid fa-book-open text-xs"></i> <span class="hidden sm:inline">Hướng dẫn</span>
@@ -344,8 +356,9 @@ const App = {
                 </div>
             </header>
 
-            <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10">
+            <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
                 <Dashboard v-if="store.currentRoute === 'dashboard'" />
+                <LexiLearnDashboard v-else-if="store.currentRoute === 'lexilearn-dashboard'" />
                 <DeckDetail v-else-if="store.currentRoute === 'deck-detail'" />
                 <CreateEditDeck v-else-if="store.currentRoute === 'create-deck' || store.currentRoute === 'edit-deck'" />
                 <Study v-else-if="store.currentRoute === 'study'" />
