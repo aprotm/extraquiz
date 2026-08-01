@@ -71,7 +71,10 @@ export default {
                     else if (wordCount > 10) val = 2;
                     else if (wordCount > 0) val = 1;
 
-                    const dateStr = cellDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const d = cellDate.getDate().toString().padStart(2, '0');
+                    const m = (cellDate.getMonth() + 1).toString().padStart(2, '0');
+                    const y = cellDate.getFullYear();
+                    const dateStr = `${d}/${m}/${y}`;
                     
                     week.push({
                         level: val,
@@ -503,8 +506,8 @@ export default {
                                                              day.level === 3 ? 'bg-[#26a641] border-[#26a641]' : '',
                                                              day.level === 4 ? 'bg-[#39d353] border-[#39d353]' : ''
                                                          ]">
-                                                         <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-[#24292F] text-gray-100 text-[10px] font-medium px-2 py-1.5 rounded shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
-                                                             {{ day.words === 0 ? 'Chưa học từ nào' : day.words + ' từ vựng' }} vào ngày {{ day.date }}
+                                                         <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-white text-gray-800 text-xs font-medium px-3 py-2 rounded-lg shadow-xl border border-gray-200 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                                                             {{ day.words }} từ học ngày {{ day.date }}
                                                          </div>
                                                     </div>
                                                 </div>
