@@ -1,12 +1,17 @@
 import { ref, onMounted, onUpdated } from 'vue';
 import { store, BADGES_DICT } from '../store.js';
 import { updateUserProfile } from '../db.js';
-import { showToast } from '../app.js';
+import { showToast } from '../toast.js';
 import { t } from '../i18n.js';
+import { getRankFromLevel, getLevelProgressInfo } from '../ranks.js';
+import { computed } from 'vue';
 
 export default {
     setup() {
         const stats = ref(null);
+        
+        const currentLevelInfo = computed(() => getLevelProgressInfo(store.userProfile?.totalLexiCredit || 0));
+        const currentRank = computed(() => getRankFromLevel(currentLevelInfo.value.currentLevel));
 
         onMounted(() => {
             stats.value = store.getStudyStats() || { streak: 0, todayWords: 0, history: [] };
@@ -132,7 +137,7 @@ export default {
             return classes.join(' ');
         };
 
-        return { store, BADGES_DICT, stats, goBack, t, triggerAvatarUpload, handleAvatarUpload, getBadgeClasses };
+        return { store, BADGES_DICT, stats, goBack, t, triggerAvatarUpload, handleAvatarUpload, getBadgeClasses, currentLevelInfo, currentRank };
     },
     template: `
         <div class="h-full flex flex-col max-w-5xl mx-auto w-full p-4 lg:p-8 animate-fade-in pb-24">
@@ -165,12 +170,12 @@ export default {
                             </div>
                             <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" @change="handleAvatarUpload">
                             <!-- Rank Badge -->
-                            <div v-if="store.userProfile?.rank" class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-white shadow-sm flex items-center gap-1 whitespace-nowrap">
-                                <i class="fa-solid fa-gem text-blue-400"></i> {{ store.userProfile.rank }}
+                            <div v-if="currentRank" class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-white shadow-sm flex items-center gap-1 whitespace-nowrap">
+                                <i :data-lucide="currentRank.icon" :class="[currentRank.color, 'w-3 h-3']"></i> {{ currentRank.title }}
                             </div>
                         </div>
 
-                        <h2 class="text-xl font-bold text-gray-900 mb-1">Cấp độ {{ store.userProfile?.level || 1 }}</h2>
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">Cấp độ {{ currentLevelInfo.currentLevel }}</h2>
                         <p class="text-sm text-gray-500 font-medium mb-6">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
 
                         <div class="grid grid-cols-2 gap-3 mb-6">

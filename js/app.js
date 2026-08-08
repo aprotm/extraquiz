@@ -26,20 +26,7 @@ import Activate from './components/activate.js';
 import LexiLearnDashboard from './components/lexilearndashboard.js';
 import { t } from './i18n.js';
 
-// ===== TOAST SYSTEM =====
-const toasts = ref([]);
-let toastId = 0;
-export function showToast(message, type = 'info', duration = 3000) {
-    const id = ++toastId;
-    toasts.value.push({ id, message, type, duration });
-    setTimeout(() => {
-        const t = toasts.value.find(t => t.id === id);
-        if (t) t.hiding = true;
-        setTimeout(() => {
-            toasts.value = toasts.value.filter(t => t.id !== id);
-        }, 350);
-    }, duration);
-}
+import { toasts, showToast } from './toast.js';
 
 const App = {
     components: {
@@ -293,68 +280,98 @@ const App = {
             </div>
         </div>
 
-        <!-- Main App Layout -->
-        <div v-else class="flex-1 flex flex-col h-screen max-h-screen overflow-hidden relative bg-cover bg-center transition-all duration-500" :style="bgImage ? { backgroundImage: 'url(' + bgImage + ')' } : {}">
+        <!-- Main App Layout (Redesigned) -->
+        <div v-else class="flex-1 flex h-screen max-h-screen overflow-auto relative bg-cover bg-center transition-all duration-500" :style="bgImage ? { backgroundImage: 'url(' + bgImage + ')' } : {}">
             <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
-            
-            <!-- Floating Back Button for Focus Mode & AI Tools -->
-            <button v-if="store.currentRoute !== 'dashboard' && store.currentRoute !== 'lexilearn-dashboard' && (store.settings?.focusMode || ['paraphrase', 'writing'].includes(store.currentRoute))" 
-                    @click="store.navigate('dashboard')"
-                    class="fixed top-4 left-4 z-50 w-10 h-10 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-500 hover:text-purple-600 hover:bg-purple-50 border border-gray-100 transition-all hover:scale-105" title="Quay lại Dashboard">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-
             <div v-if="bgImage" class="absolute inset-0 bg-white/50 backdrop-blur-[4px] z-0 pointer-events-none"></div>
-            
-            <!-- Header -->
-            <header class="glass-panel-strong sticky top-0 z-40 px-4 sm:px-6 py-3.5 flex justify-between items-center relative hide-in-focus" 
-                    v-show="!['paraphrase', 'writing', 'lexilearn-dashboard'].includes(store.currentRoute)" 
-                    style="border-bottom: 1px solid rgba(109,85,209,0.1);">
-                <div class="flex items-center gap-3 cursor-pointer group" @click="store.navigate('dashboard')">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center transition group-hover:scale-105 bg-white shadow-sm overflow-hidden p-0.5 border border-gray-100">
-                        <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain rounded-lg">
+
+            <!-- Desktop Sidebar -->
+            <aside class="w-64 bg-white/60 backdrop-blur-md border-r border-white/50 flex flex-col z-10 flex-shrink-0 transition-transform" v-if="store.currentRoute !== 'lexilearn-dashboard'">
+                <!-- Logo -->
+                <div class="h-[72px] flex items-center px-6 border-b border-gray-100 gap-3 cursor-pointer group" @click="store.navigate('dashboard')">
+                    <div class="w-9 h-9 transition transform group-hover:scale-105">
+                        <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm">
                     </div>
-                    <span class="text-base font-bold hidden sm:block text-gray-900 dark:text-gray-50">ExtraQuiz Pro</span>
+                    <span class="text-xl font-black text-gray-900 tracking-tight">Lexi<span class="text-amber-500">Learn</span></span>
                 </div>
                 
-                <div class="flex items-center gap-1 sm:gap-2">
-                    <button v-if="bgImage" @click="removeBgImage" class="btn-ghost text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-medium" title="Xóa nền">
-                        <i class="fa-solid fa-trash text-xs"></i> <span class="hidden sm:inline">Xóa nền</span>
+                <!-- Navigation -->
+                <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5">
+                    <button @click="store.navigate('dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'dashboard' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'dashboard' ? 'text-indigo-600' : ''"></i>
+                        <span>Tổng quan</span>
                     </button>
-                    <button @click="triggerBgUpload" class="btn-ghost text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-medium" title="Hình nền">
-                        <i class="fa-regular fa-image text-xs"></i> <span class="hidden sm:inline">Hình nền</span>
-                    </button>
-                    <button @click="store.navigate('lexilearn-dashboard')" class="bg-indigo-600 text-white hover:bg-indigo-700 text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-bold rounded-lg shadow-sm transition-all hover:scale-105" title="LexiLearn Pro">
-                        <i class="fa-solid fa-crown text-xs"></i> <span class="hidden sm:inline">LexiLearn Pro</span>
-                    </button>
-                    <button @click="store.navigate('guide')" class="btn-ghost text-sm px-2 sm:px-3 py-1.5 flex items-center gap-1.5 font-medium" :class="store.currentRoute === 'guide' ? 'bg-purple-100 text-purple-700' : ''" title="Hướng dẫn">
-                        <i class="fa-solid fa-book-open text-xs"></i> <span class="hidden sm:inline">Hướng dẫn</span>
-                    </button>
-                    <input type="file" id="bg-upload-input" accept="image/*" class="hidden" @change="handleBgUpload">
                     
-                    <!-- LexiCredit Balance (Only visible in Dashboard) -->
-                    <div v-if="store.currentRoute === 'dashboard'" class="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-amber-50 border border-amber-100 shadow-sm mr-1 sm:mr-2 animate-fade-in" title="LexiCredit">
-                        <i class="fa-solid fa-gem text-amber-500 text-[10px] sm:text-xs"></i>
-                        <span class="font-extrabold text-amber-600 font-mono text-xs sm:text-sm">{{ store.userProfile?.lexiCredit || 0 }}</span>
-                    </div>
-
-                    <div class="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-xl" style="background: rgba(109,85,209,0.07);">
-                        <div class="user-avatar w-7 h-7 sm:w-8 sm:h-8 text-[10px] sm:text-xs relative cursor-pointer hover:ring-2 hover:ring-purple-300 transition-all" @click="store.navigate('profile')" title="Xem Hồ sơ">
-                            <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover rounded-full">
-                            <template v-else>{{ userInitial() }}</template>
-                            
-                            <div v-if="store.userProfile?.equippedBadge" class="absolute -bottom-1 -right-1 text-[10px] bg-white rounded-full shadow-sm w-4 h-4 flex items-center justify-center border border-gray-100 text-amber-500">
-                                <i v-if="getBadgeIcon(store.userProfile.equippedBadge).length > 3" :data-lucide="getBadgeIcon(store.userProfile.equippedBadge)" class="w-3 h-3"></i>
-                                <span v-else>{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <button @click="store.navigate('lexilearn-dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group mt-2" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'text-gray-500 hover:bg-amber-50 hover:text-amber-700'">
+                        <i data-lucide="crown" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'lexilearn-dashboard' ? 'text-amber-500 fill-amber-500' : 'text-amber-400'"></i>
+                        <span>LexiLearn Pro</span>
+                    </button>
                     
-                    <button @click="logout" class="btn-ghost px-2 sm:px-3 py-1.5 text-sm font-medium text-red-400 hover:text-red-600 hover:bg-red-50" title="Đăng xuất">
-                        <i class="fa-solid fa-right-from-bracket"></i>
+                    <div class="pt-4 pb-2">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider px-3">Học tập</p>
+                    </div>
+                    <button @click="store.navigate('roadmap')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'roadmap' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
+                        <i data-lucide="map" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'roadmap' ? 'text-indigo-600' : ''"></i>
+                        <span>Lộ trình</span>
+                    </button>
+                    <button @click="store.navigate('guide')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'guide' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
+                        <i data-lucide="book-open" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'guide' ? 'text-indigo-600' : ''"></i>
+                        <span>Hướng dẫn</span>
                     </button>
                 </div>
-            </header>
+                
+                <!-- Bottom Profile -->
+                <div class="p-4 border-t border-gray-100">
+                    <div class="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" @click="store.navigate('profile')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm relative">
+                                <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
+                                <template v-else>{{ userInitial() }}</template>
+                                
+                                <div v-if="store.userProfile?.equippedBadge" class="absolute -bottom-1 -right-1 text-[10px] bg-white rounded-full shadow-sm w-4 h-4 flex items-center justify-center border border-gray-100 text-amber-500">
+                                    <i v-if="getBadgeIcon(store.userProfile.equippedBadge).length > 3" :data-lucide="getBadgeIcon(store.userProfile.equippedBadge)" class="w-3 h-3"></i>
+                                    <span v-else>{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-gray-900 line-clamp-1 w-24 truncate">{{ store.userProfile?.displayName || 'Học giả' }}</span>
+                                <div class="flex items-center gap-1">
+                                    <i data-lucide="gem" class="w-3 h-3 text-amber-500 fill-amber-500"></i>
+                                    <span class="text-xs font-bold text-amber-600">{{ store.userProfile?.lexiCredit || 0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click.stop="logout" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Đăng xuất">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 flex flex-col min-w-0 shadow-inner rounded-l-3xl border-l relative transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-[#0B1020] border-[#1E2540]' : 'bg-white/40 backdrop-blur-sm border-white/50'">
+                <!-- Mobile Header -->
+                <header class="lg:hidden glass-panel-strong sticky top-0 z-40 px-4 py-3 flex justify-between items-center hide-in-focus border-b border-gray-100" v-show="['dashboard'].includes(store.currentRoute)">
+                    <div class="flex items-center gap-3 cursor-pointer" @click="store.navigate('dashboard')">
+                        <div class="w-8 h-8">
+                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm">
+                        </div>
+                        <span class="text-lg font-black text-gray-900">Lexi<span class="text-amber-500">Learn</span></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-50 border border-amber-100 shadow-sm">
+                            <i data-lucide="gem" class="w-3 h-3 text-amber-500 fill-amber-500"></i>
+                            <span class="font-extrabold text-amber-600 font-mono text-xs">{{ store.userProfile?.lexiCredit || 0 }}</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Floating Back Button for Focus Mode & AI Tools -->
+                <button v-if="store.currentRoute !== 'dashboard'" 
+                        @click="store.navigate('dashboard')"
+                        class="fixed top-4 left-4 z-50 w-10 h-10 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all hover:scale-105" title="Quay lại Dashboard">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
 
             <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
                 <Dashboard v-if="store.currentRoute === 'dashboard'" />
@@ -375,13 +392,28 @@ const App = {
                 <Guide v-if="store.currentRoute === 'guide'" />
                 <Activate v-else-if="store.currentRoute === 'activate'" />
             </main>
+            </main>
+            </div> <!-- End Main Content Area -->
 
-            <nav aria-label="Điều hướng chính" class="mobile-nav lg:hidden fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 hide-in-focus">
-                <div class="mobile-nav__bar grid grid-cols-4 gap-1">
-                    <button @click="store.navigate('dashboard')" :aria-current="store.currentRoute === 'dashboard' ? 'page' : undefined" :class="store.currentRoute === 'dashboard' ? 'mobile-nav__item--active' : ''" class="mobile-nav__item"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Trang chủ</span></button>
-                    <button @click="store.navigate('roadmap')" :aria-current="store.currentRoute === 'roadmap' ? 'page' : undefined" :class="store.currentRoute === 'roadmap' ? 'mobile-nav__item--active' : ''" class="mobile-nav__item"><i class="fa-solid fa-route" aria-hidden="true"></i><span>Lộ trình</span></button>
-                    <button @click="store.navigate('guide')" :aria-current="store.currentRoute === 'guide' ? 'page' : undefined" :class="store.currentRoute === 'guide' ? 'mobile-nav__item--active' : ''" class="mobile-nav__item"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Hướng dẫn</span></button>
-                    <button @click="store.navigate('profile')" :aria-current="store.currentRoute === 'profile' ? 'page' : undefined" :class="store.currentRoute === 'profile' ? 'mobile-nav__item--active' : ''" class="mobile-nav__item"><i class="fa-solid fa-user" aria-hidden="true"></i><span>Hồ sơ</span></button>
+            <!-- Mobile Bottom Nav -->
+            <nav aria-label="Điều hướng chính" class="mobile-nav lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white/90 backdrop-blur-xl border-t border-gray-200 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 hide-in-focus">
+                <div class="grid grid-cols-4 gap-1 px-2">
+                    <button @click="store.navigate('dashboard')" class="flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-colors" :class="store.currentRoute === 'dashboard' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-900'">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-semibold">Trang chủ</span>
+                    </button>
+                    <button @click="store.navigate('roadmap')" class="flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-colors" :class="store.currentRoute === 'roadmap' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-900'">
+                        <i data-lucide="map" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-semibold">Lộ trình</span>
+                    </button>
+                    <button @click="store.navigate('lexilearn-dashboard')" class="flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'text-amber-500' : 'text-gray-500 hover:text-gray-900'">
+                        <i data-lucide="crown" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-semibold">Lexi Pro</span>
+                    </button>
+                    <button @click="store.navigate('profile')" class="flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-colors" :class="store.currentRoute === 'profile' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-900'">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-semibold">Hồ sơ</span>
+                    </button>
                 </div>
             </nav>
             

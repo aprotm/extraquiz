@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { store } from '../store.js';
 import { getIELTSAnalysis } from '../ai.js';
-import { showToast } from '../app.js';
+import { showToast } from '../toast.js';
 
 export default {
     setup() {

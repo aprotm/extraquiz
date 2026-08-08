@@ -1,13 +1,13 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { store } from '../store.js';
 import { saveNewDeck, updateExistingDeck, fetchDecks, fetchCards, uploadCardImage } from '../db.js';
-import { showToast } from '../app.js';
+import { showToast } from '../toast.js';
 
 export default {
     setup() {
         const isEditMode = computed(() => store.currentRoute === 'edit-deck' && !!store.editDeckData);
         const deckForm = reactive({ title: '', description: '' });
-        const newCards = ref([{ id: null, term: '', definition: '', pronunciation: '', pos: '', example: '', synonyms: '', collocations: '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [] }]);
+        const newCards = ref([{ id: null, term: '', definition: '', pronunciation: '', pos: '', example: '', synonyms: '', collocations: '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [], showAdvanced: false }]);
         const isGeneratingCard = ref({});
         const isBatchGenerating = ref(false);
         const isUploadingImage = ref({});
@@ -22,18 +22,30 @@ export default {
                 deckForm.title = store.editDeckData.title;
                 deckForm.description = store.editDeckData.description;
                 if (store.activeCards && store.activeCards.length > 0) {
-                    newCards.value = store.activeCards.map(c => ({ ...c, selected: false }));
+                    newCards.value = store.activeCards.map(c => ({ ...c, selected: false, showAdvanced: false }));
                 }
             }
         });
 
-        const addEmptyCard = () => newCards.value.push({ id: null, term: '', definition: '', pronunciation: '', pos: '', example: '', synonyms: '', collocations: '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [] });
+        const addEmptyCard = () => {
+            newCards.value.push({ id: null, term: '', definition: '', pronunciation: '', pos: '', example: '', synonyms: '', collocations: '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [], showAdvanced: true });
+            setTimeout(() => {
+                const main = document.getElementById('main-content');
+                if (main) main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
+                else window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 50);
+        };
         const removeCard = (index) => { newCards.value.splice(index, 1); };
 
         const isAllSelected = computed(() => newCards.value.length > 0 && selectedCount.value === newCards.value.length);
         const toggleAll = () => {
             if (isAllSelected.value) deselectAll();
             else selectAll();
+        };
+        const deleteSelected = () => {
+            if (confirm(`Bạn có chắc muốn xóa ${selectedCount.value} thẻ đã chọn?`)) {
+                newCards.value = newCards.value.filter(c => !c.selected);
+            }
         };
 
         const processBulkImport = () => {
@@ -47,7 +59,7 @@ export default {
             }
             const parsed = lines.map(line => {
                 const parts = line.split(sep1);
-                return { id: null, term: parts[0]?.trim() || '', definition: parts[1]?.trim() || '', pronunciation: parts[2]?.trim() || '', pos: parts[3]?.trim() || '', collocations: parts[4]?.trim() || '', synonyms: parts[5]?.trim() || '', example: parts[6]?.trim() || '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [] };
+                return { id: null, term: parts[0]?.trim() || '', definition: parts[1]?.trim() || '', pronunciation: parts[2]?.trim() || '', pos: parts[3]?.trim() || '', collocations: parts[4]?.trim() || '', synonyms: parts[5]?.trim() || '', example: parts[6]?.trim() || '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [], showAdvanced: false };
             });
             if (parsed.length > 0) { newCards.value = [...newCards.value, ...parsed]; }
             bulkText.value = '';
@@ -203,7 +215,7 @@ export default {
             isModalOpen, bulkText, bulkConfig, processBulkImport, isSaving, duplicateIndices, showBulkGuide,
             handleImageUpload, removeImage, isUploadingImage,
             isBatchGenerating, handleBulkAutoFill, selectAll, deselectAll, selectedCount,
-            isAllSelected, toggleAll
+            isAllSelected, toggleAll, deleteSelected
         };
     },
     template: `
@@ -271,12 +283,18 @@ export default {
                             <span v-if="selectedCount > 0" class="text-xs font-bold text-gray-800 bg-gray-100 px-2 py-0.5 rounded-md">{{ selectedCount }} thẻ</span>
                         </div>
                         
-                        <button @click="handleBulkAutoFill" :disabled="isBatchGenerating || selectedCount === 0" 
-                                class="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-                                style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
-                            <i :class="isBatchGenerating ? 'fa-solid fa-spinner animate-spin' : 'fa-solid fa-wand-magic-sparkles'"></i>
-                            {{ isBatchGenerating ? 'AI đang phân tích ' + selectedCount + ' thẻ...' : 'AI Tự Điền Đã Chọn' }}
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button @click="deleteSelected" v-if="selectedCount > 0"
+                                    class="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
+                                <i class="fa-solid fa-trash"></i> Xóa
+                            </button>
+                            <button @click="handleBulkAutoFill" :disabled="isBatchGenerating || selectedCount === 0" 
+                                    class="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                                    style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                                <i :class="isBatchGenerating ? 'fa-solid fa-spinner animate-spin' : 'fa-solid fa-wand-magic-sparkles'"></i>
+                                {{ isBatchGenerating ? 'AI đang phân tích ' + selectedCount + ' thẻ...' : 'AI Tự Điền Đã Chọn' }}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -322,7 +340,19 @@ export default {
                                     <input :id="'def-' + index" v-model="card.definition" type="text" placeholder="Nghĩa tiếng Việt..." 
                                            class="w-full px-3 py-2.5 border-2 border-gray-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-200 outline-none rounded-xl transition text-sm">
                                 </div>
-                                <div class="sm:col-span-2">
+                            </div>
+                            
+                            <!-- Toggle Advanced Fields -->
+                            <div class="mt-4 flex items-center gap-4">
+                                <button @click="card.showAdvanced = !card.showAdvanced" class="text-xs font-bold text-gray-400 hover:text-purple-600 transition flex items-center gap-1.5 bg-gray-50 hover:bg-purple-50 px-3 py-1.5 rounded-lg border border-gray-100 hover:border-purple-200">
+                                    <i class="fa-solid fa-sliders text-[10px]"></i> {{ card.showAdvanced ? 'Thu gọn' : 'Cài đặt nâng cao (Phiên âm, Ví dụ...)' }}
+                                </button>
+                                <div class="flex-1 h-px bg-gray-100"></div>
+                            </div>
+
+                            <!-- Advanced Fields -->
+                            <div v-show="card.showAdvanced" class="mt-4 space-y-3 animate-fade-in">
+                                <div>
                                     <label :for="'pron-' + index" class="block text-xs font-bold text-gray-400 mb-1.5 cursor-pointer">Phiên âm</label>
                                     <input :id="'pron-' + index" v-model="card.pronunciation" placeholder="/ˌprəˌnʌnsiˈeɪʃn/..." type="text" 
                                            class="w-full px-3 py-2.5 border-2 border-gray-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-200 outline-none rounded-xl transition text-sm font-mono">
@@ -370,6 +400,7 @@ export default {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>

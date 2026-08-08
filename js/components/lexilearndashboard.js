@@ -1,7 +1,8 @@
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUpdated, nextTick } from 'vue';
 import { store } from '../store.js';
 import { getRankFromLevel, getLevelProgressInfo } from '../ranks.js';
 import { fetchCards } from '../db.js';
+import { BADGES_DICT } from '../badges.js';
 
 export default {
     setup() {
@@ -9,6 +10,13 @@ export default {
         
         onMounted(() => {
             stats.value = store.getStudyStats() || { streak: 0, todayWords: 0, history: [] };
+            setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+        });
+
+        onUpdated(() => {
+            nextTick(() => {
+                if (window.lucide) window.lucide.createIcons();
+            });
         });
 
         const levelProgress = computed(() => getLevelProgressInfo(store.userProfile?.totalLexiCredit || 0));
@@ -36,13 +44,23 @@ export default {
         });
 
 
-        const badges = [
-            { id: 1, name: 'First Blood', icon: 'fa-solid fa-droplet', color: 'text-red-500', bg: 'bg-red-500/20', unlocked: true },
-            { id: 2, name: '7 Days Streak', icon: 'fa-solid fa-fire', color: 'text-orange-500', bg: 'bg-orange-500/20', unlocked: true },
-            { id: 3, name: 'Vocab Master', icon: 'fa-solid fa-book', color: 'text-blue-500', bg: 'bg-blue-500/20', unlocked: false },
-            { id: 4, name: 'Top 1%', icon: 'fa-solid fa-crown', color: 'text-yellow-500', bg: 'bg-yellow-500/20', unlocked: false, legendary: true },
-            { id: 5, name: 'Lexi God', icon: 'fa-solid fa-bolt', color: 'text-purple-500', bg: 'bg-purple-500/20', unlocked: false, mythic: true }
-        ];
+        const badges = computed(() => {
+            const userBadges = store.userProfile?.badges || [];
+            if (userBadges.length === 0) {
+                return [
+                    { id: 1, name: 'First Coin', icon: 'circle-dollar-sign', color: 'text-amber-700', bg: 'bg-amber-700/20', unlocked: false },
+                    { id: 2, name: 'Spark', icon: 'zap', color: 'text-yellow-500', bg: 'bg-yellow-500/20', unlocked: false },
+                    { id: 3, name: 'Mọt Sách', icon: 'book', color: 'text-amber-600', bg: 'bg-amber-600/20', unlocked: false },
+                ];
+            }
+            return userBadges.map((bId, idx) => {
+                const b = BADGES_DICT.find(x => x.id === bId);
+                if (b) {
+                    return { id: idx, name: b.title, icon: b.icon, color: b.color || 'text-indigo-400', bg: 'bg-indigo-400/10', unlocked: true, legendary: b.rarity === 'legendary', mythic: b.rarity === 'mythic' };
+                }
+                return null;
+            }).filter(Boolean);
+        });
 
         const generateHeatmap = () => {
             const weeks = [];
@@ -498,7 +516,7 @@ export default {
                                             <div class="flex gap-1.5 flex-1">
                                                 <div v-for="(week, wI) in heatmapWeeks" :key="wI" class="flex flex-col gap-1.5">
                                                     <div v-for="(day, dI) in week" :key="dI" 
-                                                         class="w-3 h-3 rounded-sm border transition-all hover:scale-125 cursor-pointer relative group"
+                                                         class="w-3 h-3 rounded-sm border transition-all hover:scale-125 cursor-pointer relative group hover:z-50"
                                                          :class="[
                                                              day.level === 0 ? 'bg-[#161b22] border-[#202632]' : '',
                                                              day.level === 1 ? 'bg-[#0e4429] border-[#0e4429]' : '',
@@ -588,7 +606,7 @@ export default {
                                      ]">
                                     <div v-if="badge.mythic" class="absolute inset-0 rounded-2xl border border-transparent" style="background: linear-gradient(to right, #ec4899, #a855f7, #6366f1) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
                                     <div class="w-12 h-12 rounded-full flex items-center justify-center" :class="badge.bg">
-                                        <i :class="[badge.icon, badge.color, 'text-xl']"></i>
+                                        <i :data-lucide="badge.icon" :class="[badge.color, 'text-xl']"></i>
                                     </div>
                                     <span class="text-xs font-bold text-center text-white">{{ badge.name }}</span>
                                 </div>

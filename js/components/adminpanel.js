@@ -1,7 +1,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { store } from '../store.js';
 import { fetchAllUsers, updateOtherUser } from '../db.js';
-import { showToast } from '../app.js';
+import { showToast } from '../toast.js';
 import { getLevelFromLifetimeLC, getRankFromLevel } from '../ranks.js';
 
 export default {

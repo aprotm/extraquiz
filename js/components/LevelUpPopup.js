@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
 
 export default {
     setup() {
@@ -54,6 +54,12 @@ export default {
             window.addEventListener('level-up', handleLevelUp);
         });
 
+        onUpdated(() => {
+            nextTick(() => {
+                if (window.lucide) window.lucide.createIcons();
+            });
+        });
+
         onUnmounted(() => {
             window.removeEventListener('level-up', handleLevelUp);
         });
@@ -76,7 +82,7 @@ export default {
                         <h2 class="text-3xl font-black text-amber-500 mb-6 drop-shadow-md tracking-wider">LEVEL UP!</h2>
                         
                         <div class="text-7xl mb-4 animate-bounce">
-                            {{ levelInfo?.rank?.icon || '⭐' }}
+                            <i :data-lucide="levelInfo?.rank?.icon || 'star'" class="text-7xl text-yellow-500 mb-4 animate-bounce"></i>
                         </div>
                         
                         <h3 class="text-2xl font-bold text-gray-800 mb-2 uppercase tracking-wide">

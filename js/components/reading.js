@@ -1,7 +1,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { store } from '../store.js';
 import { generateReadingTest } from '../ai.js';
-import { showToast } from '../app.js';
+import { showToast } from '../toast.js';
 
 export default {
     setup() {

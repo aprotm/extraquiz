@@ -109,13 +109,6 @@ export default {
                     </div>
                     
                     <div class="p-4 space-y-4">
-                        <!-- Language Toggle -->
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold text-gray-700 dark:text-gray-300"><i class="fa-solid fa-earth-americas text-gray-400 mr-2 w-4"></i>{{ t('tool.language') }}</span>
-                            <button @click="toggleLanguage" :aria-label="'Đổi ngôn ngữ, hiện tại ' + (store.settings.language === 'vi' ? 'Tiếng Việt' : 'Tiếng Anh')" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                                {{ store.settings.language === 'vi' ? '🇻🇳 VI' : '🇬🇧 EN' }}
-                            </button>
-                        </div>
 
                         <!-- Theme Toggle -->
                         <div class="flex justify-between items-center">
@@ -162,23 +155,17 @@ export default {
                         <!-- Focus Mode -->
                         <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
                             <span class="font-semibold text-gray-700 dark:text-gray-300"><i class="fa-solid fa-eye-slash text-gray-400 mr-2 w-4"></i>{{ t('tool.focus_mode') }}</span>
-                            <button @click="toggleFocusMode" role="switch" :aria-checked="store.settings.focusMode" aria-label="Chế độ tập trung" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.focusMode ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
+                            <button @click="toggleFocusMode" role="switch" :aria-checked="store.settings.focusMode" aria-label="Chế độ tập trung" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0" :class="store.settings.focusMode ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.focusMode ? 'translate-x-6' : 'translate-x-1'"></span>
                             </button>
                         </div>
 
-                        <!-- Design Style Toggle -->
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
-                            <span class="font-semibold text-gray-700 dark:text-gray-300" title="Chuyển đổi giao diện vẽ tay"><i class="fa-solid fa-palette text-gray-400 mr-2 w-4"></i>Giao diện Vẽ Tay</span>
-                            <button @click="toggleDesignStyle" role="switch" :aria-checked="store.settings.designStyle === 'handdrawn'" aria-label="Giao diện vẽ tay" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.designStyle === 'handdrawn' ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
-                                <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.designStyle === 'handdrawn' ? 'translate-x-6' : 'translate-x-1'"></span>
-                            </button>
-                        </div>
+
                         
                         <!-- LexiCredit Chest Animation -->
                         <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
                             <span class="font-semibold text-gray-700 dark:text-gray-300" title="Hiệu ứng rớt rương LexiCredit"><i class="fa-solid fa-gem text-amber-400 mr-2 w-4"></i>Hiệu ứng Rương</span>
-                            <button @click="toggleChestAnimation" role="switch" :aria-checked="store.settings.showChestAnimation !== false" aria-label="Hiệu ứng rương LexiCredit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.showChestAnimation !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
+                            <button @click="toggleChestAnimation" role="switch" :aria-checked="store.settings.showChestAnimation !== false" aria-label="Hiệu ứng rương LexiCredit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0" :class="store.settings.showChestAnimation !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.showChestAnimation !== false ? 'translate-x-6' : 'translate-x-1'"></span>
                             </button>
                         </div>
@@ -186,7 +173,7 @@ export default {
                         <!-- LexiCredit Floating Number -->
                         <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
                             <span class="font-semibold text-gray-700 dark:text-gray-300" title="Hiển thị popup +1 LexiCredit khi học"><i class="fa-solid fa-arrow-up text-amber-400 mr-2 w-4"></i>Popup Cầm Tay</span>
-                            <button @click="toggleFloatingCredit" role="switch" :aria-checked="store.settings.showFloatingCredit !== false" aria-label="Hiển thị popup LexiCredit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.showFloatingCredit !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
+                            <button @click="toggleFloatingCredit" role="switch" :aria-checked="store.settings.showFloatingCredit !== false" aria-label="Hiển thị popup LexiCredit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0" :class="store.settings.showFloatingCredit !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.showFloatingCredit !== false ? 'translate-x-6' : 'translate-x-1'"></span>
                             </button>
                         </div>
@@ -194,7 +181,7 @@ export default {
                         <!-- Level Up Notification -->
                         <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
                             <span class="font-semibold text-gray-700 dark:text-gray-300" title="Hiển thị thông báo khi thăng cấp"><i class="fa-solid fa-level-up text-amber-400 mr-2 w-4"></i>Thông báo Level Up</span>
-                            <button @click="toggleLevelUpNotification" role="switch" :aria-checked="store.settings.showLevelUpNotification !== false" aria-label="Hiển thị thông báo Level Up" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="store.settings.showLevelUpNotification !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
+                            <button @click="toggleLevelUpNotification" role="switch" :aria-checked="store.settings.showLevelUpNotification !== false" aria-label="Hiển thị thông báo Level Up" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0" :class="store.settings.showLevelUpNotification !== false ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'">
                                 <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" :class="store.settings.showLevelUpNotification !== false ? 'translate-x-6' : 'translate-x-1'"></span>
                             </button>
                         </div>

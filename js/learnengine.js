@@ -61,7 +61,12 @@ function chooseBalanced(options, index, previous) {
 
 function optionsFor(card, cards, direction) {
     const correct = direction === 'en_to_vi' ? card.definition : card.term;
-    const distractors = shuffled(cards.filter(c => c.id !== card.id && (c.pos === card.pos || !card.pos))
+    let distractorCards = cards.filter(c => c.id !== card.id && (c.pos === card.pos || !card.pos));
+    if (distractorCards.length < 3) {
+        const others = cards.filter(c => c.id !== card.id && c.pos !== card.pos && c.pos);
+        distractorCards = [...distractorCards, ...others];
+    }
+    const distractors = shuffled(distractorCards
         .map(c => direction === 'en_to_vi' ? c.definition : c.term)
         .filter(Boolean)).slice(0, 3);
     return shuffled([...new Set([correct, ...distractors])]).slice(0, 4);
