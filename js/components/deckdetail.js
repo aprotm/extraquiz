@@ -2,19 +2,12 @@ import { ref } from 'vue';
 import { store } from '../store.js';
 import { getIELTSAnalysis } from '../ai.js';
 import { showToast } from '../toast.js';
+import { speakEnglishText } from '../voice.js';
 
 export default {
     setup() {
         const speakWord = (text) => {
-            if (!text || !('speechSynthesis' in window)) return;
-            const ut = new SpeechSynthesisUtterance(text);
-            ut.lang = 'en-US';
-            if (store.settings && store.settings.voiceUri) {
-                const voices = window.speechSynthesis.getVoices();
-                const selectedVoice = voices.find(v => v.voiceURI === store.settings.voiceUri);
-                if (selectedVoice) ut.voice = selectedVoice;
-            }
-            speechSynthesis.speak(ut);
+            speakEnglishText(text);
         };
 
         const getStatusClass = (st) => st === 'mastered' 

@@ -4,7 +4,7 @@ export async function askGemini(prompt) {
         throw new Error("Vui lòng nhập Gemini API Key trong Cài đặt trước khi sử dụng tính năng này.");
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     
     try {
         const response = await fetch(url, {

@@ -21,6 +21,7 @@ import Profile from './components/profile.js';
 import AdminPanel from './components/adminpanel.js';
 import UserTool from './components/usertool.js';
 import Guide from './components/guide.js';
+import Quotes from './components/quotes.js';
 import LevelUpPopup from './components/LevelUpPopup.js';
 import Activate from './components/activate.js';
 import LexiLearnDashboard from './components/lexilearndashboard.js';
@@ -30,7 +31,7 @@ import { toasts, showToast } from './toast.js';
 
 const App = {
     components: {
-        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, LevelUpPopup, Activate, LexiLearnDashboard
+        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, Activate, LexiLearnDashboard
     },
     setup() {
         const isLoginMode = ref(true);
@@ -48,10 +49,8 @@ const App = {
                 }
             });
 
-            // Set default Gemini API key so users don't need to enter it
-            if (!localStorage.getItem('gemini_api_key')) {
-                localStorage.setItem('gemini_api_key', 'AIzaSyB2VaG_F-1jLVRIZedSIi9Kmlzpvt2UWOg');
-            }
+            // API Key must be set manually by the user in the UI or via localStorage
+            // (Removed hardcoded leaked key)
 
             if (!auth) {
                 store.hideLoading();
@@ -177,13 +176,25 @@ const App = {
         const getBadgeIcon = (id) => {
             if (!id) return '';
             const b = BADGES_DICT.find(x => x.id === id);
-            return b ? b.icon : '';
+            return b ? (b.emoji || b.icon || '🏆') : '🏆';
+        };
+
+        const getBadgeTitle = (id) => {
+            if (!id) return '';
+            const b = BADGES_DICT.find(x => x.id === id);
+            return b ? b.title : '';
+        };
+
+        const getBadge3D = (id) => {
+            if (!id) return '';
+            const b = BADGES_DICT.find(x => x.id === id);
+            return b ? b.image3d : '';
         };
 
         return { 
             store, isLoginMode, authForm, handleAuth, logout, toasts, 
             bgImage, triggerBgUpload, handleBgUpload, removeBgImage,
-            userInitial, getBadgeIcon, t, handleForgotPassword
+            userInitial, getBadgeIcon, getBadge3D, getBadgeTitle, t, handleForgotPassword
         };
     },
     template: `
@@ -208,14 +219,14 @@ const App = {
                 <div class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl bg-white overflow-hidden p-1">
                     <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain rounded-2xl">
                 </div>
-                <div class="flex flex-col items-center gap-2">
-                    <p class="text-lg font-bold" style="color: #6d55d1;">ExtraQuiz Pro</p>
-                    <p class="text-sm text-gray-500 font-medium">Đang chuẩn bị...</p>
+                <div class="flex flex-col items-center gap-1.5 text-center">
+                    <p class="text-xl font-black tracking-tight" style="color: #6d55d1;">Lexi<span class="text-amber-500">Learn</span> <span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-extrabold uppercase ml-1">PRO</span></p>
+                    <p class="text-xs text-gray-500 font-semibold tracking-wide">Đang khởi tạo không gian học tập AI...</p>
                 </div>
                 <div class="flex gap-2">
-                    <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0ms"></div>
-                    <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 150ms"></div>
-                    <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 300ms"></div>
+                    <div class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 0ms"></div>
+                    <div class="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style="animation-delay: 150ms"></div>
+                    <div class="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style="animation-delay: 300ms"></div>
                 </div>
             </div>
         </div>
@@ -318,19 +329,42 @@ const App = {
                         <i data-lucide="book-open" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'guide' ? 'text-indigo-600' : ''"></i>
                         <span>Hướng dẫn</span>
                     </button>
+                    <button @click="store.navigate('quotes')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'quotes' ? 'bg-amber-50 text-amber-700 font-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
+                        <i data-lucide="sparkles" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'quotes' ? 'text-amber-500' : 'text-amber-400'"></i>
+                        <span class="flex items-center justify-between flex-1">
+                            <span>Góc Động Lực</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Spark</span>
+                        </span>
+                    </button>
+
+                    <!-- Admin Panel Link -->
+                    <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'" 
+                            @click="store.navigate('admin')" 
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group mt-2" 
+                            :class="store.currentRoute === 'admin' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200' : 'text-gray-500 hover:bg-rose-50 hover:text-rose-700'">
+                        <i data-lucide="shield" class="w-5 h-5 transition-transform group-hover:scale-110 text-rose-500"></i>
+                        <span class="flex items-center justify-between flex-1">
+                            <span>Admin Panel</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">v2.0</span>
+                        </span>
+                    </button>
                 </div>
                 
                 <!-- Bottom Profile -->
                 <div class="p-4 border-t border-gray-100">
                     <div class="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" @click="store.navigate('profile')">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm relative">
-                                <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
-                                <template v-else>{{ userInitial() }}</template>
-                                
-                                <div v-if="store.userProfile?.equippedBadge" class="absolute -bottom-1 -right-1 text-[10px] bg-white rounded-full shadow-sm w-4 h-4 flex items-center justify-center border border-gray-100 text-amber-500">
-                                    <i v-if="getBadgeIcon(store.userProfile.equippedBadge).length > 3" :data-lucide="getBadgeIcon(store.userProfile.equippedBadge)" class="w-3 h-3"></i>
-                                    <span v-else>{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
+                            <div class="relative w-10 h-10 shrink-0">
+                                <div class="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm">
+                                    <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
+                                    <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
+                                </div>
+                                <!-- Equipped Badge -->
+                                <div v-if="store.userProfile?.equippedBadge" 
+                                     class="absolute -bottom-1 -right-1 bg-white rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-10 animate-bounce-short select-none"
+                                     :title="'Huy hiệu: ' + getBadgeTitle(store.userProfile.equippedBadge)">
+                                    <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain">
+                                    <span v-else class="text-[10px]">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
                                 </div>
                             </div>
                             <div class="flex flex-col">
@@ -349,7 +383,7 @@ const App = {
             </aside>
 
             <!-- Main Content Area -->
-            <main class="flex-1 flex flex-col min-w-0 shadow-inner rounded-l-3xl border-l relative transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-[#0B1020] border-[#1E2540]' : 'bg-white/40 backdrop-blur-sm border-white/50'">
+            <div class="flex-1 flex flex-col min-w-0 shadow-inner rounded-l-3xl border-l relative transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-[#0B1020] border-[#1E2540]' : 'bg-white/40 backdrop-blur-sm border-white/50'">
                 <!-- Mobile Header -->
                 <header class="lg:hidden glass-panel-strong sticky top-0 z-40 px-4 py-3 flex justify-between items-center hide-in-focus border-b border-gray-100" v-show="['dashboard'].includes(store.currentRoute)">
                     <div class="flex items-center gap-3 cursor-pointer" @click="store.navigate('dashboard')">
@@ -367,7 +401,7 @@ const App = {
                 </header>
 
                 <!-- Floating Back Button for Focus Mode & AI Tools -->
-                <button v-if="store.currentRoute !== 'dashboard'" 
+                <button v-if="!['dashboard', 'lexilearn-dashboard'].includes(store.currentRoute)" 
                         @click="store.navigate('dashboard')"
                         class="fixed top-4 left-4 z-50 w-10 h-10 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all hover:scale-105" title="Quay lại Dashboard">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
@@ -389,9 +423,9 @@ const App = {
                 <MatchingGame v-else-if="store.currentRoute === 'matching'" />
                 <Profile v-else-if="store.currentRoute === 'profile'" />
                 <AdminPanel v-else-if="store.currentRoute === 'admin'" />
-                <Guide v-if="store.currentRoute === 'guide'" />
+                <Guide v-else-if="store.currentRoute === 'guide'" />
+                <Quotes v-else-if="store.currentRoute === 'quotes'" />
                 <Activate v-else-if="store.currentRoute === 'activate'" />
-            </main>
             </main>
             </div> <!-- End Main Content Area -->
 

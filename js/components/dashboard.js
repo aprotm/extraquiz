@@ -4,6 +4,7 @@ import { fetchCards, deleteDeckAndCards, fetchDecks, fetchAllUserCards } from '.
 import { showToast } from '../toast.js';
 import { t } from '../i18n.js';
 import { RANK_LIST, getLevelProgressInfo, getRankFromLevel } from '../ranks.js';
+import { MOTIVATIONAL_QUOTES } from './quotes.js';
 
 // Generate a consistent color accent index from deck title
 function getDeckAccent(title) {
@@ -20,6 +21,17 @@ export default {
         const selectedDecks = ref([]);
         const stats = ref(null);
         const showRankGuide = ref(false);
+
+        const quoteList = MOTIVATIONAL_QUOTES;
+        const dailyQuote = ref(quoteList[Math.floor(Math.random() * quoteList.length)]);
+
+        const shuffleQuote = () => {
+            let nextQuote;
+            do {
+                nextQuote = quoteList[Math.floor(Math.random() * quoteList.length)];
+            } while (nextQuote.id === dailyQuote.value.id && quoteList.length > 1);
+            dailyQuote.value = nextQuote;
+        };
         
         onMounted(() => {
             stats.value = store.getStudyStats() || { streak: 0, todayWords: 0, history: [] };
@@ -167,7 +179,8 @@ export default {
             isSelectMode, selectedDecks, toggleSelectMode, deleteSelected, stats,
             todayProgress, ringCircumference, ringOffset, getDeckAccent, t,
             levelProgress, currentRank, showRankGuide, rankGuideList,
-            vocabStats, aiVocabRecommendation, dailyMissions, hasStudyHistory
+            vocabStats, aiVocabRecommendation, dailyMissions, hasStudyHistory,
+            dailyQuote, shuffleQuote
         };
     },
     template: `
@@ -179,7 +192,10 @@ export default {
                 <div class="absolute -left-12 -bottom-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div class="relative z-10 text-center md:text-left flex-1">
-                    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-2">Chào {{ store.userProfile?.displayName?.split(' ')[0] || 'Học giả' }} 👋</h1>
+                    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-2 flex items-center justify-center md:justify-start gap-2">
+                        <span>Chào {{ store.userProfile?.displayName?.split(' ')[0] || 'Học giả' }}</span>
+                        <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-8 h-8 inline-block object-contain filter drop-shadow-sm animate-wiggle">
+                    </h1>
                     <p class="text-gray-500 font-medium mb-6 text-sm md:text-base">Hôm nay bạn đã học được <span class="font-bold text-indigo-600">{{ stats?.todayWords || 0 }} / {{ store.settings?.dailyTarget || 20 }}</span> từ vựng mục tiêu.</p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                         <button class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm transition-all" @click="store.navigate('roadmap')">
@@ -202,6 +218,41 @@ export default {
                         <i data-lucide="gem" class="w-6 h-6 text-amber-500 mb-2 fill-amber-100"></i>
                         <span class="text-xl font-bold text-gray-900">{{ store.userProfile?.lexiCredit || 0 }}</span>
                         <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mt-1">LexiCredit</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Spark Motivational Quote Widget -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-200/80 relative overflow-hidden shadow-sm hover:shadow-md transition-all group select-none">
+                <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700"></div>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 p-2 shadow-md shadow-amber-500/20 shrink-0 flex items-center justify-center select-none">
+                            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Sparkles/3D/sparkles_3d.png" class="w-full h-full object-contain filter drop-shadow-md">
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-200">
+                                    Danh Ngôn Hôm Nay
+                                </span>
+                                <span class="text-xs text-gray-400 font-bold">— {{ dailyQuote.author }}</span>
+                            </div>
+                            <p class="text-gray-900 font-extrabold text-sm sm:text-base leading-snug font-serif italic mb-1">
+                                "{{ dailyQuote.quote }}"
+                            </p>
+                            <p class="text-xs text-gray-600 font-medium leading-relaxed">
+                                {{ dailyQuote.translation }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <button @click="shuffleQuote" class="w-9 h-9 rounded-xl bg-white hover:bg-amber-50 text-gray-700 hover:text-amber-600 border border-gray-200 shadow-sm flex items-center justify-center transition-all active:scale-95" title="Đổi câu khác">
+                            <i class="fa-solid fa-shuffle text-xs"></i>
+                        </button>
+                        <button @click="store.navigate('quotes')" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-1.5" title="Mở Góc Động Lực">
+                            <span>Góc Động Lực</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -265,8 +316,12 @@ export default {
                             
                             <!-- Select indicator -->
                             <div v-if="isSelectMode" class="absolute top-4 right-4 z-10">
-                                <i v-if="selectedDecks.includes(deck.id)" data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500 fill-indigo-100"></i>
-                                <i v-else data-lucide="circle" class="w-5 h-5 text-gray-300"></i>
+                                <span v-if="selectedDecks.includes(deck.id)" :key="'sel-'+deck.id">
+                                    <i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500 fill-indigo-100"></i>
+                                </span>
+                                <span v-else :key="'unsel-'+deck.id">
+                                    <i data-lucide="circle" class="w-5 h-5 text-gray-300"></i>
+                                </span>
                             </div>
 
                             <!-- Title -->
@@ -332,32 +387,35 @@ export default {
                 <div class="w-full xl:w-72 space-y-6 flex-shrink-0">
                     
                     <!-- User Rank Card -->
-                    <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group bg-white">
-                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-indigo-50 rounded-full opacity-50 blur-xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+                    <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group bg-white border border-indigo-100/80 shadow-sm hover:shadow-md transition-all">
+                        <div class="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-200/40 to-purple-200/40 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
                         <div class="flex flex-col gap-3 relative z-10">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-50 to-purple-50 flex items-center justify-center border border-indigo-100">
-                                    <i :data-lucide="currentRank.icon" :class="[currentRank.color, 'w-6 h-6']"></i>
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 flex items-center justify-center border border-indigo-100/60 shadow-sm shrink-0 group-hover:scale-105 transition-transform p-2">
+                                    <img v-if="currentRank?.image3d" :src="currentRank.image3d" class="w-full h-full object-contain filter drop-shadow-md">
+                                    <i v-else :data-lucide="currentRank.icon" :class="[currentRank.color, 'w-7 h-7']"></i>
                                 </div>
-                                <div>
-                                    <div class="flex items-center gap-1.5 mb-0.5">
-                                        <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Level {{ levelProgress.currentLevel }}</p>
-                                        <button @click="showRankGuide = true" class="w-3.5 h-3.5 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center hover:bg-gray-200 transition" title="Bảng danh hiệu">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-1.5 mb-1">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100/80 uppercase tracking-wider">
+                                            Level {{ levelProgress.currentLevel }}
+                                        </span>
+                                        <button @click="showRankGuide = true" class="w-4 h-4 rounded-full bg-gray-100 hover:bg-indigo-100 text-gray-400 hover:text-indigo-600 flex items-center justify-center transition" title="Bảng danh hiệu">
                                             <i data-lucide="info" class="w-2.5 h-2.5"></i>
                                         </button>
                                     </div>
-                                    <h2 class="text-sm font-extrabold text-gray-900 leading-tight">{{ currentRank.title }}</h2>
+                                    <h2 class="text-sm font-extrabold text-gray-900 leading-snug truncate">{{ currentRank.title }}</h2>
                                 </div>
                             </div>
                             
                             <!-- Progress Bar -->
-                            <div class="space-y-1.5 w-full">
+                            <div class="space-y-1.5 w-full pt-1">
                                 <div class="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                     <span>{{ (levelProgress.totalLC || 0).toLocaleString() }} LC</span>
                                     <span>{{ (levelProgress.nextLevelMinimum || 0).toLocaleString() }} LC</span>
                                 </div>
-                                <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                    <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                                <div class="h-2 w-full bg-indigo-50/80 rounded-full overflow-hidden p-[1px] border border-indigo-100/50">
+                                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 shadow-sm"
                                          :style="{ width: levelProgress.percent + '%' }">
                                     </div>
                                 </div>
@@ -439,34 +497,46 @@ export default {
                     </div>
                 </div>
             </div>
+        </div>
 
         <!-- Rank Guide Modal -->
-        <div v-if="showRankGuide" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-fade-in" @click.self="showRankGuide = false">
-            <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in">
-                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 class="font-extrabold text-gray-900 flex items-center gap-2 text-lg"><i class="fa-solid fa-ranking-star text-amber-500"></i> Bảng Phong Thần</h3>
-                    <button @click="showRankGuide = false" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center transition">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <div class="p-5 max-h-[60vh] overflow-y-auto">
-                    <p class="text-sm text-gray-500 mb-4 font-medium">Hệ thống cấp độ dựa vào <b class="text-amber-500">Tổng điểm LexiCredit</b> bạn kiếm được trọn đời. Cứ 50 LexiCredit sẽ thăng 1 cấp!</p>
-                    <div class="space-y-3">
-                        <div v-for="(rank, idx) in rankGuideList" :key="idx" class="flex items-center gap-4 p-3 rounded-2xl border border-gray-100 hover:border-purple-200 transition-colors" :class="currentRank.title === rank.title ? 'bg-purple-50 border-purple-200 shadow-sm' : ''">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0" :class="currentRank.title === rank.title ? 'bg-purple-100' : 'bg-gray-100'">
-                                <i :data-lucide="rank.icon" :class="[rank.color]"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900 leading-tight" :class="currentRank.title === rank.title ? 'text-purple-700' : ''">{{ rank.title }}</h4>
-                                <p class="text-xs text-gray-500 font-medium">Lv.{{ rank.minLevel }}{{ rank.maxLevel === Infinity ? '+' : ' - ' + rank.maxLevel }}</p>
-                            </div>
-                            <div v-if="currentRank.title === rank.title" class="ml-auto px-2.5 py-1 rounded-full bg-purple-100 text-purple-600 text-[10px] font-bold uppercase tracking-wider">
-                                Hiện tại
+        <teleport to="body">
+            <div v-if="showRankGuide" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-fade-in" @click.self="showRankGuide = false">
+                <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in border border-gray-100">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-indigo-50/60 to-purple-50/60">
+                        <h3 class="font-extrabold text-gray-900 flex items-center gap-2 text-lg">
+                            <span class="text-xl select-none">🏆</span> 
+                            Bảng Phong Thần
+                        </h3>
+                        <button @click="showRankGuide = false" class="w-8 h-8 rounded-full bg-white text-gray-500 hover:bg-gray-100 flex items-center justify-center transition shadow-sm">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="p-5 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                        <p class="text-xs text-gray-500 mb-4 font-medium leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            Hệ thống cấp độ dựa vào <b class="text-indigo-600">Tổng điểm LexiCredit</b> bạn kiếm được trọn đời. Cứ <b>50 LexiCredit</b> sẽ thăng 1 cấp!
+                        </p>
+                        <div class="space-y-2.5">
+                            <div v-for="(rank, idx) in rankGuideList" :key="idx" 
+                                 class="flex items-center gap-3.5 p-3 rounded-2xl border transition-all"
+                                 :class="currentRank.title === rank.title ? 'bg-gradient-to-r from-indigo-50/80 to-purple-50/80 border-indigo-200 shadow-sm ring-1 ring-indigo-300' : 'bg-white border-gray-100 hover:border-indigo-100'">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 p-2" 
+                                     :class="currentRank.title === rank.title ? 'bg-white shadow-md border border-indigo-200' : 'bg-gray-50 border border-gray-100'">
+                                    <img v-if="rank.image3d" :src="rank.image3d" class="w-full h-full object-contain filter drop-shadow-sm">
+                                    <i v-else :data-lucide="rank.icon" :class="[rank.color, 'w-5 h-5']"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-extrabold text-sm leading-tight truncate" :class="currentRank.title === rank.title ? 'text-indigo-900' : 'text-gray-900'">{{ rank.title }}</h4>
+                                    <p class="text-xs text-gray-400 font-bold mt-0.5">Lv.{{ rank.minLevel }}{{ rank.maxLevel === Infinity ? '+' : ' - ' + rank.maxLevel }}</p>
+                                </div>
+                                <div v-if="currentRank.title === rank.title" class="px-2.5 py-1 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
+                                    Hiện tại
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </teleport>
     `
 };

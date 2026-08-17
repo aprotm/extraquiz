@@ -5,6 +5,7 @@ import { calculateRetentionProb, calculateUrgency, calculateConfidence, updateHa
 import { updatePersona } from '../personaengine.js';
 import { playCorrect, playIncorrect } from '../sfx.js';
 import { generateSessionReflection } from '../aiinsight.js';
+import { speakEnglishText } from '../voice.js';
 
 export default {
     setup() {
@@ -48,15 +49,7 @@ export default {
         });
 
         const speakWord = (text) => {
-            if (!text || !('speechSynthesis' in window)) return;
-            const ut = new SpeechSynthesisUtterance(text);
-            ut.lang = 'en-US';
-            if (store.settings && store.settings.voiceUri) {
-                const voices = window.speechSynthesis.getVoices();
-                const selectedVoice = voices.find(v => v.voiceURI === store.settings.voiceUri);
-                if (selectedVoice) ut.voice = selectedVoice;
-            }
-            speechSynthesis.speak(ut);
+            speakEnglishText(text);
         };
 
         const scoreFeedback = ref(null);

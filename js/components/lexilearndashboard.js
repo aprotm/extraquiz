@@ -3,6 +3,7 @@ import { store } from '../store.js';
 import { getRankFromLevel, getLevelProgressInfo } from '../ranks.js';
 import { fetchCards } from '../db.js';
 import { BADGES_DICT } from '../badges.js';
+import { calculateRetentionProb } from '../memoryengine.js';
 
 export default {
     setup() {
@@ -27,10 +28,7 @@ export default {
             return name.split('@')[0].split(' ')[0]; // Basic first name extract
         });
 
-        const navItems = [
-            { id: 'dashboard', icon: 'fa-solid fa-border-all', label: 'Dashboard', active: true }
-        ];
-
+        const activeTab = ref('dashboard');
         const themeColor = ref(localStorage.getItem('lexi_theme_color') || '#0B1020');
         const changeTheme = () => {
             const colors = ['#0B1020', '#1A1A2E', '#2D1B2E', '#16213E', '#171717'];
@@ -44,19 +42,54 @@ export default {
         });
 
 
+        const getBadgeIcon = (id) => {
+            const b = BADGES_DICT.find(x => x.id === id);
+            return b ? (b.emoji || b.icon || '🏆') : '🏆';
+        };
+
+        const getBadgeTitle = (id) => {
+            const b = BADGES_DICT.find(x => x.id === id);
+            return b ? b.title : '';
+        };
+
+        const getBadge3D = (id) => {
+            const b = BADGES_DICT.find(x => x.id === id);
+            return b ? b.image3d : '';
+        };
+
         const badges = computed(() => {
             const userBadges = store.userProfile?.badges || [];
             if (userBadges.length === 0) {
-                return [
-                    { id: 1, name: 'First Coin', icon: 'circle-dollar-sign', color: 'text-amber-700', bg: 'bg-amber-700/20', unlocked: false },
-                    { id: 2, name: 'Spark', icon: 'zap', color: 'text-yellow-500', bg: 'bg-yellow-500/20', unlocked: false },
-                    { id: 3, name: 'Mọt Sách', icon: 'book', color: 'text-amber-600', bg: 'bg-amber-600/20', unlocked: false },
-                ];
+                return BADGES_DICT.slice(0, 6).map((b, idx) => ({
+                    id: idx,
+                    badgeId: b.id,
+                    name: b.title,
+                    image3d: b.image3d,
+                    emoji: b.emoji,
+                    icon: b.icon,
+                    color: 'text-amber-400',
+                    bg: 'bg-amber-400/10',
+                    unlocked: false,
+                    isEquipped: false
+                }));
             }
             return userBadges.map((bId, idx) => {
                 const b = BADGES_DICT.find(x => x.id === bId);
                 if (b) {
-                    return { id: idx, name: b.title, icon: b.icon, color: b.color || 'text-indigo-400', bg: 'bg-indigo-400/10', unlocked: true, legendary: b.rarity === 'legendary', mythic: b.rarity === 'mythic' };
+                    return {
+                        id: idx,
+                        badgeId: b.id,
+                        name: b.title,
+                        image3d: b.image3d,
+                        emoji: b.emoji,
+                        icon: b.icon,
+                        color: b.color || 'text-indigo-400',
+                        bg: 'bg-indigo-400/10',
+                        unlocked: true,
+                        isEquipped: store.userProfile?.equippedBadge === b.id,
+                        legendary: b.rarity === 'legendary',
+                        mythic: b.rarity === 'mythic'
+                    };
                 }
                 return null;
             }).filter(Boolean);
@@ -107,14 +140,67 @@ export default {
         const heatmapWeeks = generateHeatmap();
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
         const aiCoachStats = computed(() => {
-            const wordsCount = totalWords.value || 0;
-            const todayWords = stats.value?.todayWords || 0;
-            const baseReview = Math.min(20, Math.max(5, Math.floor(wordsCount * 0.2)));
-            const reviewWords = Math.max(0, baseReview - todayWords);
-            const estMins = Math.max(0, Math.ceil(reviewWords * 0.6));
-            let confidence = (stats.value?.streak || 0) > 3 ? 88 : 72;
-            if (reviewWords === 0) confidence = 98;
-            return { reviewWords, estMins, confidence };
+            const allCards = [];
+            if (store.decks && store.decks.length > 0) {
+                store.decks.forEach(d => {
+                    if (d.cards && Array.isArray(d.cards)) {
+                        allCards.push(...d.cards);
+                    }
+                });
+            }
+            
+            const total = allCards.length > 0 ? allCards.length : (totalWords.value || 0);
+            const now = Date.now();
+            let needReviewCount = 0;
+            let sumRetention = 0;
+            let maxDaysInactive = 0;
+
+            if (allCards.length > 0) {
+                allCards.forEach(c => {
+                    const lastReview = c.last_reviewed_at 
+                        ? (c.last_reviewed_at.toDate ? c.last_reviewed_at.toDate().getTime() : new Date(c.last_reviewed_at).getTime()) 
+                        : (c.createdAt ? (c.createdAt.toDate ? c.createdAt.toDate().getTime() : new Date(c.createdAt).getTime()) : (now - 14 * 86400000));
+                    
+                    const deltaMinutes = Math.max(0, (now - lastReview) / 60000);
+                    const daysInactive = deltaMinutes / 1440;
+                    if (daysInactive > maxDaysInactive) maxDaysInactive = daysInactive;
+
+                    const halfLife = c.recognition_half_life || 1440; // 1 ngày
+                    const pr = calculateRetentionProb(halfLife, deltaMinutes);
+                    sumRetention += pr;
+                    if (pr < 0.85) {
+                        needReviewCount++;
+                    }
+                });
+            } else {
+                const lastActiveDate = store.userProfile?.lastCreditDate || stats.value?.lastActive;
+                const daysInactive = lastActiveDate ? Math.max(3, Math.floor((now - new Date(lastActiveDate).getTime()) / 86400000)) : 14;
+                maxDaysInactive = daysInactive;
+                const decayFactor = Math.max(0.18, Math.pow(0.5, daysInactive / 3));
+                needReviewCount = total > 0 ? total : 4;
+                sumRetention = total > 0 ? (total * decayFactor) : (4 * decayFactor);
+            }
+
+            const rawAvg = total > 0 ? (sumRetention / total) : 0.25;
+            const avgRetention = Math.min(99, Math.max(15, Math.round(rawAvg * 100)));
+            const daysAbsent = Math.max(1, Math.round(maxDaysInactive || 7));
+            const isLongAbsence = daysAbsent >= 3 || avgRetention < 65;
+            const reviewWords = isLongAbsence ? (total > 0 ? total : 4) : Math.max(needReviewCount, total > 0 ? Math.ceil(total * 0.4) : 4);
+            const estMins = Math.max(1, Math.ceil(reviewWords * 0.5));
+            const confidence = 94;
+
+            // Tọa độ Y cho điểm uốn và điểm cuối của đường cong SVG
+            const curveEndY = Math.min(105, Math.max(15, Math.round(10 + (100 - avgRetention) * 0.95)));
+
+            return {
+                reviewWords,
+                estMins,
+                avgRetention,
+                daysAbsent,
+                isLongAbsence,
+                confidence,
+                curveEndY
+            };
         });
 
         const dailyMissions = computed(() => {
@@ -164,39 +250,169 @@ export default {
             }
         };
 
-        return { store, stats, levelProgress, currentRank, firstName, navItems, badges, heatmapWeeks, months, themeColor, changeTheme, totalWords, aiCoachStats, startReview, dailyMissions, completedMissionsCount };
+        return { 
+            store, stats, levelProgress, currentRank, firstName, activeTab, 
+            badges, heatmapWeeks, months, themeColor, changeTheme, totalWords, 
+            aiCoachStats, startReview, dailyMissions, completedMissionsCount,
+            getBadgeIcon, getBadgeTitle, getBadge3D
+        };
     },
     template: `
         <div class="fixed inset-0 text-gray-100 flex overflow-hidden z-[100]" :style="{ backgroundColor: themeColor, fontFamily: '\\'Plus Jakarta Sans\\', sans-serif' }">
             
             <!-- SIDEBAR -->
-            <div class="w-64 bg-[#0F1426] border-r border-[#1E2540] flex flex-col z-10 flex-shrink-0">
-                <div class="p-6 flex items-center gap-3">
-                    <div class="w-8 h-8 bg-[#6366F1] rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg">L</div>
-                    <span class="text-xl font-bold tracking-tight text-white">LexiLearn</span>
+            <div class="w-64 bg-[#0F1426] border-r border-[#1E2540] flex flex-col z-10 flex-shrink-0 select-none">
+                <!-- Header Brand -->
+                <div class="p-5 pb-4 border-b border-[#1E2540] flex items-center justify-between">
+                    <div class="flex items-center gap-3 cursor-pointer group" @click="store.navigate('dashboard')">
+                        <div class="w-9 h-9 shrink-0 group-hover:scale-105 transition-transform">
+                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-md">
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-lg font-black tracking-tight text-white">Lexi<span class="text-amber-400">Learn</span></span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider shadow-sm">PRO</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500 font-semibold tracking-wide">AI Learning Hub</p>
+                        </div>
+                    </div>
                 </div>
                 
-                <nav class="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto scrollbar-hide">
-                    <button v-for="nav in navItems" :key="nav.id" 
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all"
-                            :class="nav.active ? 'bg-[#1E2248] text-[#818CF8]' : 'text-gray-400 hover:text-white hover:bg-[#151930]'">
-                        <i :class="nav.icon" class="text-sm w-4"></i> {{ nav.label }}
+                <!-- Navigation List -->
+                <div class="px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar flex-1">
+                    <!-- Quick Back Button -->
+                    <button @click="store.navigate('dashboard')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-[#151A2D] hover:bg-[#1E2540] border border-[#1E2540] transition-all mb-4 group shadow-sm">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left text-xs text-indigo-400 group-hover:-translate-x-1 transition-transform"></i>
+                            ExtraQuiz Classic
+                        </span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">v1.0</span>
                     </button>
-                    <!-- Back to ExtraQuiz button -->
-                    <button @click="store.navigate('dashboard')" class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-white hover:bg-[#151930] rounded-xl font-medium transition-colors mt-8">
-                        <i class="fa-solid fa-arrow-left-long text-sm w-4"></i> Back to ExtraQuiz
+
+                    <div class="px-3 pb-2 pt-1">
+                        <p class="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Menu Chính</p>
+                    </div>
+
+                    <!-- Dashboard Button -->
+                    <button @click="activeTab = 'dashboard'" class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition-all group"
+                            :class="activeTab === 'dashboard' ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-indigo-300 border border-indigo-500/40 shadow-[0_0_15px_rgba(99,102,241,0.15)]' : 'text-gray-400 hover:text-white hover:bg-[#151A2D]'">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="activeTab === 'dashboard' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-gray-800/40 text-gray-400'">
+                                <i class="fa-solid fa-border-all text-sm"></i>
+                            </div>
+                            <span>Tổng quan Pro</span>
+                        </div>
+                        <span v-if="activeTab === 'dashboard'" class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
                     </button>
-                </nav>
+
+                    <!-- Roadmap Button -->
+                    <button @click="store.navigate('roadmap')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#151A2D] transition-all group">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800/40 text-gray-400 group-hover:text-amber-400 group-hover:bg-amber-400/10 transition-colors">
+                            <i class="fa-solid fa-route text-sm"></i>
+                        </div>
+                        <span>Lộ trình học</span>
+                    </button>
+
+                    <!-- Trophy Room / Profile Button -->
+                    <button @click="store.navigate('profile')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#151A2D] transition-all group">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800/40 text-gray-400 group-hover:text-yellow-400 group-hover:bg-yellow-400/10 transition-colors">
+                            <i class="fa-solid fa-trophy text-sm"></i>
+                        </div>
+                        <span>Phòng Truyền Thống</span>
+                    </button>
+
+                    <!-- Guide Button -->
+                    <button @click="store.navigate('guide')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#151A2D] transition-all group">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800/40 text-gray-400 group-hover:text-emerald-400 group-hover:bg-emerald-400/10 transition-colors">
+                            <i class="fa-solid fa-book-open text-sm"></i>
+                        </div>
+                        <span>Hướng dẫn</span>
+                    </button>
+
+                    <!-- Quotes Button -->
+                    <button @click="store.navigate('quotes')" class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#151A2D] transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800/40 text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-400/10 transition-colors">
+                                <i class="fa-solid fa-quote-left text-sm"></i>
+                            </div>
+                            <span>Góc Động Lực</span>
+                        </div>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Quote</span>
+                    </button>
+
+                    <!-- Admin Control Button -->
+                    <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'" 
+                            @click="store.navigate('admin')" 
+                            class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#151A2D] transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800/40 text-rose-400 group-hover:text-rose-300 group-hover:bg-rose-500/10 transition-colors">
+                                <i class="fa-solid fa-shield-halved text-sm"></i>
+                            </div>
+                            <span>Admin Center</span>
+                        </div>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">v2.0</span>
+                    </button>
+
+                    <!-- Quick Stats Card Widget -->
+                    <div class="mt-6 p-4 rounded-2xl bg-gradient-to-br from-[#151A2D] to-[#111628] border border-[#1E2540] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Chỉ Số Học Tập</span>
+                            <span class="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                                🔥 {{ stats?.streak || 1 }} ngày
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-[#1E2540]/60">
+                            <div class="p-2 rounded-xl bg-[#0F1426]/60 text-center">
+                                <div class="text-xs font-extrabold text-indigo-400">{{ totalWords }}</div>
+                                <div class="text-[9px] font-bold text-gray-500 uppercase">Tổng từ</div>
+                            </div>
+                            <div class="p-2 rounded-xl bg-[#0F1426]/60 text-center">
+                                <div class="text-xs font-extrabold text-emerald-400">{{ completedMissionsCount }}/{{ dailyMissions.length }}</div>
+                                <div class="text-[9px] font-bold text-gray-500 uppercase">Nhiệm vụ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Mini Profile -->
+                <div class="p-3 border-t border-[#1E2540] bg-[#0B1020]/60">
+                    <div class="flex items-center gap-3 p-2 rounded-2xl hover:bg-[#151A2D] cursor-pointer transition-all border border-transparent hover:border-[#1E2540] group" @click="store.navigate('profile')">
+                        <div class="relative w-10 h-10 shrink-0">
+                            <div class="w-full h-full rounded-full border-2 border-indigo-500/40 bg-indigo-500/20 p-0.5 overflow-hidden shadow-sm group-hover:border-indigo-400 transition-colors">
+                                <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover rounded-full">
+                                <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
+                            </div>
+                            <!-- Equipped Badge -->
+                            <div v-if="store.userProfile?.equippedBadge" 
+                                 class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#0F1426] border-2 border-amber-400 p-0.5 flex items-center justify-center shadow-md z-10 animate-bounce-short select-none"
+                                 :title="'Huy hiệu: ' + getBadgeTitle(store.userProfile.equippedBadge)">
+                                <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain">
+                                <span v-else class="text-xs">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
+                            </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-sm font-bold text-white truncate group-hover:text-indigo-300 transition-colors leading-tight">
+                                {{ store.userProfile?.displayName || firstName }}
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-amber-400 mt-0.5">
+                                <span class="truncate">Lv.{{ levelProgress.currentLevel }} · {{ currentRank.title }}</span>
+                            </div>
+                        </div>
+                        <div class="text-gray-500 group-hover:text-white transition-transform group-hover:translate-x-0.5 shrink-0 pr-1">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- MAIN CONTENT -->
-            <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+            <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
                 
                 <!-- TOPBAR -->
-                <header class="h-20 border-b border-[#1E2540] flex items-center justify-between px-8 bg-[#0B1020]/90 backdrop-blur-md z-20 flex-shrink-0">
-                    <div class="relative w-[500px]">
-                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                        <input type="text" placeholder="Search vocabulary, decks, or settings..." 
+                <header class="h-[72px] border-b border-[#1E2540] flex items-center justify-between px-8 bg-[#0F1426]/50 backdrop-blur-md z-10">
+                    <div class="relative w-96 max-w-md hidden md:block">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                        <input type="text" placeholder="Search decks, vocabulary, skills..." 
                                class="w-full bg-[#151A2D] border border-[#1E2540] rounded-full py-2.5 pl-11 pr-4 text-sm text-gray-300 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder-gray-500">
                     </div>
                     <div class="flex items-center gap-6">
@@ -206,14 +422,25 @@ export default {
                         <button class="text-gray-400 hover:text-white transition-colors relative" title="Thông báo">
                             <i class="fa-regular fa-bell text-lg"></i>
                         </button>
-                        <div class="flex items-center gap-3 cursor-pointer">
+                        <div class="flex items-center gap-3 cursor-pointer" @click="store.navigate('profile')">
                             <div class="text-right">
-                                <div class="text-sm font-bold text-white">{{ store.user?.displayName || 'Việt Anh' }}</div>
-                                <div class="text-[11px] text-gray-400 font-medium">Level {{ levelProgress.currentLevel }} · {{ currentRank.title }}</div>
+                                <div class="text-sm font-bold text-white">{{ store.userProfile?.displayName || store.user?.displayName || 'Việt Anh' }}</div>
+                                <div class="text-[11px] text-amber-400 font-bold flex items-center gap-1.5 justify-end">
+                                    Level {{ levelProgress.currentLevel }} · {{ currentRank.title }}
+                                </div>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-600 to-orange-400 p-[2px] shadow-lg">
-                                <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full rounded-full object-cover">
-                                <div v-else class="w-full h-full rounded-full bg-[#1E2540] flex items-center justify-center text-xs font-bold text-white">{{ firstName[0] }}</div>
+                            <div class="relative w-10 h-10 shrink-0">
+                                <div class="w-full h-full rounded-full bg-gradient-to-tr from-amber-600 to-orange-400 p-[2px] shadow-lg overflow-hidden">
+                                    <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full rounded-full object-cover">
+                                    <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full rounded-full bg-[#1E2540] object-cover">
+                                </div>
+                                <!-- Equipped Badge -->
+                                <div v-if="store.userProfile?.equippedBadge" 
+                                     class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#0B1020] border-2 border-amber-400 p-0.5 flex items-center justify-center shadow-md z-10 animate-bounce-short select-none"
+                                     :title="'Huy hiệu: ' + getBadgeTitle(store.userProfile.equippedBadge)">
+                                    <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain">
+                                    <span v-else class="text-xs">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -235,7 +462,8 @@ export default {
                                     <div class="flex items-center gap-6">
                                         <div class="w-20 h-20 rounded-full bg-indigo-900/30 flex items-center justify-center flex-shrink-0 border-4 border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
                                             <div class="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center overflow-hidden">
-                                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=transparent" class="w-full h-full object-cover">
+                                                <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
+                                                <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=transparent'" class="w-full h-full object-cover">
                                             </div>
                                         </div>
                                         <div>
@@ -319,33 +547,49 @@ export default {
                                     <div>
                                         <div class="flex items-center gap-3 text-indigo-400 font-bold mb-4 text-sm uppercase tracking-wider">
                                             <i class="fa-solid fa-microchip"></i> AI Learning Coach 
-                                            <span class="bg-indigo-500/20 text-indigo-300 py-0.5 px-2 rounded text-[10px] border border-indigo-500/30">v2.1</span>
+                                            <span class="bg-indigo-500/20 text-indigo-300 py-0.5 px-2 rounded text-[10px] border border-indigo-500/30">HLR Memory Engine</span>
                                         </div>
-                                        <h3 class="text-2xl font-black text-white mb-3" v-if="aiCoachStats.reviewWords > 0">Đến lúc ôn tập rồi!</h3>
-                                        <h3 class="text-2xl font-black text-emerald-400 mb-3" v-else>Trí nhớ vững vàng!</h3>
-                                        <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-if="aiCoachStats.reviewWords > 0">
-                                            Thuật toán HLR đang theo dõi nhịp học của bạn. Theo mô hình Ebbinghaus, bạn có khoảng <span class="text-cyan-400 font-bold bg-cyan-400/10 px-1.5 py-0.5 rounded">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng quên. Ôn tập ngay để giữ tỷ lệ nhớ trên 85%!
+                                        <h3 class="text-2xl font-black text-white mb-3" v-if="aiCoachStats.isLongAbsence">
+                                            ⚠️ Báo động: Trí nhớ đang phân rã mạnh!
+                                        </h3>
+                                        <h3 class="text-2xl font-black text-white mb-3" v-else-if="aiCoachStats.reviewWords > 0">
+                                            Đến lúc ôn tập rồi!
+                                        </h3>
+                                        <h3 class="text-2xl font-black text-emerald-400 mb-3" v-else>
+                                            Trí nhớ vững vàng!
+                                        </h3>
+
+                                        <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-if="aiCoachStats.isLongAbsence">
+                                            Đã khoảng <span class="text-rose-400 font-extrabold">{{ aiCoachStats.daysAbsent }} ngày</span> bạn chưa ôn tập lại. Theo định luật đường cong quên lãng <b class="text-white">Ebbinghaus</b>, tỷ lệ lưu giữ từ vựng của bạn đã rơi xuống mức báo động <span class="text-rose-400 font-extrabold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">{{ aiCoachStats.avgRetention }}%</span>. Có <span class="text-amber-400 font-extrabold">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng nguy cơ quên sạch. Hãy ôn tập ngay để phục hồi trí nhớ!
+                                        </p>
+                                        <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-else-if="aiCoachStats.reviewWords > 0">
+                                            Thuật toán HLR đang theo dõi nhịp học của bạn. Theo mô hình Ebbinghaus, bạn có khoảng <span class="text-cyan-400 font-bold bg-cyan-400/10 px-1.5 py-0.5 rounded">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng quên. Tỷ lệ nhớ trung bình: <b class="text-white">{{ aiCoachStats.avgRetention }}%</b>.
                                         </p>
                                         <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-else>
-                                            Tuyệt vời! Bạn đã hoàn thành mục tiêu ôn tập hôm nay. Trí nhớ của bạn đang được củng cố rất tốt và không có từ vựng nào có nguy cơ bị quên lãng.
+                                            Tuyệt vời! Trí nhớ của bạn đang được củng cố tối ưu với tỷ lệ nhớ <b class="text-emerald-400 font-bold">{{ aiCoachStats.avgRetention }}%</b> và không có từ vựng nào gặp nguy cơ quên lãng.
                                         </p>
                                     </div>
                                     
                                     <div class="flex flex-wrap sm:flex-nowrap items-center gap-4 mt-auto">
                                         <div class="bg-[#1A2138]/80 backdrop-blur-sm rounded-2xl p-5 flex-1 border border-[#262F4D]">
-                                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-brain mr-1.5"></i> Độ tin cậy AI</div>
+                                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-brain mr-1.5"></i> Tỷ Lệ Nhớ Hiện Tại</div>
                                             <div class="flex items-end gap-4">
-                                                <div class="text-3xl font-black text-white">{{ aiCoachStats.confidence }}%</div>
+                                                <div class="text-3xl font-black" :class="aiCoachStats.avgRetention < 50 ? 'text-rose-400' : aiCoachStats.avgRetention < 80 ? 'text-amber-400' : 'text-emerald-400'">
+                                                    {{ aiCoachStats.avgRetention }}%
+                                                </div>
                                                 <div class="w-full h-1.5 bg-[#1E2540] rounded-full overflow-hidden mb-2">
-                                                    <div class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]" :style="{ width: aiCoachStats.confidence + '%' }"></div>
+                                                    <div class="h-full rounded-full transition-all duration-1000" 
+                                                         :class="aiCoachStats.avgRetention < 50 ? 'bg-gradient-to-r from-orange-500 to-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-gradient-to-r from-indigo-500 to-cyan-400'"
+                                                         :style="{ width: aiCoachStats.avgRetention + '%' }">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <div class="bg-[#1A2138]/80 backdrop-blur-sm rounded-2xl p-5 flex-1 border border-[#262F4D]">
-                                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3"><i class="fa-regular fa-clock mr-1.5"></i> Thời gian ước tính</div>
+                                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3"><i class="fa-regular fa-clock mr-1.5"></i> Thời gian phục hồi</div>
                                             <div class="text-3xl font-black text-white flex items-baseline gap-2">
-                                                {{ aiCoachStats.estMins }} <span class="text-sm text-gray-500 font-bold">phút</span>
+                                                {{ aiCoachStats.estMins }} <span class="text-sm text-gray-500 font-bold">phút ({{ aiCoachStats.reviewWords }} từ)</span>
                                             </div>
                                         </div>
                                     </div>
@@ -358,54 +602,58 @@ export default {
                                         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
                                         
                                         <div class="relative z-10 flex items-center justify-between mb-4">
-                                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Đường cong trí nhớ HLR</span>
-                                            <span v-if="aiCoachStats.reviewWords > 0" class="px-2 py-1 bg-rose-500/10 text-rose-400 text-[10px] font-bold rounded border border-rose-500/20 flex items-center gap-1.5">
-                                                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Báo động
+                                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Đường cong trí nhớ Ebbinghaus</span>
+                                            <span v-if="aiCoachStats.isLongAbsence" class="px-2 py-1 bg-rose-500/10 text-rose-400 text-[10px] font-bold rounded border border-rose-500/20 flex items-center gap-1.5 animate-pulse">
+                                                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Nguy cơ quên cao
+                                            </span>
+                                            <span v-else-if="aiCoachStats.reviewWords > 0" class="px-2 py-1 bg-amber-500/10 text-amber-400 text-[10px] font-bold rounded border border-amber-500/20 flex items-center gap-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Cần ôn tập
                                             </span>
                                             <span v-else class="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded border border-emerald-500/20 flex items-center gap-1.5">
-                                                <i class="fa-solid fa-shield-check"></i> An toàn
+                                                <i class="fa-solid fa-shield-check"></i> Ổn định
                                             </span>
                                         </div>
                                         
-                                        <!-- Larger, clearer SVG Chart -->
+                                        <!-- Dynamic SVG Chart -->
                                         <div class="w-full h-32 relative z-10 mt-2">
                                             <svg viewBox="0 0 300 120" class="w-full h-full overflow-visible">
                                                 <defs>
                                                     <linearGradient id="largeCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                                                         <stop offset="0%" stop-color="#818CF8" />
                                                         <stop offset="50%" stop-color="#22D3EE" />
-                                                        <stop offset="100%" stop-color="#F43F5E" />
+                                                        <stop offset="100%" :stop-color="aiCoachStats.avgRetention < 50 ? '#F43F5E' : '#EAB308'" />
                                                     </linearGradient>
                                                 </defs>
                                                 <!-- Y-Axis Labels -->
-                                                <text x="0" y="10" fill="#4B5563" font-size="9" font-family="monospace" text-anchor="start">100%</text>
-                                                <text x="0" y="60" fill="#4B5563" font-size="9" font-family="monospace" text-anchor="start">85%</text>
-                                                <text x="0" y="110" fill="#4B5563" font-size="9" font-family="monospace" text-anchor="start">60%</text>
+                                                <text x="0" y="12" fill="#4B5563" font-size="9" font-family="monospace" text-anchor="start">100%</text>
+                                                <text x="0" y="55" fill="#4B5563" font-size="9" font-family="monospace" text-anchor="start">85%</text>
+                                                <text x="0" y="105" fill="#4B5563" font-size="9" font-family="monospace" text-anchor="start">20%</text>
                                                 
                                                 <!-- Grid Lines -->
-                                                <line x1="30" y1="5" x2="300" y2="5" stroke="#1E2540" stroke-width="1" />
-                                                <line x1="30" y1="55" x2="300" y2="55" stroke="#1E2540" stroke-dasharray="4,4" stroke-width="1" />
-                                                <line x1="30" y1="105" x2="300" y2="105" stroke="#1E2540" stroke-width="1" />
+                                                <line x1="30" y1="8" x2="300" y2="8" stroke="#1E2540" stroke-width="1" />
+                                                <line x1="30" y1="52" x2="300" y2="52" stroke="#1E2540" stroke-dasharray="4,4" stroke-width="1" />
+                                                <line x1="30" y1="102" x2="300" y2="102" stroke="#1E2540" stroke-width="1" />
                                                 
-                                                <!-- The Curve -->
-                                                <path d="M 30 5 Q 120 20, 240 75 T 300 100" fill="none" stroke="url(#largeCurveGrad)" stroke-width="4" stroke-linecap="round" />
+                                                <!-- The Curve bending according to actual retention -->
+                                                <path :d="'M 30 8 Q 110 25, 200 ' + Math.min(95, aiCoachStats.curveEndY - 10) + ' T 270 ' + aiCoachStats.curveEndY" 
+                                                      fill="none" stroke="url(#largeCurveGrad)" stroke-width="4" stroke-linecap="round" />
                                                 
                                                 <!-- Pulse point changes color based on status -->
-                                                <circle cx="240" cy="75" r="4" :fill="aiCoachStats.reviewWords > 0 ? '#F43F5E' : '#10B981'" class="animate-ping opacity-75" />
-                                                <circle cx="240" cy="75" r="4" :fill="aiCoachStats.reviewWords > 0 ? '#F43F5E' : '#10B981'" stroke="#1E2540" stroke-width="2" />
+                                                <circle cx="270" :cy="aiCoachStats.curveEndY" r="5" :fill="aiCoachStats.avgRetention < 50 ? '#F43F5E' : '#EAB308'" class="animate-ping opacity-75" />
+                                                <circle cx="270" :cy="aiCoachStats.curveEndY" r="4" :fill="aiCoachStats.avgRetention < 50 ? '#F43F5E' : '#EAB308'" stroke="#1E2540" stroke-width="2" />
                                                 
                                                 <!-- Tooltip -->
-                                                <g transform="translate(215, 45)">
-                                                    <rect width="50" height="20" rx="4" :fill="aiCoachStats.reviewWords > 0 ? 'rgba(244,63,94,0.1)' : 'rgba(16,185,129,0.1)'" :stroke="aiCoachStats.reviewWords > 0 ? 'rgba(244,63,94,0.3)' : 'rgba(16,185,129,0.3)'" stroke-width="1" />
-                                                    <text x="25" y="14" :fill="aiCoachStats.reviewWords > 0 ? '#F43F5E' : '#10B981'" font-size="9" font-weight="bold" font-family="sans-serif" text-anchor="middle">Pr: {{ aiCoachStats.reviewWords > 0 ? '85%' : '98%' }}</text>
+                                                <g :transform="'translate(210, ' + Math.max(10, aiCoachStats.curveEndY - 25) + ')'">
+                                                    <rect width="60" height="20" rx="4" :fill="aiCoachStats.avgRetention < 50 ? 'rgba(244,63,94,0.15)' : 'rgba(234,179,8,0.15)'" :stroke="aiCoachStats.avgRetention < 50 ? 'rgba(244,63,94,0.4)' : 'rgba(234,179,8,0.4)'" stroke-width="1" />
+                                                    <text x="30" y="14" :fill="aiCoachStats.avgRetention < 50 ? '#F43F5E' : '#FBBF24'" font-size="9" font-weight="bold" font-family="sans-serif" text-anchor="middle">Pr: {{ aiCoachStats.avgRetention }}%</text>
                                                 </g>
                                             </svg>
                                         </div>
                                     </div>
                                     
-                                    <!-- Call to Action Button changes style if completed -->
+                                    <!-- Call to Action Button -->
                                     <button v-if="aiCoachStats.reviewWords > 0" @click="startReview" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm uppercase tracking-widest rounded-2xl shadow-[0_10px_25px_-5px_rgba(99,102,241,0.5)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_35px_-5px_rgba(99,102,241,0.6)] flex items-center justify-center gap-2 mt-4 relative overflow-hidden group">
-                                        <span class="relative z-10">Bắt đầu ôn tập ngay</span>
+                                        <span class="relative z-10">Bắt đầu ôn tập cấp tốc</span>
                                         <i class="fa-solid fa-arrow-right relative z-10 transition-transform group-hover:translate-x-2"></i>
                                         <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                                     </button>
@@ -597,18 +845,28 @@ export default {
                             </div>
                             <div class="flex gap-4 overflow-x-auto custom-scrollbar pb-4">
                                 <div v-for="badge in badges" :key="badge.id" 
-                                     class="relative flex-shrink-0 flex flex-col items-center gap-2 p-4 w-28 rounded-2xl border transition-all"
+                                     class="relative flex-shrink-0 flex flex-col items-center gap-2 p-4 w-28 rounded-2xl border transition-all cursor-pointer group select-none"
+                                     @click="badge.unlocked ? store.equipBadge(badge.badgeId) : null"
+                                     :title="badge.unlocked ? (badge.isEquipped ? 'Đang trang bị (Click gỡ)' : 'Click để trang bị lên Avatar') : 'Chưa mở khóa'"
                                      :class="[
                                         !badge.unlocked ? 'bg-[#1A2138]/50 border-[#262F4D]/50 opacity-50 grayscale' :
+                                        badge.isEquipped ? 'bg-[#1A2138] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]' :
                                         badge.mythic ? 'bg-[#1A2138] border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]' :
                                         badge.legendary ? 'bg-[#1A2138] border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)]' :
                                         'bg-[#1A2138] border-[#262F4D] hover:border-indigo-500/50'
                                      ]">
                                     <div v-if="badge.mythic" class="absolute inset-0 rounded-2xl border border-transparent" style="background: linear-gradient(to right, #ec4899, #a855f7, #6366f1) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
-                                    <div class="w-12 h-12 rounded-full flex items-center justify-center" :class="badge.bg">
-                                        <i :data-lucide="badge.icon" :class="[badge.color, 'text-xl']"></i>
+                                    
+                                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center p-2 transition-transform group-hover:scale-110 relative select-none" :class="badge.bg">
+                                        <img v-if="badge.image3d" :src="badge.image3d" :alt="badge.name" class="w-10 h-10 object-contain filter drop-shadow-md">
+                                        <span v-else class="text-3xl leading-none drop-shadow-md select-none">{{ badge.emoji || badge.icon || '🏆' }}</span>
+                                        
+                                        <!-- Equipped Badge Checkmark -->
+                                        <div v-if="badge.isEquipped" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] font-black border border-[#151A2D] shadow-sm z-10">
+                                            <i class="fa-solid fa-check"></i>
+                                        </div>
                                     </div>
-                                    <span class="text-xs font-bold text-center text-white">{{ badge.name }}</span>
+                                    <span class="text-xs font-bold text-center text-white truncate w-full">{{ badge.name }}</span>
                                 </div>
                             </div>
                         </div>
@@ -618,6 +876,9 @@ export default {
             </div>
             
             <style>
+                img + .only-fallback { display: none; }
+                img[style*="display: none"] + .only-fallback,
+                img[style*="display:none"] + .only-fallback { display: inline-block !important; }
                 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #1E2540; border-radius: 10px; }

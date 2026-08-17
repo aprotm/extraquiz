@@ -62,7 +62,7 @@ export const store = reactive({
 
     navigate(route, data = null) {
         // Tầng 3: Client Route Protection
-        if (route === 'admin' && this.user?.email !== 'test@test.com') {
+        if (route === 'admin' && this.user?.email !== 'test@test.com' && !this.userProfile?.isAdmin && this.userProfile?.role !== 'admin') {
             console.error('Access Denied: Admin Only');
             this.currentRoute = 'dashboard';
             return;

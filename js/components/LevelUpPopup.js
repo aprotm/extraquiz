@@ -81,8 +81,9 @@ export default {
                     <div class="relative z-10">
                         <h2 class="text-3xl font-black text-amber-500 mb-6 drop-shadow-md tracking-wider">LEVEL UP!</h2>
                         
-                        <div class="text-7xl mb-4 animate-bounce">
-                            <i :data-lucide="levelInfo?.rank?.icon || 'star'" class="text-7xl text-yellow-500 mb-4 animate-bounce"></i>
+                        <div class="w-24 h-24 mx-auto mb-4 flex items-center justify-center animate-bounce">
+                            <img v-if="levelInfo?.rank?.image3d" :src="levelInfo.rank.image3d" class="w-20 h-20 object-contain drop-shadow-xl">
+                            <i v-else :data-lucide="levelInfo?.rank?.icon || 'star'" class="w-16 h-16 text-amber-500"></i>
                         </div>
                         
                         <h3 class="text-2xl font-bold text-gray-800 mb-2 uppercase tracking-wide">

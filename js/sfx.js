@@ -1,18 +1,22 @@
+import { store } from './store.js';
+
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 
 function initAudio() {
+    if (store?.settings?.enableSfx === false) return false;
     if (!audioCtx) {
         audioCtx = new AudioContext();
     }
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
+    return true;
 }
 
 export function playCorrect() {
     try {
-        initAudio();
+        if (!initAudio()) return;
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         
@@ -37,7 +41,7 @@ export function playCorrect() {
 
 export function playIncorrect() {
     try {
-        initAudio();
+        if (!initAudio()) return;
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         
@@ -62,7 +66,7 @@ export function playIncorrect() {
 
 export function playClick() {
     try {
-        initAudio();
+        if (!initAudio()) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
@@ -75,7 +79,7 @@ export function playClick() {
 
 export function playComplete() {
     try {
-        initAudio();
+        if (!initAudio()) return;
         [0, 0.11, 0.22].forEach((offset, index) => {
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);

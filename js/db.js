@@ -303,3 +303,30 @@ export async function updateOtherUser(uid, data) {
     const docRef = doc(db, "users", uid);
     await updateDoc(docRef, data);
 }
+
+export async function fetchAllDecksAdmin() {
+    if (!db) return [];
+    const snap = await getDocs(collection(db, "decks"));
+    return snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(d => !d.isDeleted);
+}
+
+export async function fetchAllCardsAdmin() {
+    if (!db) return [];
+    const snap = await getDocs(collection(db, "cards"));
+    return snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(c => !c.isDeleted);
+}
+
+export async function adminDeleteDeck(deckId) {
+    if (!db) return;
+    return await deleteDeckAndCards(deckId);
+}
+
+export async function adminUpdateUserBadges(uid, badges) {
+    if (!db) return;
+    const docRef = doc(db, "users", uid);
+    await updateDoc(docRef, { badges });
+}

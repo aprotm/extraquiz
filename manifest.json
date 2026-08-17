@@ -1,6 +1,6 @@
 {
-    "name": "OpenQuiz Pro",
-    "short_name": "OpenQuiz",
+    "name": "LexiLearn Pro - Nền tảng học từ vựng IELTS thông minh",
+    "short_name": "LexiLearn",
     "description": "Nền tảng học từ vựng IELTS thông minh tích hợp AI",
     "start_url": "./index.html",
     "display": "standalone",

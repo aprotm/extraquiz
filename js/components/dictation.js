@@ -3,6 +3,7 @@ import { store } from '../store.js';
 import { updateCardMemoryState } from '../db.js';
 import { updateHalfLife } from '../memoryengine.js';
 import { playCorrect, playIncorrect } from '../sfx.js';
+import { speakEnglishText } from '../voice.js';
 
 export default {
     setup() {
@@ -15,15 +16,7 @@ export default {
         const inputRef = ref(null);
 
         const speakWord = (text) => {
-            if (!text || !('speechSynthesis' in window)) return;
-            const ut = new SpeechSynthesisUtterance(text);
-            ut.lang = 'en-US';
-            if (store.settings.voiceUri) {
-                const voices = speechSynthesis.getVoices();
-                const selectedVoice = voices.find(v => v.voiceURI === store.settings.voiceUri);
-                if (selectedVoice) ut.voice = selectedVoice;
-            }
-            speechSynthesis.speak(ut);
+            speakEnglishText(text);
         };
 
         onMounted(() => {

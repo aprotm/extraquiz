@@ -1,4 +1,4 @@
-const CACHE_NAME = 'extraquiz-v55';
+const CACHE_NAME = 'extraquiz-v79';
 const ASSETS = [
     './',
     './index.html',
@@ -12,6 +12,9 @@ const ASSETS = [
     './js/db.js',
     './js/ai.js',
     './js/sfx.js',
+    './js/voice.js',
+    './js/components/quotes.js',
+    './js/components/adminpanel.js',
     './js/memoryengine.js',
     './js/personaengine.js',
     './js/aiinsight.js',
@@ -35,6 +38,30 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
+    // Network-First cho các file JS, CSS, HTML để luôn nhận code mới nhất
+    if (e.request.destination === 'script' || 
+        e.request.destination === 'style' || 
+        e.request.destination === 'document' ||
+        e.request.url.endsWith('.js') ||
+        e.request.url.endsWith('.css') ||
+        e.request.url.endsWith('.html')) {
+        e.respondWith(
+            fetch(e.request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseClone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(e.request, responseClone);
+                    });
+                }
+                return networkResponse;
+            }).catch(() => {
+                return caches.match(e.request);
+            })
+        );
+        return;
+    }
+
+    // Cache-First cho hình ảnh và font tĩnh
     e.respondWith(
         caches.match(e.request).then((response) => {
             if (response) return response;
