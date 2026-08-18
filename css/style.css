@@ -56,16 +56,27 @@
 * { box-sizing: border-box; }
 
 body {
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text);
     min-height: 100vh;
-    line-height: 1.5;
+    line-height: 1.55;
+    letter-spacing: -0.012em;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-button, input, select, textarea { font: inherit; }
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+}
+
+button, input, select, textarea { 
+    font-family: inherit;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
 button:not([role="switch"]) { min-height: 44px; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="button"]:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .skip-link { position: fixed; z-index: 100; left: var(--space-4); top: var(--space-2); transform: translateY(-200%); background: var(--color-text); color: #fff; border-radius: 8px; padding: 10px 14px; font-weight: 700; transition: transform var(--motion-fast); }
@@ -543,3 +554,97 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .theme-handdrawn .deck-accent-5 { --deck-bg: #fff !important; --deck-color: #9333ea !important; }
 .theme-handdrawn .deck-accent-6 { --deck-bg: #fff !important; --deck-color: #0891b2 !important; }
 .theme-handdrawn .deck-accent-7 { --deck-bg: #fff !important; --deck-color: #db2777 !important; }
+
+/* ========================================================================= */
+/* ARCADE GAMING & COMBAT EFFECTS                                            */
+/* ========================================================================= */
+@keyframes screenShake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    20% { transform: translate(-4px, 4px) rotate(-1deg); }
+    40% { transform: translate(4px, -3px) rotate(1deg); }
+    60% { transform: translate(-3px, 2px) rotate(-0.5deg); }
+    80% { transform: translate(3px, -2px) rotate(0.5deg); }
+}
+
+.animate-screen-shake {
+    animation: screenShake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes bossFlash {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(2) drop-shadow(0 0 20px rgba(239, 68, 68, 0.8)); transform: scale(0.96); }
+}
+
+.animate-boss-hit {
+    animation: bossFlash 0.3s ease-out;
+}
+
+@keyframes comboPop {
+    0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+    50% { transform: scale(1.25) rotate(4deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-combo-pop {
+    animation: comboPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes laserZap {
+    0% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 15px rgba(244, 63, 94, 0.9)); }
+    50% { transform: scale(1.05) rotate(2deg); opacity: 0.8; }
+    100% { transform: scale(0.85); opacity: 0.2; filter: grayscale(1); }
+}
+
+.animate-laser-zap {
+    animation: laserZap 0.4s ease-out forwards;
+}
+
+@keyframes cyberPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), inset 0 0 15px rgba(6, 182, 212, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.8), inset 0 0 25px rgba(6, 182, 212, 0.4); }
+}
+
+.cyber-glow {
+    animation: cyberPulse 2s infinite ease-in-out;
+}
+
+@keyframes floatScore {
+    0% { transform: translateY(0) scale(0.8); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+}
+
+.animate-float-score {
+    animation: floatScore 0.8s ease-out forwards;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    20%, 60% { transform: rotate(14deg); }
+    40%, 80% { transform: rotate(-14deg); }
+}
+
+.animate-wiggle {
+    display: inline-block;
+    transform-origin: 70% 70%;
+    animation: wiggle 2s infinite ease-in-out;
+}
+
+/* ========================================================================= */
+/* ARCADE HUB STYLING (LIGHT & UNIFIED THEME)                                */
+/* ========================================================================= */
+.arcade-hub-container {
+    background: linear-gradient(135deg, #FAF5FF 0%, #EEF2FF 50%, #FFF7ED 100%);
+    border: 1px solid #E0E7FF;
+    box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.08);
+}
+
+.arcade-game-btn {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.arcade-game-btn:hover {
+    border-color: #C7D2FE;
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+}

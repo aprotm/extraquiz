@@ -1,17 +1,41 @@
 import { ref, computed, onMounted, onUpdated, nextTick } from 'vue';
 import { store } from '../store.js';
 import { getRankFromLevel, getLevelProgressInfo } from '../ranks.js';
-import { fetchCards } from '../db.js';
+import { fetchCards, fetchAllUserCards } from '../db.js';
 import { BADGES_DICT } from '../badges.js';
 import { calculateRetentionProb } from '../memoryengine.js';
 
 export default {
     setup() {
         const stats = ref(null);
+        const userCards = ref([]);
+        const isLoadingCards = ref(true);
         
-        onMounted(() => {
+        const loadUserMemoryData = async () => {
             stats.value = store.getStudyStats() || { streak: 0, todayWords: 0, history: [] };
+            if (store.user?.uid) {
+                try {
+                    isLoadingCards.value = true;
+                    const cards = await fetchAllUserCards(store.user.uid);
+                    userCards.value = cards || [];
+                } catch (e) {
+                    console.error("Fetch user cards error:", e);
+                    const fallback = [];
+                    if (store.decks && store.decks.length > 0) {
+                        store.decks.forEach(d => {
+                            if (d.cards && Array.isArray(d.cards)) fallback.push(...d.cards);
+                        });
+                    }
+                    userCards.value = fallback;
+                } finally {
+                    isLoadingCards.value = false;
+                }
+            }
             setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+        };
+
+        onMounted(() => {
+            loadUserMemoryData();
         });
 
         onUpdated(() => {
@@ -38,6 +62,7 @@ export default {
         };
         
         const totalWords = computed(() => {
+            if (userCards.value.length > 0) return userCards.value.length;
             return store.decks.reduce((sum, deck) => sum + (deck.cards ? deck.cards.length : deck.totalCards || 0), 0);
         });
 
@@ -113,8 +138,6 @@ export default {
                     if (daysAgo < realHistory.length && daysAgo >= 0) {
                         const realIdx = realHistory.length - 1 - daysAgo;
                         wordCount = realHistory[realIdx]?.words || 0;
-                    } else if (i > 45 && Math.random() > 0.8) {
-                        wordCount = Math.floor(Math.random() * 40) + 1;
                     }
 
                     if (wordCount > 50) val = 4;
@@ -140,66 +163,68 @@ export default {
         const heatmapWeeks = generateHeatmap();
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
         const aiCoachStats = computed(() => {
-            const allCards = [];
-            if (store.decks && store.decks.length > 0) {
-                store.decks.forEach(d => {
-                    if (d.cards && Array.isArray(d.cards)) {
-                        allCards.push(...d.cards);
-                    }
-                });
-            }
-            
-            const total = allCards.length > 0 ? allCards.length : (totalWords.value || 0);
+            const allCards = userCards.value;
+            const total = allCards.length;
             const now = Date.now();
+
+            // Nếu người dùng mới chưa có từ vựng nào
+            if (total === 0) {
+                return {
+                    totalCards: 0,
+                    reviewWords: 0,
+                    estMins: 0,
+                    avgRetention: 100,
+                    daysAbsent: 0,
+                    isLongAbsence: false,
+                    confidence: 100,
+                    curveEndY: 12,
+                    isNewUser: true
+                };
+            }
+
             let needReviewCount = 0;
             let sumRetention = 0;
             let maxDaysInactive = 0;
 
-            if (allCards.length > 0) {
-                allCards.forEach(c => {
-                    const lastReview = c.last_reviewed_at 
-                        ? (c.last_reviewed_at.toDate ? c.last_reviewed_at.toDate().getTime() : new Date(c.last_reviewed_at).getTime()) 
-                        : (c.createdAt ? (c.createdAt.toDate ? c.createdAt.toDate().getTime() : new Date(c.createdAt).getTime()) : (now - 14 * 86400000));
-                    
-                    const deltaMinutes = Math.max(0, (now - lastReview) / 60000);
-                    const daysInactive = deltaMinutes / 1440;
-                    if (daysInactive > maxDaysInactive) maxDaysInactive = daysInactive;
+            allCards.forEach(c => {
+                const lastReview = c.last_reviewed_at 
+                    ? (c.last_reviewed_at.toDate ? c.last_reviewed_at.toDate().getTime() : new Date(c.last_reviewed_at).getTime()) 
+                    : (c.createdAt ? (c.createdAt.toDate ? c.createdAt.toDate().getTime() : new Date(c.createdAt).getTime()) : now);
+                
+                const deltaMinutes = Math.max(0, (now - lastReview) / 60000);
+                const daysInactive = deltaMinutes / 1440;
+                if (daysInactive > maxDaysInactive) maxDaysInactive = daysInactive;
 
-                    const halfLife = c.recognition_half_life || 1440; // 1 ngày
-                    const pr = calculateRetentionProb(halfLife, deltaMinutes);
-                    sumRetention += pr;
-                    if (pr < 0.85) {
-                        needReviewCount++;
-                    }
-                });
-            } else {
-                const lastActiveDate = store.userProfile?.lastCreditDate || stats.value?.lastActive;
-                const daysInactive = lastActiveDate ? Math.max(3, Math.floor((now - new Date(lastActiveDate).getTime()) / 86400000)) : 14;
-                maxDaysInactive = daysInactive;
-                const decayFactor = Math.max(0.18, Math.pow(0.5, daysInactive / 3));
-                needReviewCount = total > 0 ? total : 4;
-                sumRetention = total > 0 ? (total * decayFactor) : (4 * decayFactor);
-            }
+                const halfLife = c.recognition_half_life || 1440; // 1 ngày
+                // Nếu thẻ vừa tạo trong vòng 24h và chưa từng ôn tập: retention mặc định là 100%
+                const pr = deltaMinutes < 1440 && !c.last_reviewed_at ? 1.0 : calculateRetentionProb(halfLife, deltaMinutes);
+                sumRetention += pr;
+                if (pr < 0.85) {
+                    needReviewCount++;
+                }
+            });
 
-            const rawAvg = total > 0 ? (sumRetention / total) : 0.25;
-            const avgRetention = Math.min(99, Math.max(15, Math.round(rawAvg * 100)));
-            const daysAbsent = Math.max(1, Math.round(maxDaysInactive || 7));
-            const isLongAbsence = daysAbsent >= 3 || avgRetention < 65;
-            const reviewWords = isLongAbsence ? (total > 0 ? total : 4) : Math.max(needReviewCount, total > 0 ? Math.ceil(total * 0.4) : 4);
+            const rawAvg = sumRetention / total;
+            const avgRetention = Math.min(100, Math.max(10, Math.round(rawAvg * 100)));
+            const daysAbsent = Math.max(0, Math.round(maxDaysInactive));
+            const isLongAbsence = (daysAbsent >= 3 && avgRetention < 65) || (avgRetention < 50 && needReviewCount > 0);
+            const reviewWords = needReviewCount;
             const estMins = Math.max(1, Math.ceil(reviewWords * 0.5));
             const confidence = 94;
 
             // Tọa độ Y cho điểm uốn và điểm cuối của đường cong SVG
-            const curveEndY = Math.min(105, Math.max(15, Math.round(10 + (100 - avgRetention) * 0.95)));
+            const curveEndY = Math.min(105, Math.max(12, Math.round(8 + (100 - avgRetention) * 0.94)));
 
             return {
+                totalCards: total,
                 reviewWords,
                 estMins,
                 avgRetention,
                 daysAbsent,
                 isLongAbsence,
                 confidence,
-                curveEndY
+                curveEndY,
+                isNewUser: false
             };
         });
 
@@ -220,7 +245,9 @@ export default {
             store.showLoading();
             try {
                 let allCards = [];
-                if (store.decks && store.decks.length > 0) {
+                if (userCards.value && userCards.value.length > 0) {
+                    allCards = [...userCards.value];
+                } else if (store.decks && store.decks.length > 0) {
                     for (const deck of store.decks) {
                         if (deck.cards && deck.cards.length > 0) {
                             allCards = allCards.concat(deck.cards);
@@ -254,7 +281,7 @@ export default {
             store, stats, levelProgress, currentRank, firstName, activeTab, 
             badges, heatmapWeeks, months, themeColor, changeTheme, totalWords, 
             aiCoachStats, startReview, dailyMissions, completedMissionsCount,
-            getBadgeIcon, getBadgeTitle, getBadge3D
+            getBadgeIcon, getBadgeTitle, getBadge3D, userCards, isLoadingCards
         };
     },
     template: `
@@ -486,15 +513,15 @@ export default {
                                 <div class="flex items-center gap-8 relative z-10 mt-8">
                                     <div class="flex items-center gap-2 font-bold text-sm">
                                         <i class="fa-solid fa-star text-amber-400"></i>
-                                        <span class="text-white">+235 XP</span>
+                                        <span class="text-white">+{{ store.userProfile?.totalLexiCredit || 0 }} XP</span>
                                     </div>
                                     <div class="flex items-center gap-2 font-bold text-sm">
                                         <i class="fa-solid fa-fire text-orange-500"></i>
-                                        <span class="text-white">{{ stats?.streak || 26 }} Days</span>
+                                        <span class="text-white">{{ stats?.streak || 0 }} Days</span>
                                     </div>
                                     <div class="flex items-center gap-2 font-bold text-sm">
                                         <i class="fa-regular fa-clock text-blue-400"></i>
-                                        <span class="text-white">42m</span>
+                                        <span class="text-white">{{ stats?.todayWords ? Math.max(5, Math.round(stats.todayWords * 1.5)) : 0 }}m</span>
                                     </div>
                                 </div>
                             </div>
@@ -508,7 +535,7 @@ export default {
                                 <div>
                                     <p class="text-xs font-bold text-orange-400/80 tracking-widest uppercase mb-1">Current Streak</p>
                                     <div class="flex items-baseline gap-2">
-                                        <span class="text-5xl font-black text-white tracking-tighter">{{ stats?.streak || 26 }}</span>
+                                        <span class="text-5xl font-black text-white tracking-tighter">{{ stats?.streak || 0 }}</span>
                                         <span class="text-lg font-bold text-gray-400">Days</span>
                                     </div>
                                 </div>
@@ -516,21 +543,21 @@ export default {
                                 <div class="flex gap-8 mt-6 mb-8">
                                     <div>
                                         <div class="text-xs text-gray-500 font-medium mb-1">Best Streak</div>
-                                        <div class="font-bold text-white">58 <span class="text-xs text-gray-400">days</span></div>
+                                        <div class="font-bold text-white">{{ stats?.bestStreak || stats?.streak || 0 }} <span class="text-xs text-gray-400">days</span></div>
                                     </div>
                                     <div>
                                         <div class="text-xs text-gray-500 font-medium mb-1">Total Days</div>
-                                        <div class="font-bold text-white">143 <span class="text-xs text-gray-400">days</span></div>
+                                        <div class="font-bold text-white">{{ stats?.totalStudyDays || (stats?.history?.length ? stats.history.length : (stats?.streak > 0 ? 1 : 0)) }} <span class="text-xs text-gray-400">days</span></div>
                                     </div>
                                 </div>
                                 
                                 <div>
                                     <div class="flex justify-between text-xs font-bold mb-2">
-                                        <span class="text-gray-400">Next badge: <span class="text-white">Inferno</span></span>
-                                        <span class="text-gray-400"><span class="text-white">{{ stats?.streak || 26 }}</span> / 30 days</span>
+                                        <span class="text-gray-400">Next badge: <span class="text-white">{{ (stats?.streak || 0) < 7 ? 'Sprout' : (stats?.streak || 0) < 30 ? 'Inferno' : 'Master' }}</span></span>
+                                        <span class="text-gray-400"><span class="text-white">{{ stats?.streak || 0 }}</span> / 30 days</span>
                                     </div>
                                     <div class="h-1.5 w-full bg-[#180E13] rounded-full overflow-hidden">
-                                        <div class="h-full bg-gradient-to-r from-orange-600 to-amber-500 rounded-full" :style="{ width: ((stats?.streak || 26) / 30 * 100) + '%' }"></div>
+                                        <div class="h-full bg-gradient-to-r from-orange-600 to-amber-500 rounded-full" :style="{ width: Math.min(100, ((stats?.streak || 0) / 30 * 100)) + '%' }"></div>
                                     </div>
                                 </div>
                             </div>
@@ -549,24 +576,27 @@ export default {
                                             <i class="fa-solid fa-microchip"></i> AI Learning Coach 
                                             <span class="bg-indigo-500/20 text-indigo-300 py-0.5 px-2 rounded text-[10px] border border-indigo-500/30">HLR Memory Engine</span>
                                         </div>
-                                        <h3 class="text-2xl font-black text-white mb-3" v-if="aiCoachStats.isLongAbsence">
+                                        <h3 class="text-2xl font-black text-rose-400 mb-3" v-if="aiCoachStats.isLongAbsence">
                                             ⚠️ Báo động: Trí nhớ đang phân rã mạnh!
                                         </h3>
-                                        <h3 class="text-2xl font-black text-white mb-3" v-else-if="aiCoachStats.reviewWords > 0">
-                                            Đến lúc ôn tập rồi!
+                                        <h3 class="text-2xl font-black text-amber-400 mb-3" v-else-if="aiCoachStats.reviewWords > 0">
+                                            ⚡ Đến lúc củng cố từ vựng!
                                         </h3>
                                         <h3 class="text-2xl font-black text-emerald-400 mb-3" v-else>
-                                            Trí nhớ vững vàng!
+                                            ✨ Trí nhớ 100% Tối ưu!
                                         </h3>
 
                                         <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-if="aiCoachStats.isLongAbsence">
-                                            Đã khoảng <span class="text-rose-400 font-extrabold">{{ aiCoachStats.daysAbsent }} ngày</span> bạn chưa ôn tập lại. Theo định luật đường cong quên lãng <b class="text-white">Ebbinghaus</b>, tỷ lệ lưu giữ từ vựng của bạn đã rơi xuống mức báo động <span class="text-rose-400 font-extrabold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">{{ aiCoachStats.avgRetention }}%</span>. Có <span class="text-amber-400 font-extrabold">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng nguy cơ quên sạch. Hãy ôn tập ngay để phục hồi trí nhớ!
+                                            Đã khoảng <span class="text-rose-400 font-extrabold">{{ aiCoachStats.daysAbsent }} ngày</span> bạn chưa ôn tập lại. Theo định luật đường cong quên lãng <b class="text-white">Ebbinghaus</b>, tỷ lệ lưu giữ từ vựng của bạn đã rơi xuống mức <span class="text-rose-400 font-extrabold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">{{ aiCoachStats.avgRetention }}%</span>. Có <span class="text-amber-400 font-extrabold">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng nguy cơ quên. Hãy ôn tập ngay để phục hồi trí nhớ!
                                         </p>
                                         <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-else-if="aiCoachStats.reviewWords > 0">
-                                            Thuật toán HLR đang theo dõi nhịp học của bạn. Theo mô hình Ebbinghaus, bạn có khoảng <span class="text-cyan-400 font-bold bg-cyan-400/10 px-1.5 py-0.5 rounded">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng quên. Tỷ lệ nhớ trung bình: <b class="text-white">{{ aiCoachStats.avgRetention }}%</b>.
+                                            Thuật toán HLR đang theo dõi nhịp học riêng của bạn. Theo mô hình Ebbinghaus, bạn có <span class="text-cyan-400 font-bold bg-cyan-400/10 px-1.5 py-0.5 rounded">{{ aiCoachStats.reviewWords }} từ vựng</span> đang chạm ngưỡng cần ôn tập. Tỷ lệ nhớ trung bình: <b class="text-white">{{ aiCoachStats.avgRetention }}%</b>.
+                                        </p>
+                                        <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-else-if="aiCoachStats.isNewUser">
+                                            Chào mừng bạn đến với LexiLearn! Não bộ của bạn đang ở trạng thái ghi nhớ hoàn hảo <b class="text-emerald-400 font-bold">100%</b>. Hãy bắt đầu học hoặc thêm bộ từ vựng đầu tiên để AI theo dõi đường cong trí nhớ của bạn!
                                         </p>
                                         <p class="text-gray-300 text-sm leading-relaxed mb-6 max-w-lg" v-else>
-                                            Tuyệt vời! Trí nhớ của bạn đang được củng cố tối ưu với tỷ lệ nhớ <b class="text-emerald-400 font-bold">{{ aiCoachStats.avgRetention }}%</b> và không có từ vựng nào gặp nguy cơ quên lãng.
+                                            Tuyệt vời! Toàn bộ từ vựng của bạn đang được củng cố ở mức tối ưu với tỷ lệ nhớ <b class="text-emerald-400 font-bold">{{ aiCoachStats.avgRetention }}%</b> và không có từ vựng nào gặp nguy cơ quên lãng.
                                         </p>
                                     </div>
                                     

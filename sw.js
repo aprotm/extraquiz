@@ -1,4 +1,4 @@
-const CACHE_NAME = 'extraquiz-v79';
+const CACHE_NAME = 'extraquiz-v87';
 const ASSETS = [
     './',
     './index.html',
@@ -13,12 +13,11 @@ const ASSETS = [
     './js/ai.js',
     './js/sfx.js',
     './js/voice.js',
-    './js/components/quotes.js',
-    './js/components/adminpanel.js',
+    './js/i18n.js',
+    './js/toast.js',
+    './js/badges.js',
     './js/memoryengine.js',
-    './js/personaengine.js',
-    './js/aiinsight.js',
-    './js/i18n.js'
+    './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
@@ -30,8 +29,27 @@ self.addEventListener('install', (e) => {
     );
 });
 
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.map((key) => {
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
 self.addEventListener('fetch', (e) => {
-    // Chỉ cache các request HTTP(S) tĩnh, bỏ qua các request của Firebase/Google API
+    // Chỉ xử lý các request HTTP / HTTPS, bỏ qua chrome-extension://, moz-extension://
+    if (!e.request.url.startsWith('http://') && !e.request.url.startsWith('https://')) {
+        return;
+    }
+
+    // Bỏ qua các request của Firebase / Gemini API
     if (e.request.url.includes('firestore.googleapis.com') || 
         e.request.url.includes('generativelanguage.googleapis.com') ||
         e.request.url.includes('identitytoolkit.googleapis.com')) {

@@ -10,6 +10,7 @@ export const store = reactive({
     decks: [],
     activeDeck: null,
     activeCards: [],
+    allUserCards: [],
     isLoading: true,
     authError: '',
     currentRoute: (window.location.hash && window.location.hash.length > 1) ? window.location.hash.slice(1) : 'dashboard', // Màn hình hiện tại

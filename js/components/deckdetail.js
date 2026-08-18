@@ -63,56 +63,101 @@ export default {
                     <h1 class="text-4xl font-extrabold text-gray-900 mb-2" style="letter-spacing: -0.02em;">{{ store.activeDeck.title }}</h1>
                     <p class="text-gray-500 mb-8 max-w-xl mx-auto text-sm leading-relaxed">{{ store.activeDeck.description }}</p>
                     
-                    <!-- Action Buttons Grid -->
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
-                        <button @click="store.navigate('learn')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg text-white"
-                                style="background: linear-gradient(135deg, #6d55d1, #8b5cf6);">
-                            <i class="fa-solid fa-graduation-cap text-xl"></i>
-                            <span class="text-sm">Học</span>
-                        </button>
-                        <button @click="store.navigate('study')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2"
-                                style="border-color: #c4b5fd; color: #6d55d1; background: rgba(196,181,253,0.1);">
-                            <i class="fa-solid fa-layer-group text-xl"></i>
-                            <span class="text-sm">Lật thẻ</span>
-                        </button>
-                        <button @click="store.navigate('quiz')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2"
-                                style="border-color: #93c5fd; color: #2563eb; background: rgba(147,197,253,0.1);">
-                            <i class="fa-solid fa-check-double text-xl"></i>
-                            <span class="text-sm">Kiểm tra</span>
-                        </button>
-                        <button @click="store.navigate('dictation')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2"
-                                style="border-color: #d8b4fe; color: #7c3aed; background: rgba(216,180,254,0.1);">
-                            <i class="fa-solid fa-headphones text-xl"></i>
-                            <span class="text-sm">Nghe Chép</span>
-                        </button>
-                        <button @click="store.navigate('reading')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2"
-                                style="border-color: #6ee7b7; color: #059669; background: rgba(110,231,183,0.1);">
-                            <i class="fa-solid fa-book-open-reader text-xl"></i>
-                            <span class="text-sm">Đọc Hiểu</span>
-                        </button>
-                        <button @click="store.navigate('matching')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2"
-                                style="border-color: #fcd34d; color: #d97706; background: rgba(253,230,138,0.1);">
-                            <i class="fa-solid fa-gamepad text-xl"></i>
-                            <span class="text-sm">Nối từ</span>
-                        </button>
-                        <button @click="store.navigate('activate')" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2 relative overflow-hidden group"
-                                style="border-color: #fca5a5; color: #dc2626; background: rgba(254,226,226,0.1);">
-                            <div class="absolute inset-0 bg-red-100 opacity-0 group-hover:opacity-100 transition-opacity z-0"></div>
-                            <i class="fa-solid fa-fire text-xl z-10"></i>
-                            <span class="text-sm z-10">Activate</span>
-                        </button>
-                        <button @click="store.navigate('edit-deck', store.activeDeck)" 
-                                class="flex flex-col items-center gap-2 p-4 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg border-2 border-gray-200 text-gray-600 hover:border-gray-300 bg-gray-50">
-                            <i class="fa-solid fa-pen text-xl"></i>
-                            <span class="text-sm">Chỉnh sửa</span>
-                        </button>
+                    <!-- Category 1: ARCADE GAME MODES -->
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-3 justify-center">
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-rose-500/20 to-amber-500/20 text-rose-700 border border-rose-300/60 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                                <span>🎮 Game Đấu Trí & Tốc Độ (Arcade Arena)</span>
+                                <span class="px-1.5 py-0.2 bg-rose-500 text-white rounded-full text-[9px] font-black">HOT</span>
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto">
+                            <!-- Speed Rush / Boss Battle -->
+                            <button @click="store.navigate('boss-battle')" 
+                                    class="flex flex-col items-center gap-2 p-4 rounded-2xl font-black transition-all hover:-translate-y-1 hover:shadow-xl text-white relative overflow-hidden group border border-rose-400/40"
+                                    style="background: linear-gradient(135deg, #e11d48, #ea580c);">
+                                <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span class="text-2xl drop-shadow-md">🐉</span>
+                                <span class="text-xs uppercase tracking-wider">Đấu Trùm Speed</span>
+                            </button>
+
+                            <!-- Cyber Cipher -->
+                            <button @click="store.navigate('cyber-cipher')" 
+                                    class="flex flex-col items-center gap-2 p-4 rounded-2xl font-black transition-all hover:-translate-y-1 hover:shadow-xl text-white relative overflow-hidden group border border-cyan-400/40"
+                                    style="background: linear-gradient(135deg, #0891b2, #2563eb);">
+                                <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span class="text-2xl drop-shadow-md">👾</span>
+                                <span class="text-xs uppercase tracking-wider">Giải Mã Cipher</span>
+                            </button>
+
+                            <!-- AI Arena 1v1 -->
+                            <button @click="store.navigate('ai-arena')" 
+                                    class="flex flex-col items-center gap-2 p-4 rounded-2xl font-black transition-all hover:-translate-y-1 hover:shadow-xl text-white relative overflow-hidden group border border-purple-400/40"
+                                    style="background: linear-gradient(135deg, #7c3aed, #9333ea);">
+                                <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span class="text-2xl drop-shadow-md">⚔️</span>
+                                <span class="text-xs uppercase tracking-wider">Đấu Trí AI 1v1</span>
+                            </button>
+
+                            <!-- Matching Game -->
+                            <button @click="store.navigate('matching')" 
+                                    class="flex flex-col items-center gap-2 p-4 rounded-2xl font-black transition-all hover:-translate-y-1 hover:shadow-xl text-white relative overflow-hidden group border border-amber-400/40"
+                                    style="background: linear-gradient(135deg, #d97706, #f59e0b);">
+                                <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span class="text-2xl drop-shadow-md">🧩</span>
+                                <span class="text-xs uppercase tracking-wider">Nối Từ Cặp</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category 2: CORE STUDY MODES -->
+                    <div class="mb-4">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                            📚 Luyện Tập Ghi Nhớ & Đánh Giá
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-4xl mx-auto">
+                            <button @click="store.navigate('learn')" 
+                                    class="flex flex-col items-center gap-1.5 p-3 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-md border-2 border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 dark:bg-[#162038] dark:border-[#2E3C5E] dark:text-[#A5B4FC] dark:hover:bg-[#1C2A4A] dark:hover:border-[#435787]">
+                                <i class="fa-solid fa-graduation-cap text-lg text-indigo-600 dark:text-indigo-400"></i>
+                                <span class="text-xs">Học Đa Chiều</span>
+                            </button>
+                            <button @click="store.navigate('study')" 
+                                    class="flex flex-col items-center gap-1.5 p-3 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-md border-2 border-purple-200 bg-purple-50/70 text-purple-700 hover:bg-purple-100 dark:bg-[#201835] dark:border-[#3D2C62] dark:text-[#D8B4FE] dark:hover:bg-[#2A1F45] dark:hover:border-[#5A4191]">
+                                <i class="fa-solid fa-layer-group text-lg text-purple-600 dark:text-purple-400"></i>
+                                <span class="text-xs">Lật Thẻ 3D</span>
+                            </button>
+                            <button @click="store.navigate('quiz')" 
+                                    class="flex flex-col items-center gap-1.5 p-3 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-md border-2 border-blue-200 bg-blue-50/70 text-blue-700 hover:bg-blue-100 dark:bg-[#15233D] dark:border-[#263D68] dark:text-[#93C5FD] dark:hover:bg-[#1B2F52] dark:hover:border-[#3B5B9B]">
+                                <i class="fa-solid fa-check-double text-lg text-blue-600 dark:text-blue-400"></i>
+                                <span class="text-xs">Trắc Nghiệm</span>
+                            </button>
+                            <button @click="store.navigate('dictation')" 
+                                    class="flex flex-col items-center gap-1.5 p-3 rounded-2xl font-bold transition-all hover:-translate-y-0.5 hover:shadow-md border-2 border-fuchsia-200 bg-fuchsia-50/70 text-fuchsia-700 hover:bg-fuchsia-100 dark:bg-[#281728] dark:border-[#4D274A] dark:text-[#F472B6] dark:hover:bg-[#382038] dark:hover:border-[#733A6E]">
+                                <i class="fa-solid fa-headphones text-lg text-fuchsia-600 dark:text-fuchsia-400"></i>
+                                <span class="text-xs">Nghe Chép</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category 3: ADVANCED AI & TOOLS -->
+                    <div>
+                        <div class="grid grid-cols-3 gap-2.5 max-w-xl mx-auto pt-2">
+                            <button @click="store.navigate('activate')" 
+                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:border-rose-900/60 dark:text-rose-300 dark:hover:bg-rose-900/50">
+                                <i class="fa-solid fa-fire text-rose-500"></i>
+                                <span>Activate</span>
+                            </button>
+                            <button @click="store.navigate('reading')" 
+                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/60 dark:text-emerald-300 dark:hover:bg-emerald-900/50">
+                                <i class="fa-solid fa-book-open-reader text-emerald-600 dark:text-emerald-400"></i>
+                                <span>Đọc Hiểu AI</span>
+                            </button>
+                            <button @click="store.navigate('edit-deck', store.activeDeck)" 
+                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-[#1E293B] dark:border-[#334155] dark:text-gray-200 dark:hover:bg-[#28354A]">
+                                <i class="fa-solid fa-pen text-gray-500 dark:text-gray-400"></i>
+                                <span>Chỉnh Sửa</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

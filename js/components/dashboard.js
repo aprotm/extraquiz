@@ -66,6 +66,7 @@ export default {
             try {
                 if (!store.user) return;
                 const cards = await fetchAllUserCards(store.user.uid);
+                store.allUserCards = cards;
                 vocabStats.value.total = cards.length;
                 cards.forEach(c => {
                     const state = c.mastery_state || 'Unknown';
@@ -261,6 +262,65 @@ export default {
             <div class="flex flex-col xl:flex-row gap-6 lg:gap-8">
                 <!-- Left Column (Main Content - Decks & Tools) -->
                 <div class="flex-1 min-w-0 space-y-6">
+
+                    <!-- ARCADE GAME ARENA QUICK LAUNCH HUB -->
+                    <div class="arcade-hub-container p-5 sm:p-6 rounded-3xl relative overflow-hidden group select-none transition-all duration-300">
+                        <div class="absolute -top-16 -right-16 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700"></div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-400/30 uppercase tracking-widest">
+                                        ⚡ Đấu Trường Phản Xạ
+                                    </span>
+                                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400">Chơi & Kiếm LexiCredit</span>
+                                </div>
+                                <h3 class="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight">Võ Đài Trò Chơi Từ Vựng (Arcade Hub)</h3>
+                            </div>
+                        </div>
+
+                        <!-- 4 Game Cards Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10">
+                            <button @click="store.navigate('boss-battle')" 
+                                    class="arcade-game-btn p-3.5 rounded-2xl transition-all text-left group/btn shadow-sm hover:shadow-md hover:scale-105 border border-rose-200 dark:border-rose-500/30">
+                                <div class="text-2xl mb-1.5 drop-shadow-md">🐉</div>
+                                <div class="text-xs font-black text-gray-900 dark:text-white flex items-center justify-between">
+                                    <span>Đấu Trùm</span>
+                                    <i class="fa-solid fa-bolt text-[10px] text-amber-500 opacity-0 group-hover/btn:opacity-100 transition"></i>
+                                </div>
+                                <div class="text-[10px] text-rose-600 dark:text-rose-300 font-bold">Speed Rush</div>
+                            </button>
+
+                            <button @click="store.navigate('cyber-cipher')" 
+                                    class="arcade-game-btn p-3.5 rounded-2xl transition-all text-left group/btn shadow-sm hover:shadow-md hover:scale-105 border border-cyan-200 dark:border-cyan-500/30">
+                                <div class="text-2xl mb-1.5 drop-shadow-md">👾</div>
+                                <div class="text-xs font-black text-gray-900 dark:text-white flex items-center justify-between">
+                                    <span>Giải Mã</span>
+                                    <i class="fa-solid fa-bolt text-[10px] text-cyan-500 opacity-0 group-hover/btn:opacity-100 transition"></i>
+                                </div>
+                                <div class="text-[10px] text-cyan-600 dark:text-cyan-300 font-bold">Cyber Cipher</div>
+                            </button>
+
+                            <button @click="store.navigate('ai-arena')" 
+                                    class="arcade-game-btn p-3.5 rounded-2xl transition-all text-left group/btn shadow-sm hover:shadow-md hover:scale-105 border border-purple-200 dark:border-purple-500/30">
+                                <div class="text-2xl mb-1.5 drop-shadow-md">⚔️</div>
+                                <div class="text-xs font-black text-gray-900 dark:text-white flex items-center justify-between">
+                                    <span>Đấu Trí AI</span>
+                                    <i class="fa-solid fa-bolt text-[10px] text-purple-500 opacity-0 group-hover/btn:opacity-100 transition"></i>
+                                </div>
+                                <div class="text-[10px] text-purple-600 dark:text-purple-300 font-bold">Cyber Arena</div>
+                            </button>
+
+                            <button @click="store.navigate('matching')" 
+                                    class="arcade-game-btn p-3.5 rounded-2xl transition-all text-left group/btn shadow-sm hover:shadow-md hover:scale-105 border border-amber-200 dark:border-amber-500/30">
+                                <div class="text-2xl mb-1.5 drop-shadow-md">🧩</div>
+                                <div class="text-xs font-black text-gray-900 dark:text-white flex items-center justify-between">
+                                    <span>Nối Cặp Từ</span>
+                                    <i class="fa-solid fa-bolt text-[10px] text-amber-500 opacity-0 group-hover/btn:opacity-100 transition"></i>
+                                </div>
+                                <div class="text-[10px] text-amber-600 dark:text-amber-300 font-bold">Match Reflex</div>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Search & Actions -->
                     <div class="flex flex-col sm:flex-row gap-3">

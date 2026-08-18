@@ -301,64 +301,65 @@ export default {
                          :style="isFlipped ? 'transform: rotateY(180deg);' : 'transform: rotateY(0deg);'">
                          
                         <!-- FRONT -->
-                        <div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 rounded-3xl overflow-hidden"
-                             style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(0deg); background: linear-gradient(160deg, #ffffff 0%, #faf8ff 100%); border: 2px solid rgba(109,85,209,0.1);">
-                            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style="background: linear-gradient(90deg, #6d55d1, #8b5cf6);"></div>
+                        <div class="card-face-front absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 rounded-3xl overflow-hidden bg-white dark:bg-[#131B2E] border-2 border-indigo-100 dark:border-[#263554] shadow-xl"
+                             style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(0deg);">
+                            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
                             
                             <div class="flex-1 w-full flex flex-col items-center justify-center gap-4">
-                                <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Thuật ngữ</div>
-                                <h2 class="flashcard-term font-extrabold text-gray-900">{{ cardsToStudy[studyIndex].term }}</h2>
-                                <div class="flex items-center gap-3 text-gray-400 text-sm font-medium">
-                                    <span v-if="cardsToStudy[studyIndex].pos" class="px-2 py-0.5 rounded-lg text-xs font-bold" style="background: rgba(109,85,209,0.1); color: #6d55d1;">
+                                <div class="text-xs font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-2">Thuật ngữ</div>
+                                <h2 class="flashcard-term font-black text-gray-900 dark:text-white tracking-tight">{{ cardsToStudy[studyIndex].term }}</h2>
+                                <div class="flex items-center gap-3 text-sm font-medium">
+                                    <span v-if="cardsToStudy[studyIndex].pos" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50">
                                         {{ cardsToStudy[studyIndex].pos }}
                                     </span>
-                                    <span v-if="cardsToStudy[studyIndex].pronunciation" class="font-mono text-sm text-gray-500">{{ cardsToStudy[studyIndex].pronunciation }}</span>
+                                    <span v-if="cardsToStudy[studyIndex].pronunciation" class="font-mono text-sm text-gray-600 dark:text-gray-300">{{ cardsToStudy[studyIndex].pronunciation }}</span>
                                 </div>
                             </div>
                             
                             <div class="flex gap-3 mt-4">
                                 <button @click.stop="speakWord(cardsToStudy[studyIndex].term)" 
-                                        class="w-10 h-10 rounded-xl flex items-center justify-center transition hover:scale-110 relative z-10"
-                                        style="background: rgba(109,85,209,0.1); color: #6d55d1;">
+                                        class="w-11 h-11 rounded-2xl flex items-center justify-center transition hover:scale-110 relative z-10 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60" title="Phát âm">
                                     <i class="fa-solid fa-volume-high text-sm pointer-events-none"></i>
                                 </button>
                             </div>
                             
-                            <div class="mt-6 text-xs text-gray-300 font-medium">Nhấn để lật thẻ</div>
+                            <div class="mt-6 text-xs text-gray-400 dark:text-gray-500 font-medium flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                                <span>Nhấn để lật thẻ</span>
+                            </div>
                         </div>
                         
                         <!-- BACK -->
-                        <div class="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 rounded-3xl overflow-y-auto text-center"
-                             style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg); background: linear-gradient(160deg, #ffffff 0%, #f5f3ff 100%); border: 2px solid rgba(109,85,209,0.15);">
-                            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style="background: linear-gradient(90deg, #8b5cf6, #c084fc);"></div>
+                        <div class="card-face-back absolute inset-0 w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 rounded-3xl overflow-y-auto text-center bg-white dark:bg-[#131B2E] border-2 border-purple-100 dark:border-[#263554] shadow-xl"
+                             style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg);">
+                            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-3xl bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500"></div>
                             
-                            <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4">Định nghĩa</div>
+                            <div class="text-xs font-bold uppercase tracking-widest text-purple-500 dark:text-purple-400 mb-4">Định nghĩa</div>
                             
                             <img v-if="cardsToStudy[studyIndex].imageUrl" :src="cardsToStudy[studyIndex].imageUrl" 
                                  class="max-w-full h-32 sm:h-40 object-contain rounded-xl mb-4" alt="Minh họa">
                                  
-                            <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4" style="letter-spacing: -0.01em;">{{ cardsToStudy[studyIndex].definition }}</h3>
+                            <h3 class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">{{ cardsToStudy[studyIndex].definition }}</h3>
                             
-                            <div v-if="cardsToStudy[studyIndex].example" class="text-gray-500 text-sm sm:text-base italic mb-4 max-w-md px-4 py-3 rounded-xl" style="background: rgba(109,85,209,0.05); border-left: 3px solid rgba(109,85,209,0.3);">
+                            <div v-if="cardsToStudy[studyIndex].example" class="text-gray-600 dark:text-gray-300 text-sm sm:text-base italic mb-4 max-w-md px-4 py-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border-l-4 border-purple-500 dark:border-purple-400">
                                 "{{ cardsToStudy[studyIndex].example }}"
                             </div>
 
                             <div class="flex flex-wrap justify-center gap-2 mb-2">
-                                <div v-if="cardsToStudy[studyIndex].collocations" class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background: rgba(109,85,209,0.1); color: #6d55d1;">
+                                <div v-if="cardsToStudy[studyIndex].collocations" class="text-xs font-bold px-3 py-1.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50">
                                     <i class="fa-solid fa-puzzle-piece mr-1"></i>{{ cardsToStudy[studyIndex].collocations }}
                                 </div>
-                                <div v-if="cardsToStudy[studyIndex].wordFamily" class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background: rgba(99,102,241,0.1); color: #4f46e5;">
+                                <div v-if="cardsToStudy[studyIndex].wordFamily" class="text-xs font-bold px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50">
                                     <i class="fa-solid fa-sitemap mr-1"></i>{{ cardsToStudy[studyIndex].wordFamily }}
                                 </div>
-                                <div v-if="cardsToStudy[studyIndex].synonyms" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">
+                                <div v-if="cardsToStudy[studyIndex].synonyms" class="text-xs font-bold px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                                     <i class="fa-solid fa-link mr-1"></i>{{ cardsToStudy[studyIndex].synonyms }}
                                 </div>
                             </div>
 
                             <div class="flex gap-3 mt-4">
                                 <button @click.stop="speakWord(cardsToStudy[studyIndex].term)" 
-                                        class="w-10 h-10 rounded-xl flex items-center justify-center transition hover:scale-110"
-                                        style="background: rgba(109,85,209,0.1); color: #6d55d1;">
+                                        class="w-11 h-11 rounded-2xl flex items-center justify-center transition hover:scale-110 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60" title="Phát âm">
                                     <i class="fa-solid fa-volume-high text-sm"></i>
                                 </button>
                             </div>

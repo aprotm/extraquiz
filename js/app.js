@@ -1,4 +1,4 @@
-import { createApp, onMounted, onUpdated, ref } from 'vue';
+import { createApp, onMounted, onUpdated, ref, computed } from 'vue';
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { store, BADGES_DICT } from './store.js';
@@ -25,17 +25,106 @@ import Quotes from './components/quotes.js';
 import LevelUpPopup from './components/LevelUpPopup.js';
 import Activate from './components/activate.js';
 import LexiLearnDashboard from './components/lexilearndashboard.js';
+import BossBattle from './components/bossbattle.js';
+import CyberCipher from './components/cybercipher.js';
+import AiArena from './components/aiarena.js';
 import { t } from './i18n.js';
 
 import { toasts, showToast } from './toast.js';
 
 const App = {
     components: {
-        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, Activate, LexiLearnDashboard
+        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, Activate, LexiLearnDashboard, BossBattle, CyberCipher, AiArena
     },
     setup() {
         const isLoginMode = ref(true);
-        const authForm = ref({ email: '', password: '' });
+        const showPassword = ref(false);
+        const showConfirmPassword = ref(false);
+        const rememberMe = ref(localStorage.getItem('remember_me') !== 'false');
+        const authForm = ref({
+            email: localStorage.getItem('saved_email') || '',
+            password: '',
+            confirmPassword: '',
+            displayName: ''
+        });
+
+        // Password Strength Analysis
+        const passwordScore = computed(() => {
+            const pwd = authForm.value.password || '';
+            if (!pwd) return 0;
+            let score = 0;
+            if (pwd.length >= 6) score++;
+            if (pwd.length >= 8) score++;
+            if (/[0-9]/.test(pwd)) score++;
+            if (/[A-Z]/.test(pwd) || /[^A-Za-z0-9]/.test(pwd)) score++;
+            return score;
+        });
+
+        const passwordStrengthLabel = computed(() => {
+            const scores = ['Rất yếu', 'Yếu', 'Trung bình', 'Mạnh', 'Rất an toàn'];
+            return scores[passwordScore.value];
+        });
+
+        const passwordStrengthColor = computed(() => {
+            const colors = ['bg-gray-300', 'bg-rose-500', 'bg-amber-500', 'bg-blue-500', 'bg-emerald-500'];
+            return colors[passwordScore.value];
+        });
+
+        const passwordStrengthPercent = computed(() => {
+            return (passwordScore.value / 4) * 100;
+        });
+
+        const fillDemoAccount = () => {
+            authForm.value.email = 'test@gmail.com';
+            authForm.value.password = '123456';
+            isLoginMode.value = true;
+            showToast("Đã điền tài khoản thử nghiệm!", 'info');
+        };
+
+        const handleAuth = async () => {
+            if (!auth) return;
+            store.authError = '';
+            
+            // Password validation for register
+            if (!isLoginMode.value) {
+                if (authForm.value.password.length < 6) {
+                    store.authError = "Mật khẩu phải có tối thiểu 6 ký tự.";
+                    return;
+                }
+                if (authForm.value.password !== authForm.value.confirmPassword) {
+                    store.authError = "Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.";
+                    return;
+                }
+            }
+
+            store.showLoading();
+            try {
+                if (rememberMe.value && authForm.value.email) {
+                    localStorage.setItem('saved_email', authForm.value.email);
+                    localStorage.setItem('remember_me', 'true');
+                } else {
+                    localStorage.removeItem('saved_email');
+                    localStorage.setItem('remember_me', 'false');
+                }
+
+                if (isLoginMode.value) {
+                    await signInWithEmailAndPassword(auth, authForm.value.email, authForm.value.password);
+                    showToast("Chào mừng bạn quay trở lại LexiLearn Pro!", 'success');
+                } else {
+                    const cred = await createUserWithEmailAndPassword(auth, authForm.value.email, authForm.value.password);
+                    if (authForm.value.displayName) {
+                        await updateUserProfile(cred.user.uid, { displayName: authForm.value.displayName });
+                    }
+                    await createSampleDeck(cred.user.uid);
+                    store.decks = await fetchDecks(cred.user.uid);
+                    showToast("Tạo tài khoản thành công! Khởi tạo không gian học tập.", 'success');
+                }
+            } catch(e) {
+                store.authError = e.message.replace('Firebase: ', '').replace(/\(auth\/.*\)\.?/, '').trim();
+            } finally {
+                store.hideLoading();
+            }
+        };
 
         onMounted(() => {
             // Apply initial settings
@@ -48,9 +137,6 @@ const App = {
                     store.currentRoute = hash;
                 }
             });
-
-            // API Key must be set manually by the user in the UI or via localStorage
-            // (Removed hardcoded leaked key)
 
             if (!auth) {
                 store.hideLoading();
@@ -127,25 +213,6 @@ const App = {
             showToast("Đã xóa hình nền.", 'info');
         };
 
-        const handleAuth = async () => {
-            if (!auth) return;
-            store.authError = '';
-            store.showLoading();
-            try {
-                if (isLoginMode.value) {
-                    await signInWithEmailAndPassword(auth, authForm.value.email, authForm.value.password);
-                } else {
-                    const cred = await createUserWithEmailAndPassword(auth, authForm.value.email, authForm.value.password);
-                    await createSampleDeck(cred.user.uid);
-                    store.decks = await fetchDecks(cred.user.uid);
-                }
-            } catch(e) {
-                store.authError = e.message.replace('Firebase: ', '').replace(/\(auth\/.*\)\.?/, '').trim();
-            } finally {
-                store.hideLoading();
-            }
-        };
-
         const logout = async () => {
             if (!auth) return;
             await signOut(auth);
@@ -194,7 +261,9 @@ const App = {
         return { 
             store, isLoginMode, authForm, handleAuth, logout, toasts, 
             bgImage, triggerBgUpload, handleBgUpload, removeBgImage,
-            userInitial, getBadgeIcon, getBadge3D, getBadgeTitle, t, handleForgotPassword
+            userInitial, getBadgeIcon, getBadge3D, getBadgeTitle, t, handleForgotPassword,
+            showPassword, showConfirmPassword, rememberMe, passwordScore,
+            passwordStrengthLabel, passwordStrengthColor, passwordStrengthPercent, fillDemoAccount
         };
     },
     template: `
@@ -231,62 +300,232 @@ const App = {
             </div>
         </div>
 
-        <!-- Auth Screen -->
-        <div v-else-if="!store.user" class="flex-1 flex items-center justify-center min-h-screen" style="background: linear-gradient(145deg, #f5f4f9, #ece9f4);">
-            <div class="w-full max-w-5xl mx-auto flex rounded-3xl overflow-hidden shadow-2xl" style="min-height: 580px;">
-                <!-- Left Branding Panel -->
-                <div class="hidden lg:flex flex-col justify-between p-12 flex-1 relative overflow-hidden" style="background: linear-gradient(145deg, #6d55d1, #4c3699);">
-                    <div class="absolute inset-0 opacity-10">
-                        <div class="absolute top-12 right-12 w-64 h-64 rounded-full" style="background: rgba(255,255,255,0.3); filter: blur(60px);"></div>
-                        <div class="absolute bottom-0 left-0 w-96 h-96 rounded-full" style="background: rgba(139,92,246,0.4); filter: blur(80px);"></div>
-                    </div>
+        <!-- Auth Screen (Redesigned with Luxury 3D & Password Security) -->
+        <div v-else-if="!store.user" class="flex-1 flex items-center justify-center min-h-screen p-4 relative overflow-hidden bg-[#0A0E1A]">
+            <!-- Ambient Background Glows -->
+            <div class="absolute top-10 left-10 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative z-10 bg-[#111827]">
+                
+                <!-- Left Branding Panel (Cyber & 3D Luxury) -->
+                <div class="hidden lg:flex flex-col justify-between p-10 lg:p-12 flex-1 relative overflow-hidden text-white" style="background: linear-gradient(145deg, #1E1B4B, #0F172A);">
+                    <div class="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    
                     <div class="relative z-10">
-                        <div class="flex items-center gap-3 mb-16">
-                            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm overflow-hidden p-0.5">
-                                <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain rounded-xl">
+                        <div class="flex items-center gap-3 mb-10">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 shadow-lg p-1">
+                                <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow">
                             </div>
-                            <span class="text-white font-bold text-xl">ExtraQuiz Pro</span>
+                            <div>
+                                <span class="text-white font-black text-2xl tracking-tight">Lexi<span class="text-amber-400">Learn</span></span>
+                                <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 uppercase tracking-wider">PRO AI</span>
+                            </div>
                         </div>
-                        <h1 class="text-4xl font-extrabold text-white leading-tight mb-4">Luyện thi IELTS<br>cùng trí tuệ AI</h1>
-                        <p class="text-purple-200 text-lg leading-relaxed">Flashcard thông minh, lộ trình cá nhân hóa, và công cụ AI chuyên sâu — tất cả trong một nền tảng.</p>
+
+                        <h1 class="text-3xl lg:text-4xl font-black text-white leading-tight tracking-tight mb-4">
+                            Chinh Phục Ngôn Ngữ &<br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400">Bứt Phá Trí Tuệ Cùng AI</span>
+                        </h1>
+                        <p class="text-purple-200/90 text-sm leading-relaxed max-w-md">
+                            Hệ sinh thái Flashcard Spaced Repetition thông minh, Đấu trường Arcade Games kịch tính, và Trợ lý AI cá nhân hóa toàn diện.
+                        </p>
                     </div>
-                    <div class="relative z-10 space-y-4">
-                        <div v-for="feat in ['🃏 Hệ thống flashcard với thuật toán SRS', '✍️ Máy chấm essay AI theo tiêu chí IELTS', '🔄 Huấn luyện Paraphrase Band 8.0+', '📖 Tạo đề đọc hiểu từ bài viết bất kỳ']" :key="feat" class="flex items-center gap-3 text-purple-100 font-medium">
-                            <span>{{ feat }}</span>
+
+                    <!-- 3D Feature Highlights -->
+                    <div class="relative z-10 space-y-4 my-8">
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition">
+                            <div class="w-9 h-9 shrink-0 flex items-center justify-center">
+                                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Card%20index/3D/card_index_3d.png" class="w-full h-full object-contain filter drop-shadow">
+                            </div>
+                            <div class="text-xs font-semibold text-gray-200">
+                                Thuật toán Lặp lại Ngắt quãng <span class="text-amber-300 font-bold">(SRS / SM-2)</span> tối ưu hóa trí nhớ dài hạn.
+                            </div>
                         </div>
+
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition">
+                            <div class="w-9 h-9 shrink-0 flex items-center justify-center">
+                                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/High%20voltage/3D/high_voltage_3d.png" class="w-full h-full object-contain filter drop-shadow">
+                            </div>
+                            <div class="text-xs font-semibold text-gray-200">
+                                Đấu trường Arcade Game: <span class="text-rose-300 font-bold">Đấu Trùm Speed, Cyber Cipher & AI Duel 1v1</span>.
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition">
+                            <div class="w-9 h-9 shrink-0 flex items-center justify-center">
+                                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Pen/3D/pen_3d.png" class="w-full h-full object-contain filter drop-shadow">
+                            </div>
+                            <div class="text-xs font-semibold text-gray-200">
+                                Máy Chấm Essay AI chuẩn IELTS & Huấn luyện viên <span class="text-cyan-300 font-bold">Paraphrase Band 8.0+</span>.
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition">
+                            <div class="w-9 h-9 shrink-0 flex items-center justify-center">
+                                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Trophy/3D/trophy_3d.png" class="w-full h-full object-contain filter drop-shadow">
+                            </div>
+                            <div class="text-xs font-semibold text-gray-200">
+                                Bảng Phong Thần 28 Cấp Bậc & Bộ Sưu Tập Huy Hiệu 3D vinh danh.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer note -->
+                    <div class="relative z-10 text-[11px] text-gray-400 font-mono flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>Mạng lưới học tập đám mây an toàn & mã hóa 256-bit</span>
                     </div>
                 </div>
                 
-                <!-- Right Form Panel -->
-                <div class="flex-1 lg:max-w-md bg-white flex flex-col justify-center p-10">
-                    <div class="mb-10 lg:hidden flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white shadow-sm overflow-hidden p-0.5 border border-purple-100">
-                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain rounded-xl">
+                <!-- Right Form Panel (Glassmorphic Light Theme) -->
+                <div class="flex-1 lg:max-w-md bg-white p-8 sm:p-10 flex flex-col justify-center select-none">
+                    
+                    <!-- Mobile Logo -->
+                    <div class="mb-6 lg:hidden flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-50 shadow-sm overflow-hidden p-1 border border-indigo-100">
+                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain">
                         </div>
-                        <span class="font-bold text-lg text-gray-800 dark:text-gray-50">ExtraQuiz Pro</span>
+                        <span class="font-black text-xl text-gray-900">Lexi<span class="text-amber-500">Learn</span> <span class="text-xs text-indigo-600 uppercase font-black">Pro</span></span>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ isLoginMode ? 'Chào mừng trở lại 👋' : 'Tạo tài khoản miễn phí' }}</h2>
-                    <p class="text-gray-500 text-sm mb-8">{{ isLoginMode ? 'Tiếp tục hành trình học IELTS của bạn.' : 'Bắt đầu luyện thi IELTS ngay hôm nay.' }}</p>
-                    <form @submit.prevent="handleAuth" class="space-y-5">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                            <input type="email" v-model="authForm.email" required placeholder="your@email.com" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition font-medium">
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-semibold text-gray-700">Mật khẩu</label>
-                                <button type="button" @click="handleForgotPassword" class="text-xs text-purple-600 hover:text-purple-800 font-semibold focus:outline-none">Quên mật khẩu?</button>
+
+                    <!-- Top Segment Switcher -->
+                    <div class="flex items-center p-1 bg-gray-100 rounded-2xl mb-6">
+                        <button type="button" 
+                                @click="isLoginMode = true; store.authError = ''" 
+                                class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2"
+                                :class="isLoginMode ? 'bg-white text-indigo-600 shadow-md scale-100 font-black' : 'text-gray-500 hover:text-gray-900'">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span>Đăng Nhập</span>
+                        </button>
+                        <button type="button" 
+                                @click="isLoginMode = false; store.authError = ''" 
+                                class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2"
+                                :class="!isLoginMode ? 'bg-white text-indigo-600 shadow-md scale-100 font-black' : 'text-gray-500 hover:text-gray-900'">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Đăng Ký Mới</span>
+                        </button>
+                    </div>
+
+                    <!-- Header Title -->
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                            <span>{{ isLoginMode ? 'Chào mừng trở lại' : 'Khởi tạo tài khoản' }}</span>
+                            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-6 h-6 object-contain inline-block filter drop-shadow-sm animate-wiggle">
+                        </h2>
+                        <p class="text-gray-500 text-xs mt-1">
+                            {{ isLoginMode ? 'Tiếp tục chuỗi ngày học tập và tích lũy LexiCredit.' : 'Bắt đầu hành trình nâng cao phản xạ tiếng Anh hôm nay.' }}
+                        </p>
+                    </div>
+
+                    <!-- Form -->
+                    <form @submit.prevent="handleAuth" class="space-y-4">
+                        
+                        <!-- Display Name (Register only) -->
+                        <div v-if="!isLoginMode" class="animate-fade-in">
+                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Họ & Tên hiển thị</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" v-model="authForm.displayName" placeholder="Nguyễn Văn A" class="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition font-medium">
                             </div>
-                            <input type="password" v-model="authForm.password" required placeholder="••••••••" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition font-medium">
                         </div>
-                        <div v-if="store.authError" class="text-red-500 text-sm bg-red-50 p-3 rounded-xl border border-red-100 font-medium">{{ store.authError }}</div>
-                        <button type="submit" class="btn-primary w-full py-3.5 text-base">
-                            {{ isLoginMode ? 'Đăng nhập' : 'Đăng ký' }}
+
+                        <!-- Email Field -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Địa chỉ Email</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="email" v-model="authForm.email" required placeholder="name@example.com" class="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition font-medium">
+                            </div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Mật khẩu</label>
+                                <button v-if="isLoginMode" type="button" @click="handleForgotPassword" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold focus:outline-none transition">
+                                    Quên mật khẩu?
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input :type="showPassword ? 'text' : 'password'" v-model="authForm.password" required placeholder="Nhập mật khẩu" class="w-full pl-10 pr-11 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition font-medium">
+                                
+                                <!-- Show / Hide Password Toggle -->
+                                <button type="button" @click="showPassword = !showPassword" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 focus:outline-none p-1 transition" title="Ẩn/Hiện mật khẩu">
+                                    <i :class="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" class="text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password (Register only) -->
+                        <div v-if="!isLoginMode" class="animate-fade-in">
+                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Xác nhận mật khẩu</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-shield-halved absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input :type="showConfirmPassword ? 'text' : 'password'" v-model="authForm.confirmPassword" required placeholder="Nhập lại mật khẩu" class="w-full pl-10 pr-11 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition font-medium">
+                                
+                                <!-- Show / Hide Confirm Password Toggle -->
+                                <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 focus:outline-none p-1 transition" title="Ẩn/Hiện mật khẩu xác nhận">
+                                    <i :class="showConfirmPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" class="text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Password Strength Meter (Register only) -->
+                        <div v-if="!isLoginMode && authForm.password" class="p-3 rounded-2xl bg-gray-50 border border-gray-100 space-y-2 animate-fade-in">
+                            <div class="flex items-center justify-between text-[11px] font-bold">
+                                <span class="text-gray-500">Độ an toàn mật khẩu:</span>
+                                <span :class="passwordScore >= 3 ? 'text-emerald-600' : (passwordScore >= 2 ? 'text-amber-600' : 'text-rose-600')">
+                                    {{ passwordStrengthLabel }}
+                                </span>
+                            </div>
+                            <div class="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full transition-all duration-300 rounded-full" :class="passwordStrengthColor" :style="{ width: passwordStrengthPercent + '%' }"></div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-[10px] text-gray-500 pt-1">
+                                <span :class="authForm.password.length >= 6 ? 'text-emerald-600 font-bold' : ''">
+                                    <i :class="authForm.password.length >= 6 ? 'fa-solid fa-check' : 'fa-regular fa-circle'" class="mr-0.5"></i> >= 6 ký tự
+                                </span>
+                                <span :class="/[0-9]/.test(authForm.password) ? 'text-emerald-600 font-bold' : ''">
+                                    <i :class="/[0-9]/.test(authForm.password) ? 'fa-solid fa-check' : 'fa-regular fa-circle'" class="mr-0.5"></i> Có chữ số
+                                </span>
+                                <span :class="(/[A-Z]/.test(authForm.password) || /[^A-Za-z0-9]/.test(authForm.password)) ? 'text-emerald-600 font-bold' : ''">
+                                    <i :class="(/[A-Z]/.test(authForm.password) || /[^A-Za-z0-9]/.test(authForm.password)) ? 'fa-solid fa-check' : 'fa-regular fa-circle'" class="mr-0.5"></i> Chữ hoa / Ký tự đặc biệt
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Remember Me Checkbox -->
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-600">
+                                <input type="checkbox" v-model="rememberMe" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span>Ghi nhớ đăng nhập trên thiết bị này</span>
+                            </label>
+                        </div>
+
+                        <!-- Error Banner -->
+                        <div v-if="store.authError" class="text-rose-600 text-xs bg-rose-50 p-3 rounded-2xl border border-rose-100 font-semibold flex items-center gap-2 animate-screen-shake">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm shrink-0"></i>
+                            <span>{{ store.authError }}</span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-indigo-500/30 transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2">
+                            <span>{{ isLoginMode ? 'Đăng Nhập Ngay' : 'Tạo Tài Khoản & Bắt Đầu' }}</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
                         </button>
                     </form>
-                    <button @click="isLoginMode = !isLoginMode" class="mt-6 text-center w-full text-sm text-gray-500 hover:text-purple-600 font-semibold transition">
-                        {{ isLoginMode ? 'Chưa có tài khoản? Đăng ký ngay →' : 'Đã có tài khoản? Đăng nhập →' }}
-                    </button>
+
+                    <!-- Quick Demo 1-Click Login Button -->
+                    <div class="mt-4 pt-4 border-t border-gray-100 text-center">
+                        <button type="button" @click="fillDemoAccount" class="w-full py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-2 border border-indigo-200">
+                            <i class="fa-solid fa-rocket text-indigo-500"></i>
+                            <span>Trải nghiệm nhanh (Điền tài khoản mẫu)</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -383,7 +622,7 @@ const App = {
             </aside>
 
             <!-- Main Content Area -->
-            <div class="flex-1 flex flex-col min-w-0 shadow-inner rounded-l-3xl border-l relative transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-[#0B1020] border-[#1E2540]' : 'bg-white/40 backdrop-blur-sm border-white/50'">
+            <div class="flex-1 flex flex-col min-w-0 shadow-inner rounded-l-3xl border-l relative transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-[#0B1020] border-[#1E2540]' : 'bg-white/40 dark:bg-[#0B0F19] backdrop-blur-sm border-white/50 dark:border-[#1E293B]'">
                 <!-- Mobile Header -->
                 <header class="lg:hidden glass-panel-strong sticky top-0 z-40 px-4 py-3 flex justify-between items-center hide-in-focus border-b border-gray-100" v-show="['dashboard'].includes(store.currentRoute)">
                     <div class="flex items-center gap-3 cursor-pointer" @click="store.navigate('dashboard')">
@@ -426,6 +665,9 @@ const App = {
                 <Guide v-else-if="store.currentRoute === 'guide'" />
                 <Quotes v-else-if="store.currentRoute === 'quotes'" />
                 <Activate v-else-if="store.currentRoute === 'activate'" />
+                <BossBattle v-else-if="store.currentRoute === 'boss-battle'" />
+                <CyberCipher v-else-if="store.currentRoute === 'cyber-cipher'" />
+                <AiArena v-else-if="store.currentRoute === 'ai-arena'" />
             </main>
             </div> <!-- End Main Content Area -->
 
