@@ -640,9 +640,9 @@ const App = {
                 </header>
 
                 <!-- Floating Back Button for Focus Mode & AI Tools -->
-                <button v-if="!['dashboard', 'lexilearn-dashboard'].includes(store.currentRoute)" 
+                <button v-if="!['dashboard', 'lexilearn-dashboard', 'boss-battle', 'cyber-cipher', 'ai-arena', 'matching'].includes(store.currentRoute)" 
                         @click="store.navigate('dashboard')"
-                        class="fixed top-4 left-4 z-50 w-10 h-10 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all hover:scale-105" title="Quay lại Dashboard">
+                        class="fixed top-4 left-4 z-50 w-10 h-10 rounded-2xl bg-white dark:bg-[#151D30] shadow-md flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-[#1E293B] border border-gray-100 dark:border-[#222F49] transition-all hover:scale-105" title="Quay lại Dashboard">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
 
