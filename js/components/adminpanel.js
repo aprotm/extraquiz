@@ -6,7 +6,7 @@ import {
 } from '../db.js';
 import { showToast } from '../toast.js';
 import { getLevelFromLifetimeLC, getRankFromLevel, RANK_LIST } from '../ranks.js';
-import { BADGES_DICT } from '../badges.js';
+import { BADGES_DICT, EXCLUSIVE_ADMIN_BADGES } from '../badges.js';
 
 export default {
     setup() {
@@ -510,7 +510,7 @@ export default {
             viewingDeck, isViewingDeckLoading, viewingDeckCards, openViewDeck, deleteDeckByAdmin,
             storageStats, scanStorageData, deleteLocalStorageItem, cleanObsoleteCaches, exportFullBackupJSON, formatBytes,
             diagState, runQuickDiagnostics, testGeminiConnection, testTTSVoice, sendSystemBroadcast,
-            RANK_LIST, BADGES_DICT
+            RANK_LIST, BADGES_DICT, allBadgesList: [...BADGES_DICT, ...EXCLUSIVE_ADMIN_BADGES]
         };
     },
     template: `
@@ -1140,7 +1140,7 @@ export default {
                                 <i class="fa-solid fa-trophy text-amber-500 mr-1"></i> Quản Lý Huy Hiệu ({{ editForm.badges.length }} đã cấp)
                             </label>
                             <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-2xl border border-gray-200">
-                                <div v-for="badge in BADGES_DICT" :key="badge.id" 
+                                <div v-for="badge in allBadgesList" :key="badge.id" 
                                      @click="toggleBadgeSelection(badge.id)"
                                      class="p-2 rounded-xl border flex flex-col items-center gap-1 cursor-pointer transition select-none text-center"
                                      :class="editForm.badges.includes(badge.id) ? 'bg-amber-100 border-amber-400 shadow-sm' : 'bg-white border-gray-200 opacity-40 hover:opacity-100'">

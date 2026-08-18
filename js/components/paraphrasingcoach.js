@@ -103,6 +103,7 @@ export default {
                 result.value = res;
                 // Tự động lưu vào kho lưu trữ
                 saveToVault(inputSentence.value, res);
+                store.unlockBadge('paraphrase_pro');
             } catch (err) {
                 error.value = err.message;
             } finally {

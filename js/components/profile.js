@@ -84,24 +84,26 @@ export default {
             reader.readAsDataURL(file);
         };
 
+        const visibleBadges = computed(() => getVisibleBadges(store.userProfile));
+
         const getBadgeTitle = (id) => {
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? b.title : '';
         };
 
         const getBadgeIcon = (id) => {
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? (b.emoji || b.icon || '🏆') : '🏆';
         };
 
         const getBadge3D = (id) => {
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? b.image3d : '';
         };
 
         const equippedBadgeObj = computed(() => {
             if (!store.userProfile?.equippedBadge) return null;
-            return BADGES_DICT.find(x => x.id === store.userProfile.equippedBadge) || null;
+            return getBadgeById(store.userProfile.equippedBadge);
         });
 
         const getBadgeClasses = (badge) => {
@@ -110,21 +112,21 @@ export default {
             let classes = ['w-12', 'h-12', 'rounded-full', 'flex', 'items-center', 'justify-center', 'shadow-sm', 'transition-all', 'duration-300', 'relative'];
             
             if (!isUnlocked) {
-                classes.push('bg-gray-100', 'text-gray-400', 'grayscale', 'opacity-40');
+                classes.push('bg-gray-100 dark:bg-gray-800', 'text-gray-400', 'grayscale', 'opacity-40');
             } else {
                 classes.push('group-hover:scale-110');
-                if (badge.rarity === 'mythic') {
-                    classes.push('bg-fuchsia-50', 'text-fuchsia-500', 'border', 'border-fuchsia-400', 'shadow-[0_0_15px_rgba(217,70,239,0.5)]', 'animate-pulse-rainbow');
+                if (badge.rarity === 'mythic' || badge.isExclusive) {
+                    classes.push('bg-fuchsia-50 dark:bg-fuchsia-950/40', 'text-fuchsia-500', 'border', 'border-fuchsia-400', 'shadow-[0_0_15px_rgba(217,70,239,0.5)]', 'animate-pulse-rainbow');
                 } else if (badge.rarity === 'legendary') {
-                    classes.push('bg-yellow-50', 'text-yellow-600', 'border', 'border-yellow-400', 'shadow-[0_0_15px_rgba(255,215,0,0.6)]');
+                    classes.push('bg-yellow-50 dark:bg-yellow-950/40', 'text-yellow-600 dark:text-yellow-400', 'border', 'border-yellow-400', 'shadow-[0_0_15px_rgba(255,215,0,0.6)]');
                 } else {
-                    classes.push('bg-amber-50', 'text-amber-500');
+                    classes.push('bg-amber-50 dark:bg-amber-950/40', 'text-amber-500');
                 }
             }
             
             if (isEquipped) {
                 classes.push('ring-4', 'ring-offset-2');
-                if (badge.rarity === 'mythic') classes.push('ring-fuchsia-400');
+                if (badge.rarity === 'mythic' || badge.isExclusive) classes.push('ring-fuchsia-400');
                 else if (badge.rarity === 'legendary') classes.push('ring-yellow-400');
                 else classes.push('ring-amber-400');
             }
@@ -132,7 +134,7 @@ export default {
         };
 
         return { 
-            store, stats, BADGES_DICT, 
+            store, stats, BADGES_DICT, visibleBadges,
             handleAvatarUpload, triggerAvatarUpload, currentLevelInfo, currentRank,
             geminiApiKey, saveApiKey, goBack, t, getBadgeClasses,
             getBadgeTitle, getBadgeIcon, getBadge3D, equippedBadgeObj
@@ -302,35 +304,35 @@ export default {
                     <!-- Trophy Room -->
                     <div class="glass-panel-strong p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-sm">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="font-extrabold text-gray-900 text-base uppercase tracking-wider flex items-center gap-2">
+                            <h3 class="font-extrabold text-gray-900 dark:text-white text-base uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-trophy text-amber-500"></i> Phòng Truyền Thống
                             </h3>
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-800">
-                                {{ (store.userProfile?.badges || []).length }} / {{ BADGES_DICT.length }} Huy hiệu
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                                {{ (store.userProfile?.badges || []).length }} / {{ visibleBadges.length }} Huy hiệu
                             </span>
                         </div>
                         <!-- Current Equipped Badge Showcase -->
                         <div v-if="equippedBadgeObj" class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-300/60 flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-14 h-14 rounded-2xl bg-white shadow-md border border-amber-300 flex items-center justify-center p-2 relative shrink-0">
+                                <div class="w-14 h-14 rounded-2xl bg-white dark:bg-[#151D30] shadow-md border border-amber-300 flex items-center justify-center p-2 relative shrink-0">
                                     <img v-if="equippedBadgeObj.image3d" :src="equippedBadgeObj.image3d" class="w-full h-full object-contain filter drop-shadow-md">
                                     <span v-else class="text-3xl select-none">{{ equippedBadgeObj.emoji || equippedBadgeObj.icon }}</span>
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Đang Trang Bị</span>
-                                        <h4 class="text-sm font-extrabold text-gray-900">{{ equippedBadgeObj.title }}</h4>
+                                        <span class="text-[10px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-full uppercase tracking-wider">Đang Trang Bị</span>
+                                        <h4 class="text-sm font-extrabold text-gray-900 dark:text-white">{{ equippedBadgeObj.title }}</h4>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-0.5">{{ equippedBadgeObj.desc }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ equippedBadgeObj.desc }}</p>
                                 </div>
                             </div>
-                            <button @click="store.equipBadge(equippedBadgeObj.id)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-gray-600 hover:text-rose-600 border border-gray-200 hover:border-rose-200 text-xs font-bold transition-all shrink-0">
+                            <button @click="store.equipBadge(equippedBadgeObj.id)" class="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1E293B] hover:bg-rose-50 dark:hover:bg-rose-950/50 text-gray-600 dark:text-gray-300 hover:text-rose-600 border border-gray-200 dark:border-[#222F49] text-xs font-bold transition-all shrink-0">
                                 <i class="fa-solid fa-xmark mr-1"></i> Gỡ huy hiệu
                             </button>
                         </div>
                         
                         <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-                            <div v-for="badge in BADGES_DICT" :key="badge.id" 
+                            <div v-for="badge in visibleBadges" :key="badge.id" 
                                  class="flex flex-col items-center gap-1 group relative cursor-pointer"
                                  @click="store.equipBadge(badge.id)">
                                 

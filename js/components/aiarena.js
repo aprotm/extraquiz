@@ -198,6 +198,7 @@ export default {
                 earnedLC.value = bonus;
                 store.addLexiCredit(bonus, `Thắng đấu trí AI Arena: ${currentBot.value.name}`);
                 store.recordStudyStats(currentRound.value, 2);
+                store.unlockBadge('ai_duelist');
             } else {
                 playGameOver();
                 earnedLC.value = 10;

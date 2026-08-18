@@ -1,8 +1,8 @@
 import { reactive } from 'vue';
 import { updateUserProfile } from './db.js';
 import { getLevelFromLifetimeLC, getRankFromLevel } from './ranks.js';
-import { BADGES_DICT } from './badges.js';
-export { BADGES_DICT };
+import { BADGES_DICT, EXCLUSIVE_ADMIN_BADGES, getVisibleBadges, getBadgeById } from './badges.js';
+export { BADGES_DICT, EXCLUSIVE_ADMIN_BADGES, getVisibleBadges, getBadgeById };
 
 // Trạng thái chung (State Management)
 export const store = reactive({
@@ -152,15 +152,44 @@ export const store = reactive({
         let shouldUpdate = false;
         if (!this.userProfile.badges) this.userProfile.badges = [];
         
+        const isAdmin = this.userProfile.role === 'admin' || this.userProfile.isAdmin === true;
+        const activePool = isAdmin ? [...BADGES_DICT, ...EXCLUSIVE_ADMIN_BADGES] : BADGES_DICT;
+        const validBadgeIds = new Set(activePool.map(b => b.id));
+
+        // 1. Purge obsolete/unobtainable badges from regular users
+        if (!isAdmin && Array.isArray(this.userProfile.badges)) {
+            const cleaned = this.userProfile.badges.filter(id => validBadgeIds.has(id));
+            if (cleaned.length !== this.userProfile.badges.length) {
+                this.userProfile.badges = cleaned;
+                if (this.userProfile.equippedBadge && !validBadgeIds.has(this.userProfile.equippedBadge)) {
+                    this.userProfile.equippedBadge = null;
+                }
+                shouldUpdate = true;
+            }
+        }
+
+        // 2. Admin Auto-Unlock Exclusive Founder & Admin Badges
+        if (isAdmin) {
+            if (!this.userProfile.badges.includes('founder')) {
+                this.userProfile.badges.push('founder');
+                shouldUpdate = true;
+            }
+            if (!this.userProfile.badges.includes('admin_nexus')) {
+                this.userProfile.badges.push('admin_nexus');
+                shouldUpdate = true;
+            }
+        }
+        
         const stats = this.getStudyStats();
         const checkProfile = {
             ...this.userProfile,
             currentStreak: stats ? stats.streak : 0
         };
 
+        // 3. Evaluate standard badge conditions
         for (const badge of BADGES_DICT) {
             if (!this.userProfile.badges.includes(badge.id)) {
-                if (badge.condition(checkProfile)) {
+                if (typeof badge.condition === 'function' && badge.condition(checkProfile)) {
                     this.userProfile.badges.push(badge.id);
                     shouldUpdate = true;
                 }
@@ -168,7 +197,10 @@ export const store = reactive({
         }
 
         if (shouldUpdate) {
-            await updateUserProfile(this.user.uid, { badges: this.userProfile.badges });
+            await updateUserProfile(this.user.uid, { 
+                badges: this.userProfile.badges,
+                equippedBadge: this.userProfile.equippedBadge || null
+            });
             if (window.confetti) {
                 window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#fbbf24'] });
             }
@@ -178,6 +210,10 @@ export const store = reactive({
     async unlockBadge(badgeId) {
         if (!this.user || !this.userProfile) return;
         if (!this.userProfile.badges) this.userProfile.badges = [];
+        
+        const badgeObj = getBadgeById(badgeId);
+        if (!badgeObj) return;
+
         if (!this.userProfile.badges.includes(badgeId)) {
             this.userProfile.badges.push(badgeId);
             await updateUserProfile(this.user.uid, { badges: this.userProfile.badges });

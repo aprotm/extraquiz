@@ -32,6 +32,7 @@ export default {
             try {
                 result.value = await evaluateEssay(taskType.value, essayText.value);
                 store.addLexiCredit(50, 'essay');
+                store.unlockBadge('essay_master');
             } catch (err) {
                 error.value = err.message;
             } finally {

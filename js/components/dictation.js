@@ -75,6 +75,9 @@ export default {
                 setTimeout(() => inputRef.value?.focus(), 100);
             } else {
                 isFinished.value = true;
+                if (score.value === questions.value.length && questions.value.length >= 3) {
+                    store.unlockBadge('dictation_hero');
+                }
             }
         };
 

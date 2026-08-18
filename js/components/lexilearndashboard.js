@@ -2,7 +2,7 @@ import { ref, computed, onMounted, onUpdated, nextTick } from 'vue';
 import { store } from '../store.js';
 import { getRankFromLevel, getLevelProgressInfo } from '../ranks.js';
 import { fetchCards, fetchAllUserCards } from '../db.js';
-import { BADGES_DICT } from '../badges.js';
+import { BADGES_DICT, getBadgeById } from '../badges.js';
 import { calculateRetentionProb } from '../memoryengine.js';
 
 export default {
@@ -53,9 +53,9 @@ export default {
         });
 
         const activeTab = ref('dashboard');
-        const themeColor = ref(localStorage.getItem('lexi_theme_color') || '#0B1020');
+        const themeColor = ref(localStorage.getItem('lexi_theme_color') || 'purple');
         const changeTheme = () => {
-            const colors = ['#0B1020', '#1A1A2E', '#2D1B2E', '#16213E', '#171717'];
+            const colors = ['purple', 'indigo', 'blue', 'emerald', 'rose', 'amber'];
             const idx = colors.indexOf(themeColor.value);
             themeColor.value = colors[(idx + 1) % colors.length];
             localStorage.setItem('lexi_theme_color', themeColor.value);
@@ -68,17 +68,17 @@ export default {
 
 
         const getBadgeIcon = (id) => {
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? (b.emoji || b.icon || '🏆') : '🏆';
         };
 
         const getBadgeTitle = (id) => {
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? b.title : '';
         };
 
         const getBadge3D = (id) => {
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? b.image3d : '';
         };
 
@@ -99,7 +99,7 @@ export default {
                 }));
             }
             return userBadges.map((bId, idx) => {
-                const b = BADGES_DICT.find(x => x.id === bId);
+                const b = getBadgeById(bId);
                 if (b) {
                     return {
                         id: idx,

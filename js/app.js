@@ -1,7 +1,7 @@
 import { createApp, onMounted, onUpdated, ref, computed } from 'vue';
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
-import { store, BADGES_DICT } from './store.js';
+import { store, BADGES_DICT, getBadgeById } from './store.js';
 import { createSampleDeck, fetchDecks, fetchUserProfile, updateUserProfile } from './db.js';
 
 import Dashboard from './components/dashboard.js';
@@ -242,19 +242,19 @@ const App = {
 
         const getBadgeIcon = (id) => {
             if (!id) return '';
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? (b.emoji || b.icon || '🏆') : '🏆';
         };
 
         const getBadgeTitle = (id) => {
             if (!id) return '';
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? b.title : '';
         };
 
         const getBadge3D = (id) => {
             if (!id) return '';
-            const b = BADGES_DICT.find(x => x.id === id);
+            const b = getBadgeById(id);
             return b ? b.image3d : '';
         };
 

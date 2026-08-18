@@ -332,6 +332,9 @@ export default {
 
             store.addLexiCredit(earnedLC.value, `Hoàn thành Cyber Cipher (${totalWordsSolved.value} từ)`);
             store.recordStudyActivity();
+            if (totalWordsSolved.value >= 5) {
+                store.unlockBadge('cyber_hacker');
+            }
 
             if (window.confetti) {
                 window.confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
