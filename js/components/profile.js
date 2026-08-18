@@ -1,5 +1,5 @@
 import { ref, onMounted, onUpdated } from 'vue';
-import { store, BADGES_DICT } from '../store.js';
+import { store, BADGES_DICT, getVisibleBadges, getBadgeById } from '../store.js';
 import { updateUserProfile } from '../db.js';
 import { showToast } from '../toast.js';
 import { t } from '../i18n.js';
@@ -377,12 +377,6 @@ export default {
                     </div>
                 </div>
             </div>
-            
-            <style>
-                img + .only-fallback { display: none; }
-                img[style*="display: none"] + .only-fallback,
-                img[style*="display:none"] + .only-fallback { display: inline-block !important; }
-            </style>
         </div>
     `
 };

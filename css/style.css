@@ -710,3 +710,25 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     animation: neonBorderPulse 1.5s infinite ease-in-out;
 }
 
+img + .only-fallback { display: none; }
+img[style*="display: none"] + .only-fallback,
+img[style*="display:none"] + .only-fallback { display: inline-block !important; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #1E2540; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2A3459; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes wave {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(14deg); }
+    40% { transform: rotate(-8deg); }
+    60% { transform: rotate(14deg); }
+    80% { transform: rotate(-4deg); }
+    100% { transform: rotate(10deg); }
+}
+.animate-wave {
+    animation: wave 2.5s infinite;
+}
+
