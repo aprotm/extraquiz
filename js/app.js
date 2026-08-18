@@ -779,7 +779,7 @@ const App = {
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
 
-            <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
+            <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10 outline-none focus:outline-none focus:ring-0" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
                 <Dashboard v-if="store.currentRoute === 'dashboard'" />
                 <LexiLearnDashboard v-else-if="store.currentRoute === 'lexilearn-dashboard'" />
                 <DeckDetail v-else-if="store.currentRoute === 'deck-detail'" />

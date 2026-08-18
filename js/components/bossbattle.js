@@ -331,13 +331,18 @@ export default {
 
         const handleKeydown = (e) => {
             if (gameState.value !== 'playing') return;
-            if (e.key === '1') useFreeze();
-            if (e.key === '2') useLaser();
-            if (e.key === '3') useOverdrive();
-            if (['a', 'A', '1'].includes(e.key) && options.value[0]) handleAnswer(options.value[0], 0);
-            if (['b', 'B', '2'].includes(e.key) && options.value[1]) handleAnswer(options.value[1], 1);
-            if (['c', 'C', '3'].includes(e.key) && options.value[2]) handleAnswer(options.value[2], 2);
-            if (['d', 'D', '4'].includes(e.key) && options.value[3]) handleAnswer(options.value[3], 3);
+            if (['INPUT', 'TEXTAREA'].includes(e.target?.tagName)) return;
+            
+            // Skill shortcuts: Q, W, E or Z, X, C
+            if (['q', 'Q', 'z', 'Z'].includes(e.key)) { e.preventDefault(); useFreeze(); }
+            if (['w', 'W', 'x', 'X'].includes(e.key)) { e.preventDefault(); useLaser(); }
+            if (['e', 'E', 'c', 'C'].includes(e.key)) { e.preventDefault(); useOverdrive(); }
+
+            // Option shortcuts: 1, 2, 3, 4 or A, B, C, D
+            if (['1', 'a', 'A'].includes(e.key) && options.value[0]) { e.preventDefault(); handleAnswer(options.value[0], 0); }
+            if (['2', 'b', 'B'].includes(e.key) && options.value[1]) { e.preventDefault(); handleAnswer(options.value[1], 1); }
+            if (['3', 'c', 'C'].includes(e.key) && options.value[2]) { e.preventDefault(); handleAnswer(options.value[2], 2); }
+            if (['4', 'd', 'D'].includes(e.key) && options.value[3]) { e.preventDefault(); handleAnswer(options.value[3], 3); }
         };
 
         onMounted(() => {

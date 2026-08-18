@@ -198,18 +198,33 @@ export default {
 
         const handleKeyDown = (e) => {
             if (finished.value) return;
-            if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target?.tagName)) return;
+            // Only ignore if user is actively typing in a text field
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
+            
             if (e.key === ' ' || e.key === 'Spacebar') {
                 e.preventDefault();
                 toggleCard();
-            } else if (e.key === 'ArrowRight') {
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                e.preventDefault();
                 nextCard();
-            } else if (e.key === 'ArrowLeft') {
+            } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                e.preventDefault();
                 prevCard();
             } else if (e.key === '1') {
+                e.preventDefault();
                 handleStudyScore(1);
-            } else if (e.key === '2') {
-                handleStudyScore(5);
+            } else if (e.key === '2' || e.key === 'Enter') {
+                e.preventDefault();
+                if (isFlipped.value) {
+                    handleStudyScore(5);
+                } else {
+                    toggleCard();
+                }
+            } else if (['s', 'S', 'v', 'V', 'p', 'P'].includes(e.key)) {
+                if (cardsToStudy.value[studyIndex.value]) {
+                    e.preventDefault();
+                    speakWord(cardsToStudy[studyIndex.value].term);
+                }
             }
         };
 

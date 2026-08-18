@@ -48,15 +48,76 @@ export default {
         const rateFlashcard = (result) => { if (!revealed.value || feedback.value) return; persistScore(result); feedback.value = { correct: result !== 'forgot', accepted: expected.value }; };
         const next = () => { if (!feedback.value) return; if (index.value >= session.value.length - 1) { completed.value = true; if (settings.value.soundEffects) playComplete(); return; } index.value++; answer.value = ''; revealed.value = false; feedback.value = null; if (settings.value.soundEffects) playClick(); setTimeout(() => inputRef.value?.focus(), 50); };
         const toggleOption = (group, key) => { if (Object.values(settings.value[group]).filter(Boolean).length === 1 && settings.value[group][key]) return; settings.value[group][key] = !settings.value[group][key]; saveSettings(); };
-        const keyboard = (event) => { 
-            if (event.key === 'Enter' && feedback.value) next(); 
-            if (!feedback.value && current.value?.type === 'multiple_choice') {
-                const num = parseInt(event.key);
-                if (num >= 1 && num <= current.value.options.length) submit(current.value.options[num - 1]);
+        const keyboard = (event) => {
+            // If typing in input, let Enter submit
+            const isInput = event.target && ['INPUT', 'TEXTAREA'].includes(event.target.tagName);
+            
+            // 1. When feedback is displayed (Answered state)
+            if (feedback.value) {
+                if (['Enter', ' ', 'Spacebar', 'ArrowRight', 'ArrowDown', '1', '2', '3', '4'].includes(event.key)) {
+                    if (event.key === ' ' || event.key === 'Spacebar') event.preventDefault();
+                    next();
+                }
+                return;
+            }
+
+            // 2. In Multiple Choice mode
+            if (current.value?.type === 'multiple_choice' && !feedback.value) {
+                const key = event.key.toUpperCase();
+                let selectedIdx = -1;
+                if (['1', '2', '3', '4'].includes(event.key)) {
+                    event.preventDefault();
+                    selectedIdx = parseInt(event.key) - 1;
+                } else if (key === 'A') {
+                    event.preventDefault();
+                    selectedIdx = 0;
+                } else if (key === 'B') {
+                    event.preventDefault();
+                    selectedIdx = 1;
+                } else if (key === 'C') {
+                    event.preventDefault();
+                    selectedIdx = 2;
+                } else if (key === 'D') {
+                    event.preventDefault();
+                    selectedIdx = 3;
+                }
+
+                if (selectedIdx >= 0 && selectedIdx < current.value.options.length) {
+                    submit(current.value.options[selectedIdx]);
+                }
+            } 
+            // 3. In Flashcard mode
+            else if (current.value?.type === 'flashcard' && !feedback.value) {
+                if (!revealed.value) {
+                    if ([' ', 'Spacebar', 'Enter', 'ArrowDown'].includes(event.key)) {
+                        event.preventDefault();
+                        revealed.value = true;
+                    }
+                } else {
+                    if (['1', 'ArrowLeft'].includes(event.key)) {
+                        event.preventDefault();
+                        rateFlashcard('forgot');
+                    } else if (['2', 'ArrowDown'].includes(event.key)) {
+                        event.preventDefault();
+                        rateFlashcard('hard');
+                    } else if (['3', 'ArrowRight', 'Enter', ' '].includes(event.key)) {
+                        event.preventDefault();
+                        rateFlashcard('easy');
+                    }
+                }
             }
         };
         let timer;
-        onMounted(() => { if (!store.activeDeck) { store.navigate('dashboard'); return; } try { const saved = JSON.parse(localStorage.getItem('learn-settings-v3')); if (saved) settings.value = { ...defaults, ...saved, questionTypes: { ...defaults.questionTypes, ...saved.questionTypes }, directions: { ...defaults.directions, ...saved.directions } }; } catch (_) {} startSession(); timer = setInterval(() => now.value = Date.now(), 1000); window.addEventListener('keydown', keyboard); });
+        onMounted(() => { 
+            if (!store.activeDeck) { store.navigate('dashboard'); return; } 
+            try { 
+                const saved = JSON.parse(localStorage.getItem('learn-settings-v3')); 
+                if (saved) settings.value = { ...defaults, ...saved, questionTypes: { ...defaults.questionTypes, ...saved.questionTypes }, directions: { ...defaults.directions, ...saved.directions } }; 
+            } catch (_) {} 
+            startSession(); 
+            timer = setInterval(() => now.value = Date.now(), 1000); 
+            window.addEventListener('keydown', keyboard); 
+        });
         onUnmounted(() => { window.removeEventListener('keydown', keyboard); clearInterval(timer); });
         return { store, settings, showSettings, session, index, current, prompt, expected, answer, revealed, feedback, completed, stats, accuracy, formatTime, inputRef, starredCount, enabledTypes, enabledDirections, startSession, submit, rateFlashcard, next, toggleOption, saveSettings };
     },

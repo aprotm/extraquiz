@@ -27,6 +27,7 @@ body.focus-mode main {
     --color-text-light: #64748B;    /* Muted Labels & Metadata */
     --color-primary: #818CF8;       /* Glowing Indigo Accent */
     --color-primary-light: rgba(99, 102, 241, 0.15);
+    --focus-ring: 0 0 0 2px rgba(129, 140, 248, 0.45);
     color-scheme: dark;
 }
 
