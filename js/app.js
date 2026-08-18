@@ -258,12 +258,40 @@ const App = {
             return b ? b.image3d : '';
         };
 
+        // Smart Collapsible Sidebar Logic
+        const isSidebarHovered = ref(false);
+        const isSidebarPinned = ref(false);
+
+        const isStudyMode = computed(() => {
+            const studyRoutes = [
+                'study', 'quiz', 'dictation', 'learn', 'reading', 
+                'paraphrase', 'writing', 'matching', 'boss-battle', 
+                'cyber-cipher', 'ai-arena', 'deck-detail'
+            ];
+            return studyRoutes.includes(store.currentRoute);
+        });
+
+        const isSidebarCollapsed = computed(() => {
+            if (isSidebarPinned.value) return false;
+            return isStudyMode.value;
+        });
+
+        const isSidebarExpandedVisual = computed(() => {
+            if (!isSidebarCollapsed.value) return true;
+            return isSidebarHovered.value;
+        });
+
+        const toggleSidebarPin = () => {
+            isSidebarPinned.value = !isSidebarPinned.value;
+        };
+
         return { 
             store, isLoginMode, authForm, handleAuth, logout, toasts, 
             bgImage, triggerBgUpload, handleBgUpload, removeBgImage,
             userInitial, getBadgeIcon, getBadge3D, getBadgeTitle, t, handleForgotPassword,
             showPassword, showConfirmPassword, rememberMe, passwordScore,
-            passwordStrengthLabel, passwordStrengthColor, passwordStrengthPercent, fillDemoAccount
+            passwordStrengthLabel, passwordStrengthColor, passwordStrengthPercent, fillDemoAccount,
+            isSidebarHovered, isSidebarPinned, isStudyMode, isSidebarCollapsed, isSidebarExpandedVisual, toggleSidebarPin
         };
     },
     template: `
@@ -535,42 +563,134 @@ const App = {
             <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
             <div v-if="bgImage" class="absolute inset-0 bg-white/50 backdrop-blur-[4px] z-0 pointer-events-none"></div>
 
-            <!-- Desktop Sidebar -->
-            <aside class="w-64 bg-white/60 backdrop-blur-md border-r border-white/50 flex flex-col z-10 flex-shrink-0 transition-transform" v-if="store.currentRoute !== 'lexilearn-dashboard'">
-                <!-- Logo -->
-                <div class="h-[72px] flex items-center px-6 border-b border-gray-100 gap-3 cursor-pointer group" @click="store.navigate('dashboard')">
-                    <div class="w-9 h-9 transition transform group-hover:scale-105">
-                        <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm">
+            <!-- Desktop Sidebar Spacer (Reserves space for the main content area) -->
+            <div v-if="store.currentRoute !== 'lexilearn-dashboard'" 
+                 class="hidden lg:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                 :class="isSidebarCollapsed ? 'w-[72px]' : 'w-64'">
+            </div>
+
+            <!-- Desktop Sidebar Container (Fixed left-0 with smooth hover-expand overlay) -->
+            <aside v-if="store.currentRoute !== 'lexilearn-dashboard'"
+                   @mouseenter="isSidebarHovered = true"
+                   @mouseleave="isSidebarHovered = false"
+                   class="hidden lg:flex fixed top-0 bottom-0 left-0 flex-col z-40 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-r border-gray-200/80 dark:border-[#1E2540] select-none"
+                   :class="[
+                       isSidebarExpandedVisual ? 'w-64 shadow-2xl dark:shadow-[0_0_35px_rgba(0,0,0,0.9)]' : 'w-[72px] shadow-sm',
+                       isSidebarCollapsed && isSidebarHovered ? 'ring-1 ring-indigo-500/30' : ''
+                   ]">
+                
+                <!-- Logo & Pin/Unpin Toggle -->
+                <div class="h-[72px] flex items-center px-4 border-b border-gray-100 dark:border-[#1E2540] justify-between cursor-pointer group shrink-0">
+                    <div class="flex items-center gap-3 overflow-hidden" @click="store.navigate('dashboard')">
+                        <div class="w-10 h-10 shrink-0 transition transform group-hover:scale-105 flex items-center justify-center">
+                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm">
+                        </div>
+                        <span class="text-xl font-black text-gray-900 dark:text-white tracking-tight whitespace-nowrap transition-all duration-300"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none w-0'">
+                            Lexi<span class="text-amber-500">Learn</span>
+                        </span>
                     </div>
-                    <span class="text-xl font-black text-gray-900 tracking-tight">Lexi<span class="text-amber-500">Learn</span></span>
+
+                    <!-- Pin/Unpin button (visible when expanded in study mode) -->
+                    <button v-if="isStudyMode && isSidebarExpandedVisual" 
+                            @click.stop="toggleSidebarPin"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-xs"
+                            :title="isSidebarPinned ? 'Bỏ ghim (Tự động thu gọn khi học)' : 'Ghim menu mở rộng cố định'">
+                        <i class="fa-solid" :class="isSidebarPinned ? 'fa-thumbtack text-indigo-600 dark:text-indigo-400 rotate-45' : 'fa-thumbtack'"></i>
+                    </button>
                 </div>
                 
-                <!-- Navigation -->
-                <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5">
-                    <button @click="store.navigate('dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'dashboard' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
-                        <i data-lucide="layout-dashboard" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'dashboard' ? 'text-indigo-600' : ''"></i>
-                        <span>Tổng quan</span>
+                <!-- Navigation Items -->
+                <div class="flex-1 overflow-y-auto py-5 px-3 space-y-1.5 custom-scrollbar">
+                    <!-- Dashboard -->
+                    <button @click="store.navigate('dashboard')" 
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative"
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'dashboard' 
+                                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'Tổng quan' : ''">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'dashboard' ? 'text-indigo-600 dark:text-indigo-400' : ''"></i>
+                        <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
+                            Tổng quan
+                        </span>
                     </button>
                     
-                    <button @click="store.navigate('lexilearn-dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group mt-2" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'text-gray-500 hover:bg-amber-50 hover:text-amber-700'">
-                        <i data-lucide="crown" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'lexilearn-dashboard' ? 'text-amber-500 fill-amber-500' : 'text-amber-400'"></i>
-                        <span>LexiLearn Pro</span>
+                    <!-- LexiLearn Pro -->
+                    <button @click="store.navigate('lexilearn-dashboard')" 
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative mt-1"
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'lexilearn-dashboard' 
+                                    ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'LexiLearn Pro' : ''">
+                        <i data-lucide="crown" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'lexilearn-dashboard' ? 'text-amber-500 fill-amber-500' : 'text-amber-400'"></i>
+                        <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
+                            LexiLearn Pro
+                        </span>
                     </button>
                     
-                    <div class="pt-4 pb-2">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider px-3">Học tập</p>
+                    <!-- Section Title (Học Tập) -->
+                    <div class="pt-3 pb-1">
+                        <div v-if="isSidebarExpandedVisual" class="px-3 transition-opacity duration-300">
+                            <p class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider">Học tập</p>
+                        </div>
+                        <div v-else class="w-8 h-[1px] bg-gray-200 dark:bg-gray-800 mx-auto my-1"></div>
                     </div>
-                    <button @click="store.navigate('roadmap')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'roadmap' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
-                        <i data-lucide="map" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'roadmap' ? 'text-indigo-600' : ''"></i>
-                        <span>Lộ trình</span>
+
+                    <!-- Roadmap -->
+                    <button @click="store.navigate('roadmap')" 
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative"
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'roadmap' 
+                                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'Lộ trình' : ''">
+                        <i data-lucide="map" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'roadmap' ? 'text-indigo-600 dark:text-indigo-400' : ''"></i>
+                        <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
+                            Lộ trình
+                        </span>
                     </button>
-                    <button @click="store.navigate('guide')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'guide' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
-                        <i data-lucide="book-open" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'guide' ? 'text-indigo-600' : ''"></i>
-                        <span>Hướng dẫn</span>
+
+                    <!-- Guide -->
+                    <button @click="store.navigate('guide')" 
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative"
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'guide' 
+                                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'Hướng dẫn' : ''">
+                        <i data-lucide="book-open" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'guide' ? 'text-indigo-600 dark:text-indigo-400' : ''"></i>
+                        <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
+                            Hướng dẫn
+                        </span>
                     </button>
-                    <button @click="store.navigate('quotes')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group" :class="store.currentRoute === 'quotes' ? 'bg-amber-50 text-amber-700 font-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'">
-                        <i data-lucide="sparkles" class="w-5 h-5 transition-transform group-hover:scale-110" :class="store.currentRoute === 'quotes' ? 'text-amber-500' : 'text-amber-400'"></i>
-                        <span class="flex items-center justify-between flex-1">
+
+                    <!-- Quotes / Spark -->
+                    <button @click="store.navigate('quotes')" 
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative"
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'quotes' 
+                                    ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'Góc Động Lực' : ''">
+                        <i data-lucide="sparkles" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'quotes' ? 'text-amber-500' : 'text-amber-400'"></i>
+                        <span class="flex items-center justify-between flex-1 whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
                             <span>Góc Động Lực</span>
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Spark</span>
                         </span>
@@ -579,42 +699,55 @@ const App = {
                     <!-- Admin Panel Link -->
                     <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'" 
                             @click="store.navigate('admin')" 
-                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group mt-2" 
-                            :class="store.currentRoute === 'admin' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200' : 'text-gray-500 hover:bg-rose-50 hover:text-rose-700'">
-                        <i data-lucide="shield" class="w-5 h-5 transition-transform group-hover:scale-110 text-rose-500"></i>
-                        <span class="flex items-center justify-between flex-1">
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative mt-2" 
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'admin' 
+                                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold border border-rose-200 dark:border-rose-800' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 hover:text-rose-700 dark:hover:text-rose-300'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'Admin Panel' : ''">
+                        <i data-lucide="shield" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110 text-rose-500"></i>
+                        <span class="flex items-center justify-between flex-1 whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
                             <span>Admin Panel</span>
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">v2.0</span>
                         </span>
                     </button>
                 </div>
                 
-                <!-- Bottom Profile -->
-                <div class="p-4 border-t border-gray-100">
-                    <div class="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" @click="store.navigate('profile')">
-                        <div class="flex items-center gap-3">
+                <!-- Bottom Profile Area -->
+                <div class="p-3 border-t border-gray-100 dark:border-[#1E2540] shrink-0">
+                    <div class="flex items-center rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-all"
+                         :class="isSidebarExpandedVisual ? 'p-2 justify-between' : 'p-1.5 justify-center'"
+                         @click="store.navigate('profile')"
+                         :title="!isSidebarExpandedVisual ? (store.userProfile?.displayName || 'Học giả') : ''">
+                        <div class="flex items-center gap-3 overflow-hidden">
                             <div class="relative w-10 h-10 shrink-0">
-                                <div class="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm">
+                                <div class="w-full h-full rounded-full bg-indigo-100 dark:bg-indigo-900/60 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold overflow-hidden border-2 border-white dark:border-[#1E2540] shadow-sm">
                                     <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
                                     <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
                                 </div>
                                 <!-- Equipped Badge -->
                                 <div v-if="store.userProfile?.equippedBadge" 
-                                     class="absolute -bottom-1 -right-1 bg-white rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-10 animate-bounce-short select-none"
+                                     class="absolute -bottom-1 -right-1 bg-white dark:bg-[#131B2E] rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-10 select-none"
                                      :title="'Huy hiệu: ' + getBadgeTitle(store.userProfile.equippedBadge)">
                                     <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain">
                                     <span v-else class="text-[10px]">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
                                 </div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-bold text-gray-900 line-clamp-1 w-24 truncate">{{ store.userProfile?.displayName || 'Học giả' }}</span>
+                            <div class="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300"
+                                 :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[110px]' : 'opacity-0 max-w-0 hidden'">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ store.userProfile?.displayName || 'Học giả' }}</span>
                                 <div class="flex items-center gap-1">
                                     <i data-lucide="gem" class="w-3 h-3 text-amber-500 fill-amber-500"></i>
-                                    <span class="text-xs font-bold text-amber-600">{{ store.userProfile?.lexiCredit || 0 }}</span>
+                                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400">{{ store.userProfile?.lexiCredit || 0 }}</span>
                                 </div>
                             </div>
                         </div>
-                        <button @click.stop="logout" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Đăng xuất">
+                        <button v-if="isSidebarExpandedVisual" 
+                                @click.stop="logout" 
+                                class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors" title="Đăng xuất">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
