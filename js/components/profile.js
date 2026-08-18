@@ -160,8 +160,8 @@ export default {
                     <div class="glass-panel p-8 rounded-3xl text-center relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-20"></div>
                         
-                        <div class="relative w-28 h-28 mx-auto mb-4">
-                            <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative" 
+                        <div class="relative w-28 h-28 mx-auto mb-5">
+                            <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white dark:border-[#1E2540] shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative" 
                                  style="background: linear-gradient(135deg, #6d55d1, #8b5cf6);">
                                 <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
                                 <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
@@ -171,34 +171,34 @@ export default {
                             </div>
                             <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" @change="handleAvatarUpload">
                             
-                            <!-- Equipped Badge on Avatar -->
+                            <!-- Equipped Badge on Avatar (Positioned Top-Right to prevent overlapping Rank Pill) -->
                             <div v-if="store.userProfile?.equippedBadge" 
-                                 class="absolute -bottom-1 -right-1 bg-white rounded-full shadow-lg w-8 h-8 flex items-center justify-center border-2 border-amber-400 p-0.5 z-10 animate-bounce-short select-none cursor-pointer"
+                                 class="absolute -top-1.5 -right-1.5 bg-white dark:bg-[#131B2E] rounded-full shadow-xl w-9 h-9 flex items-center justify-center border-2 border-amber-400 p-1 z-20 hover:scale-110 transition-transform select-none cursor-pointer"
                                  :title="'Huy hiệu đang trang bị: ' + getBadgeTitle(store.userProfile.equippedBadge)"
                                  @click.stop="store.equipBadge(store.userProfile.equippedBadge)">
                                 <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain drop-shadow-sm">
-                                <span v-else>{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
+                                <span v-else class="text-sm leading-none">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
                             </div>
 
-                            <!-- Rank Badge -->
-                            <div v-if="currentRank" class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gray-900/95 backdrop-blur-sm text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-white shadow-md flex items-center gap-1.5 whitespace-nowrap z-10">
+                            <!-- Rank Badge (Positioned Bottom-Center) -->
+                            <div v-if="currentRank" class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gray-900/95 dark:bg-[#0B1020]/95 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-white dark:border-[#1E2540] shadow-lg flex items-center gap-1.5 whitespace-nowrap z-10">
                                 <img v-if="currentRank.image3d" :src="currentRank.image3d" class="w-3.5 h-3.5 object-contain">
                                 <i v-else :data-lucide="currentRank.icon" :class="[currentRank.color, 'w-3 h-3']"></i>
                                 <span>{{ currentRank.title }}</span>
                             </div>
                         </div>
 
-                        <h2 class="text-xl font-bold text-gray-900 mb-1">Cấp độ {{ currentLevelInfo.currentLevel }}</h2>
-                        <p class="text-sm text-gray-500 font-medium mb-6">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-5 mb-1">Cấp độ {{ currentLevelInfo.currentLevel }}</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
 
                         <div class="grid grid-cols-2 gap-3 mb-6">
-                            <div class="p-4 rounded-2xl" style="background: rgba(109,85,209,0.05);">
-                                <div class="text-xl font-black" style="color: #6d55d1;">{{ stats?.streak || 0 }}</div>
-                                <div class="text-xs text-gray-500 font-medium mt-1">Ngày liên tiếp (Streak)</div>
+                            <div class="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
+                                <div class="text-xl font-black text-purple-600 dark:text-purple-400">{{ stats?.streak || 0 }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Ngày liên tiếp (Streak)</div>
                             </div>
-                            <div class="p-4 rounded-2xl" style="background: rgba(245,158,11,0.05);">
+                            <div class="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
                                 <div class="text-xl font-black text-amber-500">{{ store.userProfile?.totalLexiCredit || 0 }}</div>
-                                <div class="text-xs text-gray-500 font-medium mt-1">Tổng LexiCredit</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Tổng LexiCredit</div>
                             </div>
                         </div>
                     </div>
@@ -207,15 +207,15 @@ export default {
                     <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
                         <div class="flex items-center gap-2 mb-4">
                             <i class="fa-solid fa-brain text-purple-500 text-xl"></i>
-                            <h3 class="font-bold text-gray-900 uppercase tracking-wider text-sm">AI Learning Persona</h3>
+                            <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">AI Learning Persona</h3>
                         </div>
                         
                         <div class="mb-6">
                             <div class="flex justify-between text-xs mb-1 font-bold" :class="(store.userProfile?.learning_persona?.confidence || 0) < 15 ? 'text-amber-500' : 'text-emerald-500'">
                                 <span>Độ tin cậy AI (Confidence)</span>
-                                <span>{{ Math.round(store.userProfile?.learning_persona?.confidence || 0) }}%</span>
+                                <span class="font-mono">{{ Math.round(store.userProfile?.learning_persona?.confidence || 0) }}%</span>
                             </div>
-                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
                                 <div class="h-2 rounded-full transition-all duration-1000" 
                                      :class="(store.userProfile?.learning_persona?.confidence || 0) < 15 ? 'bg-amber-400' : 'bg-emerald-400'"
                                      :style="'width: ' + (store.userProfile?.learning_persona?.confidence || 0) + '%'"></div>
@@ -228,51 +228,56 @@ export default {
                         <div class="space-y-4">
                             <!-- Consistency -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                                     <span>Tính kiên định (Consistency)</span>
+                                    <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400">{{ Math.round(store.userProfile?.learning_persona?.consistency || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-blue-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.consistency || 0) + '%'"></div>
+                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-blue-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.consistency || 50) + '%'"></div>
                                 </div>
                             </div>
                             
                             <!-- Focus -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                                     <span>Độ tập trung (Focus)</span>
+                                    <span class="font-mono text-xs font-extrabold text-indigo-600 dark:text-indigo-400">{{ Math.round(store.userProfile?.learning_persona?.focus || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-indigo-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.focus || 0) + '%'"></div>
+                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-indigo-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.focus || 50) + '%'"></div>
                                 </div>
                             </div>
                             
                             <!-- Persistence -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                                     <span>Sự bền bỉ sau lỗi sai (Persistence)</span>
+                                    <span class="font-mono text-xs font-extrabold text-rose-600 dark:text-rose-400">{{ Math.round(store.userProfile?.learning_persona?.persistence || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-rose-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.persistence || 0) + '%'"></div>
+                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-rose-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.persistence || 50) + '%'"></div>
                                 </div>
                             </div>
 
                             <!-- Metacognition -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                                     <span>Tự nhận thức (Metacognition)</span>
+                                    <span class="font-mono text-xs font-extrabold text-purple-600 dark:text-purple-400">{{ Math.round(store.userProfile?.learning_persona?.metacognition || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-purple-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.metacognition || 0) + '%'"></div>
+                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-purple-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.metacognition || 50) + '%'"></div>
                                 </div>
                             </div>
 
                             <!-- Exploration -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                                     <span>Khám phá thẻ mới (Exploration)</span>
+                                    <span class="font-mono text-xs font-extrabold text-teal-600 dark:text-teal-400">{{ Math.round(store.userProfile?.learning_persona?.exploration || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-teal-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.exploration || 0) + '%'"></div>
+                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-teal-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.exploration || 50) + '%'"></div>
                                 </div>
                             </div>
                         </div>
