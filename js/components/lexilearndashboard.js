@@ -130,48 +130,58 @@ export default {
             }).filter(Boolean);
         });
 
-        // 365-Day Learning Heatmap Generator
-        const generateHeatmap = () => {
+        // 365-Day Learning Heatmap Generator (Computed & ISO Synchronized)
+        const heatmapWeeks = computed(() => {
             const weeks = [];
-            const realHistory = store.getStudyStats()?.history || [];
+            const realStats = stats.value || store.getStudyStats() || { history: [], todayWords: 0 };
+            const realHistory = Array.isArray(realStats.history) ? realStats.history : [];
             const today = new Date();
             
+            // Build fast date lookup map
+            const historyMap = {};
+            realHistory.forEach(h => {
+                if (h.date) {
+                    historyMap[h.date] = h.words || 0;
+                }
+            });
+            
+            const todayISO = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            if (realStats.todayWords) {
+                historyMap[todayISO] = Math.max(historyMap[todayISO] || 0, realStats.todayWords);
+            }
+
             for (let i = 0; i < 52; i++) {
                 const week = [];
                 for (let j = 0; j < 7; j++) {
                     const daysAgo = (51 - i) * 7 + (6 - j);
                     const cellDate = new Date(today);
                     cellDate.setDate(today.getDate() - daysAgo);
+
+                    const y = cellDate.getFullYear();
+                    const m = (cellDate.getMonth() + 1).toString().padStart(2, '0');
+                    const d = cellDate.getDate().toString().padStart(2, '0');
+                    const isoDate = `${y}-${m}-${d}`;
+                    const displayDate = `${d}/${m}/${y}`;
+
+                    const wordCount = historyMap[isoDate] || 0;
                     
                     let val = 0;
-                    let wordCount = 0;
-                    
-                    if (daysAgo < realHistory.length && daysAgo >= 0) {
-                        const realIdx = realHistory.length - 1 - daysAgo;
-                        wordCount = realHistory[realIdx]?.words || 0;
-                    }
-
                     if (wordCount > 50) val = 4;
                     else if (wordCount > 20) val = 3;
                     else if (wordCount > 10) val = 2;
                     else if (wordCount > 0) val = 1;
 
-                    const d = cellDate.getDate().toString().padStart(2, '0');
-                    const m = (cellDate.getMonth() + 1).toString().padStart(2, '0');
-                    const y = cellDate.getFullYear();
-                    const dateStr = `${d}/${m}/${y}`;
-                    
                     week.push({
                         level: val,
                         words: wordCount,
-                        date: dateStr
+                        date: displayDate,
+                        isoDate: isoDate
                     });
                 }
                 weeks.push(week);
             }
             return weeks;
-        };
-        const heatmapWeeks = generateHeatmap();
+        });
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
 
         // Real-time HLR AI Memory Engine & Decay Telemetry
@@ -268,30 +278,37 @@ export default {
             };
         });
 
-        // 7-Day Velocity Telemetry & Chart
+        // 7-Day Study Cadence Telemetry & Chart
         const velocity7Days = computed(() => {
-            const history = stats.value?.history || [];
+            const realStats = stats.value || store.getStudyStats() || { history: [], todayWords: 0 };
+            const history = Array.isArray(realStats.history) ? realStats.history : [];
             const days = [];
             const today = new Date();
             const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
             
+            const historyMap = {};
+            history.forEach(h => {
+                if (h.date) {
+                    historyMap[h.date] = h.words || 0;
+                }
+            });
+            const todayISO = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            if (realStats.todayWords) {
+                historyMap[todayISO] = Math.max(historyMap[todayISO] || 0, realStats.todayWords);
+            }
+
             let maxWords = 15;
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(today.getDate() - i);
-                const dStr = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                const y = d.getFullYear();
+                const m = (d.getMonth() + 1).toString().padStart(2, '0');
+                const day = d.getDate().toString().padStart(2, '0');
+                const isoDate = `${y}-${m}-${day}`;
+                const dStr = `${day}/${m}`;
                 const dayOfWeek = dayNames[d.getDay()];
                 
-                const histItem = history.find(h => {
-                    if (!h.date) return false;
-                    const hDate = new Date(h.date);
-                    return hDate.toDateString() === d.toDateString();
-                });
-                
-                let words = histItem ? histItem.words || 0 : 0;
-                if (i === 0 && stats.value?.todayWords) {
-                    words = Math.max(words, stats.value.todayWords);
-                }
+                const words = historyMap[isoDate] || 0;
                 if (words > maxWords) maxWords = words;
                 
                 days.push({
@@ -494,6 +511,17 @@ export default {
                             <i class="fa-solid fa-trophy text-sm"></i>
                         </div>
                         <span>Phòng Truyền Thống</span>
+                    </button>
+
+                    <!-- LexiStore Button -->
+                    <button @click="store.navigate('store')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#0F1528] transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#131A30] text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-400/10 transition-colors">
+                                <i class="fa-solid fa-store text-sm"></i>
+                            </div>
+                            <span>LexiStore</span>
+                        </div>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">Shop</span>
                     </button>
 
                     <!-- Guide Button -->
@@ -894,9 +922,9 @@ export default {
                                     <div class="flex items-start justify-between mb-4">
                                         <div>
                                             <h3 class="font-extrabold text-white text-sm flex items-center gap-2">
-                                                <i class="fa-solid fa-chart-column text-cyan-400"></i> Vận Tốc Học 7 Ngày
+                                                <i class="fa-solid fa-chart-column text-cyan-400"></i> Nhịp Độ Học 7 Ngày
                                             </h3>
-                                            <p class="text-[11px] text-gray-400 mt-0.5">Số từ vựng nạp vào mỗi ngày</p>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">Số từ vựng nạp vào & ôn tập mỗi ngày</p>
                                         </div>
                                         <div class="text-right">
                                             <div class="text-xs font-black text-cyan-400 font-mono">{{ velocity7Days.totalWeekWords }} từ</div>

@@ -93,37 +93,84 @@ export const store = reactive({
         this.isLoading = false;
     },
     
-    // Hệ thống Streak
-    recordStudyActivity() {
+    getTodayDateStr() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = (d.getMonth() + 1).toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    },
+
+    // Hệ thống Streak & Lịch sử học tập 365 ngày chuẩn ISO
+    recordStudyActivity(wordsCount = 1, timeMinutes = 1) {
         if (!this.user) return;
         const key = `stats_${this.user.uid}`;
         let stats = JSON.parse(localStorage.getItem(key) || '{"streak": 0, "lastStudyDate": "", "todayWords": 0, "history": []}');
-        
-        const today = new Date().toLocaleDateString('vi-VN');
-        if (stats.lastStudyDate !== today) {
-            // Check if streak breaks
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toLocaleDateString('vi-VN');
-            
-            if (stats.lastStudyDate === yesterdayStr) {
+        if (!Array.isArray(stats.history)) stats.history = [];
+
+        const todayISO = this.getTodayDateStr();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yISO = `${yesterday.getFullYear()}-${(yesterday.getMonth() + 1).toString().padStart(2, '0')}-${yesterday.getDate().toString().padStart(2, '0')}`;
+
+        // Migrate older date format if present (e.g. '19/8/2026')
+        if (stats.lastStudyDate && stats.lastStudyDate.includes('/')) {
+            const parts = stats.lastStudyDate.split('/');
+            if (parts.length === 3) {
+                stats.lastStudyDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+        }
+
+        if (stats.lastStudyDate !== todayISO) {
+            // New study day
+            if (stats.lastStudyDate === yISO) {
                 stats.streak += 1;
             } else if (stats.lastStudyDate !== '') {
-                stats.streak = 1;
+                // Check if user has a Streak Freeze in inventory
+                const inventory = this.userProfile?.inventory || {};
+                if (inventory.streakFreezes && inventory.streakFreezes > 0) {
+                    inventory.streakFreezes -= 1;
+                    stats.streak += 1; // Preserve streak
+                    if (window.showToast) window.showToast("🧊 Băng Bảo Vệ Chuỗi đã tự động kích hoạt bảo vệ Streak!", "info");
+                    updateUserProfile(this.user.uid, { inventory: this.userProfile.inventory });
+                } else {
+                    stats.streak = 1;
+                }
             } else {
                 stats.streak = 1;
             }
-            
-            // Save history
-            if (stats.history.length === 7) stats.history.shift();
-            stats.history.push({ date: stats.lastStudyDate || today, words: stats.todayWords });
-            
-            stats.lastStudyDate = today;
-            stats.todayWords = 1;
+            stats.lastStudyDate = todayISO;
+            stats.todayWords = wordsCount;
         } else {
-            stats.todayWords += 1;
+            // Same day study increment
+            stats.todayWords += wordsCount;
         }
-        
+
+        // Always keep today's exact word count updated in history
+        const existingIdx = stats.history.findIndex(h => h.date === todayISO);
+        if (existingIdx > -1) {
+            stats.history[existingIdx].words = stats.todayWords;
+        } else {
+            stats.history.push({ date: todayISO, words: stats.todayWords });
+        }
+
+        // Normalize older history entries to ISO date format
+        stats.history.forEach(h => {
+            if (h.date && h.date.includes('/')) {
+                const parts = h.date.split('/');
+                if (parts.length === 3) {
+                    h.date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+            }
+        });
+
+        // Retain up to 400 days of history
+        if (stats.history.length > 400) {
+            stats.history = stats.history.slice(-365);
+        }
+
+        stats.totalStudyDays = stats.history.filter(h => (h.words || 0) > 0).length;
+
         // Unlock weekend warrior
         const dayOfWeek = new Date().getDay();
         if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -136,11 +183,114 @@ export const store = reactive({
 
         localStorage.setItem(key, JSON.stringify(stats));
     },
+
+    recordStudyStats(wordsCount = 1, timeMinutes = 1) {
+        this.recordStudyActivity(wordsCount, timeMinutes);
+    },
     
     getStudyStats() {
         if (!this.user) return null;
         const key = `stats_${this.user.uid}`;
-        return JSON.parse(localStorage.getItem(key) || '{"streak": 0, "lastStudyDate": "", "todayWords": 0, "history": []}');
+        const stats = JSON.parse(localStorage.getItem(key) || '{"streak": 0, "lastStudyDate": "", "todayWords": 0, "history": []}');
+        if (!Array.isArray(stats.history)) stats.history = [];
+        return stats;
+    },
+
+    // ===== LEXISTORE COMMERCE LOGIC =====
+    async buyStoreItem(item) {
+        if (!this.user || !this.userProfile) {
+            throw new Error("Vui lòng đăng nhập để mua vật phẩm.");
+        }
+        const cost = item.price || 0;
+        const currentLC = this.userProfile.totalLexiCredit || this.userProfile.lexiCredit || 0;
+
+        if (currentLC < cost) {
+            throw new Error(`Bạn còn thiếu ${cost - currentLC} LexiCredit để sở hữu món đồ này!`);
+        }
+
+        // Initialize inventory
+        if (!this.userProfile.inventory) {
+            this.userProfile.inventory = {
+                streakFreezes: 0,
+                activeBoosters: [],
+                aiHints: 0,
+                unlockedThemes: [],
+                unlockedDecks: [],
+                unlockedFrames: [],
+                equippedAvatarFrame: null
+            };
+        }
+        const inv = this.userProfile.inventory;
+
+        // Deduct LexiCredit
+        this.userProfile.lexiCredit = Math.max(0, (this.userProfile.lexiCredit || 0) - cost);
+        this.userProfile.totalLexiCredit = Math.max(0, (this.userProfile.totalLexiCredit || 0) - cost);
+
+        // Apply item reward to inventory
+        if (item.category === 'buffs') {
+            if (item.id === 'streak_freeze') {
+                inv.streakFreezes = (inv.streakFreezes || 0) + 1;
+            } else if (item.id === 'double_xp_24h') {
+                const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+                if (!Array.isArray(inv.activeBoosters)) inv.activeBoosters = [];
+                inv.activeBoosters.push({ type: 'double_lc', expiresAt, name: '2x LexiCredit Booster' });
+            } else if (item.id === 'ai_hint_pack') {
+                inv.aiHints = (inv.aiHints || 0) + 5;
+            }
+        } else if (item.category === 'decks') {
+            if (!Array.isArray(inv.unlockedDecks)) inv.unlockedDecks = [];
+            if (!inv.unlockedDecks.includes(item.id)) {
+                inv.unlockedDecks.push(item.id);
+            }
+            // Auto add deck to store.decks
+            if (item.deckData) {
+                const newDeck = {
+                    id: 'premium_' + item.id + '_' + Date.now(),
+                    title: item.title,
+                    description: item.description,
+                    cards: item.deckData.cards || [],
+                    totalCards: (item.deckData.cards || []).length,
+                    isPremium: true,
+                    createdAt: new Date().toISOString()
+                };
+                this.decks.unshift(newDeck);
+                const localDecksKey = `decks_${this.user.uid}`;
+                localStorage.setItem(localDecksKey, JSON.stringify(this.decks));
+            }
+        } else if (item.category === 'themes') {
+            if (!Array.isArray(inv.unlockedThemes)) inv.unlockedThemes = [];
+            if (!inv.unlockedThemes.includes(item.id)) {
+                inv.unlockedThemes.push(item.id);
+            }
+        } else if (item.category === 'cosmetics') {
+            if (!Array.isArray(inv.unlockedFrames)) inv.unlockedFrames = [];
+            if (!inv.unlockedFrames.includes(item.id)) {
+                inv.unlockedFrames.push(item.id);
+            }
+        }
+
+        // Record transaction
+        if (!Array.isArray(this.userProfile.transactions)) {
+            this.userProfile.transactions = [];
+        }
+        this.userProfile.transactions.unshift({
+            id: 'tx_' + Date.now(),
+            itemId: item.id,
+            title: item.title,
+            cost: cost,
+            category: item.category,
+            date: new Date().toISOString()
+        });
+
+        // Save profile
+        await updateUserProfile(this.user.uid, {
+            lexiCredit: this.userProfile.lexiCredit,
+            totalLexiCredit: this.userProfile.totalLexiCredit,
+            inventory: this.userProfile.inventory,
+            transactions: this.userProfile.transactions
+        });
+
+        return true;
     },
 
     // ===== GAMIFICATION LOGIC =====

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'extraquiz-v95';
+const CACHE_NAME = 'extraquiz-v96';
 const ASSETS = [
     './',
     './index.html',
@@ -9,6 +9,8 @@ const ASSETS = [
     './assets/logo.png',
     './js/app.js',
     './js/store.js',
+    './js/storeItems.js',
+    './js/components/lexistore.js',
     './js/db.js',
     './js/ai.js',
     './js/sfx.js',

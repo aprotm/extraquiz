@@ -23,8 +23,8 @@ import UserTool from './components/usertool.js';
 import Guide from './components/guide.js';
 import Quotes from './components/quotes.js';
 import LevelUpPopup from './components/LevelUpPopup.js';
-import Activate from './components/activate.js';
 import LexiLearnDashboard from './components/lexilearndashboard.js';
+import LexiStore from './components/lexistore.js';
 import BossBattle from './components/bossbattle.js';
 import CyberCipher from './components/cybercipher.js';
 import AiArena from './components/aiarena.js';
@@ -34,7 +34,7 @@ import { toasts, showToast } from './toast.js';
 
 const App = {
     components: {
-        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, Activate, LexiLearnDashboard, BossBattle, CyberCipher, AiArena
+        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, Activate, LexiLearnDashboard, LexiStore, BossBattle, CyberCipher, AiArena
     },
     setup() {
         const isLoginMode = ref(true);
@@ -635,6 +635,24 @@ const App = {
                             LexiLearn Pro
                         </span>
                     </button>
+
+                    <!-- LexiStore -->
+                    <button @click="store.navigate('store')" 
+                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative mt-1"
+                            :class="[
+                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
+                                store.currentRoute === 'store' || store.currentRoute === 'lexistore'
+                                    ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400'
+                            ]"
+                            :title="!isSidebarExpandedVisual ? 'LexiStore' : ''">
+                        <i data-lucide="shopping-bag" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'store' ? 'text-amber-500' : 'text-amber-400'"></i>
+                        <span class="flex items-center justify-between flex-1 whitespace-nowrap transition-all duration-300 overflow-hidden"
+                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
+                            <span>LexiStore</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Shop</span>
+                        </span>
+                    </button>
                     
                     <!-- Section Title (Học Tập) -->
                     <div class="pt-3 pb-1">
@@ -782,6 +800,7 @@ const App = {
             <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10 outline-none focus:outline-none focus:ring-0" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
                 <Dashboard v-if="store.currentRoute === 'dashboard'" />
                 <LexiLearnDashboard v-else-if="store.currentRoute === 'lexilearn-dashboard'" />
+                <LexiStore v-else-if="store.currentRoute === 'store' || store.currentRoute === 'lexistore'" />
                 <DeckDetail v-else-if="store.currentRoute === 'deck-detail'" />
                 <CreateEditDeck v-else-if="store.currentRoute === 'create-deck' || store.currentRoute === 'edit-deck'" />
                 <Study v-else-if="store.currentRoute === 'study'" />
