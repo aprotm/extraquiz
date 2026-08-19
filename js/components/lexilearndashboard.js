@@ -513,15 +513,16 @@ export default {
                         <span>Phòng Truyền Thống</span>
                     </button>
 
-                    <!-- LexiStore Button -->
-                    <button @click="store.navigate('store')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#0F1528] transition-all group">
+                    <!-- LexiStore Button (Admin Only) -->
+                    <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'"
+                            @click="store.navigate('store')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#0F1528] transition-all group">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#131A30] text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-400/10 transition-colors">
                                 <i class="fa-solid fa-store text-sm"></i>
                             </div>
                             <span>LexiStore</span>
                         </div>
-                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">Shop</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">Test</span>
                     </button>
 
                     <!-- Guide Button -->

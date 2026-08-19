@@ -637,8 +637,9 @@ const App = {
                         </span>
                     </button>
 
-                    <!-- LexiStore -->
-                    <button @click="store.navigate('store')" 
+                    <!-- LexiStore (Admin Test Only) -->
+                    <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'"
+                            @click="store.navigate('store')" 
                             class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative mt-1"
                             :class="[
                                 isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
@@ -646,12 +647,12 @@ const App = {
                                     ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
                                     : 'text-gray-500 dark:text-gray-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400'
                             ]"
-                            :title="!isSidebarExpandedVisual ? 'LexiStore' : ''">
+                            :title="!isSidebarExpandedVisual ? 'LexiStore (Admin)' : ''">
                         <i data-lucide="shopping-bag" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'store' ? 'text-amber-500' : 'text-amber-400'"></i>
                         <span class="flex items-center justify-between flex-1 whitespace-nowrap transition-all duration-300 overflow-hidden"
                               :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
                             <span>LexiStore</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Shop</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Test</span>
                         </span>
                     </button>
                     
