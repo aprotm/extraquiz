@@ -53,8 +53,8 @@ export const BADGES_DICT = [
         emoji: '⭐',
         image3d: 'https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Glowing%20star/3D/glowing_star_3d.png',
         title: 'Word Activator',
-        desc: 'Nâng cấp thành công một từ vựng từ Passive sang Active.',
-        condition: () => false // Manually unlocked in activate.js
+        desc: 'Luyện tập và làm chủ từ vựng xuất sắc trong chế độ Học Đa Chiều.',
+        condition: () => false // Manually unlocked in learn.js
     },
     {
         id: 'perfect_week',

@@ -332,7 +332,8 @@ export const store = reactive({
         const stats = this.getStudyStats();
         const checkProfile = {
             ...this.userProfile,
-            currentStreak: stats ? stats.streak : 0
+            currentStreak: stats ? stats.streak : 0,
+            hasFirstDeck: (Array.isArray(this.decks) && this.decks.length > 0) || this.userProfile?.hasFirstDeck === true
         };
 
         // 3. Evaluate standard badge conditions

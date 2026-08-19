@@ -23,7 +23,6 @@ import UserTool from './components/usertool.js';
 import Guide from './components/guide.js';
 import Quotes from './components/quotes.js';
 import LevelUpPopup from './components/LevelUpPopup.js';
-import Activate from './components/activate.js';
 import LexiLearnDashboard from './components/lexilearndashboard.js';
 import LexiStore from './components/lexistore.js';
 import BossBattle from './components/bossbattle.js';
@@ -35,7 +34,7 @@ import { toasts, showToast } from './toast.js';
 
 const App = {
     components: {
-        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, Activate, LexiLearnDashboard, LexiStore, BossBattle, CyberCipher, AiArena
+        Dashboard, DeckDetail, CreateEditDeck, Study, Quiz, Dictation, Learn, Roadmap, Reading, ParaphrasingCoach, WritingGrader, MatchingGame, AdminPanel, UserTool, Profile, FloatingLexiCredit, Guide, Quotes, LevelUpPopup, LexiLearnDashboard, LexiStore, BossBattle, CyberCipher, AiArena
     },
     setup() {
         const isLoginMode = ref(true);
@@ -818,7 +817,6 @@ const App = {
                 <AdminPanel v-else-if="store.currentRoute === 'admin'" />
                 <Guide v-else-if="store.currentRoute === 'guide'" />
                 <Quotes v-else-if="store.currentRoute === 'quotes'" />
-                <Activate v-else-if="store.currentRoute === 'activate'" />
                 <BossBattle v-else-if="store.currentRoute === 'boss-battle'" />
                 <CyberCipher v-else-if="store.currentRoute === 'cyber-cipher'" />
                 <AiArena v-else-if="store.currentRoute === 'ai-arena'" />

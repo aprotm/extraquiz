@@ -1,4 +1,4 @@
-const CACHE_NAME = 'extraquiz-v100';
+const CACHE_NAME = 'extraquiz-v101';
 const ASSETS = [
     './',
     './index.html',
@@ -91,22 +91,6 @@ self.addEventListener('fetch', (e) => {
                 }
                 throw err;
             });
-        })
-    );
-});
-
-self.addEventListener('activate', (e) => {
-    self.clients.claim();
-    const cacheWhitelist = [CACHE_NAME];
-    e.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
         })
     );
 });

@@ -141,21 +141,16 @@ export default {
 
                     <!-- Category 3: ADVANCED AI & TOOLS -->
                     <div>
-                        <div class="grid grid-cols-3 gap-2.5 max-w-xl mx-auto pt-2">
-                            <button @click="store.navigate('activate')" 
-                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:border-rose-900/60 dark:text-rose-300 dark:hover:bg-rose-900/50">
-                                <i class="fa-solid fa-fire text-rose-500"></i>
-                                <span>Activate</span>
-                            </button>
+                        <div class="grid grid-cols-2 gap-3 max-w-md mx-auto pt-2">
                             <button @click="store.navigate('reading')" 
-                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/60 dark:text-emerald-300 dark:hover:bg-emerald-900/50">
+                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/60 dark:text-emerald-300 dark:hover:bg-emerald-900/50 shadow-sm">
                                 <i class="fa-solid fa-book-open-reader text-emerald-600 dark:text-emerald-400"></i>
                                 <span>Đọc Hiểu AI</span>
                             </button>
                             <button @click="store.navigate('edit-deck', store.activeDeck)" 
-                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-[#1E293B] dark:border-[#334155] dark:text-gray-200 dark:hover:bg-[#28354A]">
+                                    class="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-xs transition-all border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-[#1E293B] dark:border-[#334155] dark:text-gray-200 dark:hover:bg-[#28354A] shadow-sm">
                                 <i class="fa-solid fa-pen text-gray-500 dark:text-gray-400"></i>
-                                <span>Chỉnh Sửa</span>
+                                <span>Chỉnh Sửa Thẻ</span>
                             </button>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { store } from '../store.js';
-import { updateCardMemoryState, logReviewInteraction, recordPredictionHistory, updateVocabularyDNA } from '../db.js';
+import { updateCardMemoryState } from '../db.js';
 import { calculateRetentionProb, calculateUrgency, calculateConfidence, updateHalfLife, calculateMastery } from '../memoryengine.js';
 import { updatePersona } from '../personaengine.js';
 import { playCorrect, playIncorrect } from '../sfx.js';
@@ -108,13 +108,6 @@ export default {
                 mastery_state: mastery.state,
                 learnStats: c.learnStats
             });
-            logReviewInteraction(c.id, store.user.uid, modality.value, outcome, latency_ms);
-            recordPredictionHistory(c.id, store.user.uid, newPr, newUrgency, conf.score);
-            
-            // DNA Sequencing
-            if (c.dna_tags && c.dna_tags.length > 0) {
-                updateVocabularyDNA(store.user.uid, c.dna_tags, outcome, latency_ms);
-            }
             
             // Cập nhật Persona Behavioral Model
             updatePersona({

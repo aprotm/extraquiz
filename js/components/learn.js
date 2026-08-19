@@ -35,7 +35,16 @@ export default {
             updateCardMemoryState(card.id, update);
             const correct = result === 'correct' || result === 'easy';
             stats.value.completed++;
-            if (correct) { stats.value.correct++; stats.value.streak++; stats.value.bestStreak = Math.max(stats.value.bestStreak, stats.value.streak); stats.value.xp += result === 'easy' ? 3 : 2; store.recordStudyActivity(); store.addLexiCredit(1, 'action'); if (settings.value.soundEffects) playCorrect(); }
+            if (correct) { 
+                stats.value.correct++; 
+                stats.value.streak++; 
+                stats.value.bestStreak = Math.max(stats.value.bestStreak, stats.value.streak); 
+                stats.value.xp += result === 'easy' ? 3 : 2; 
+                store.recordStudyActivity(); 
+                store.addLexiCredit(1, 'action'); 
+                store.unlockBadge('word_activator');
+                if (settings.value.soundEffects) playCorrect(); 
+            }
             else { stats.value.streak = 0; if (settings.value.soundEffects) playIncorrect(); }
         };
         const submit = (choice = answer.value) => {

@@ -56,6 +56,9 @@ export default {
             formattedFirestoreBytes: '0 KB'
         });
 
+        // Current App Cache Version
+        const CURRENT_CACHE_NAME = 'extraquiz-v101';
+
         // Diagnostic States
         const diagState = ref({
             firestorePing: null,
@@ -64,7 +67,7 @@ export default {
             geminiLatency: null,
             ttsVoicesCount: 0,
             ttsStatus: 'idle',
-            swVersion: 'extraquiz-v75',
+            swVersion: CURRENT_CACHE_NAME,
             swStatus: 'checking'
         });
 
@@ -223,7 +226,7 @@ export default {
                             cacheList.push({
                                 name: cKey,
                                 itemsCount: requests.length,
-                                isCurrent: cKey === 'extraquiz-v75'
+                                isCurrent: cKey === CURRENT_CACHE_NAME
                             });
                         } catch(err) {}
                     }
@@ -257,7 +260,7 @@ export default {
                 const keys = await caches.keys();
                 let deletedCount = 0;
                 for (const key of keys) {
-                    if (key !== 'extraquiz-v75') {
+                    if (key !== CURRENT_CACHE_NAME) {
                         await caches.delete(key);
                         deletedCount++;
                     }

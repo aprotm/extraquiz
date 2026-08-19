@@ -134,15 +134,20 @@ export default {
             showToast("Đã khôi phục cài đặt gốc!", 'success');
         };
 
+        const isStudyOrGameMode = computed(() => {
+            const activeRoutes = ['study', 'learn', 'quiz', 'dictation', 'matching', 'boss-battle', 'cyber-cipher', 'ai-arena', 'paraphrase', 'writing', 'reading'];
+            return activeRoutes.includes(store.currentRoute);
+        });
+
         return { 
             isOpen, activeSettingTab, toggleMenu, closeMenu, store, changeTheme, 
             adjustFontSize, adjustDailyTarget, setSpeechRate, toggleFocusMode, toggleChestAnimation, 
             toggleFloatingCredit, toggleLevelUpNotification, toggleSfx, voices, handleVoiceChange, 
-            testSelectedVoice, formatVoiceLabel, resetToDefaults, t 
+            testSelectedVoice, formatVoiceLabel, resetToDefaults, isStudyOrGameMode, t 
         };
     },
     template: `
-        <div id="user-tool-widget" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 select-none" @keydown.escape="isOpen = false">
+        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 select-none hide-in-focus transition-all duration-300" @keydown.escape="isOpen = false">
             <!-- Settings Modal Panel -->
             <transition
                 enter-active-class="transition duration-200 ease-out"

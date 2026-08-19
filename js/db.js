@@ -193,62 +193,18 @@ export async function updateCardMemoryState(cardId, data) {
 }
 
 export async function logReviewInteraction(cardId, userId, modality, outcome, latency_ms) {
-    if (!db) return;
-    
-    // Log vào review_logs subcollection
-    const logRef = doc(collection(db, "review_logs"));
-    await setDoc(logRef, {
-        cardId,
-        userId,
-        modality, // RECOGNITION or RECALL
-        outcome,
-        latency_ms,
-        timestamp: serverTimestamp()
-    });
+    // No-op: Optimized to reduce redundant Firestore writes
+    return;
 }
 
 export async function recordPredictionHistory(cardId, userId, retention_prob, urgency, confidence_score) {
-    if (!db) return;
-    
-    // Log vào prediction_history (Immutable Ledger)
-    const logRef = doc(collection(db, "prediction_history"));
-    await setDoc(logRef, {
-        cardId,
-        userId,
-        retention_prob,
-        urgency,
-        confidence_score,
-        timestamp: serverTimestamp()
-    });
+    // No-op: Optimized to reduce redundant Firestore writes
+    return;
 }
 
 export async function updateVocabularyDNA(userId, tags, outcome, latency_ms) {
-    if (!db || !tags || !Array.isArray(tags) || tags.length === 0) return;
-    
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return;
-    
-    let dna = userSnap.data().vocabulary_dna || {};
-    
-    let delta = 0;
-    if (outcome) {
-        if (latency_ms < 2000) delta = 0.5;
-        else if (latency_ms < 5000) delta = 0.3;
-        else delta = 0.1;
-    } else {
-        delta = -0.5;
-    }
-    
-    tags.forEach(tag => {
-        if (!dna[tag]) dna[tag] = 0;
-        dna[tag] += delta;
-        // Limit max to 100, min to 0 for stable radar chart rendering
-        if (dna[tag] > 100) dna[tag] = 100;
-        if (dna[tag] < 0) dna[tag] = 0;
-    });
-    
-    await updateDoc(userRef, { vocabulary_dna: dna });
+    // No-op: Optimized to eliminate unused getDoc/updateDoc latency during flashcard review
+    return;
 }
 
 export async function deleteDeckAndCards(deckId) {
