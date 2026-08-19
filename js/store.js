@@ -202,7 +202,7 @@ export const store = reactive({
             throw new Error("Vui lòng đăng nhập để mua vật phẩm.");
         }
         const cost = item.price || 0;
-        const currentLC = this.userProfile.totalLexiCredit || this.userProfile.lexiCredit || 0;
+        const currentLC = this.userProfile.lexiCredit || 0;
 
         if (currentLC < cost) {
             throw new Error(`Bạn còn thiếu ${cost - currentLC} LexiCredit để sở hữu món đồ này!`);
@@ -222,9 +222,8 @@ export const store = reactive({
         }
         const inv = this.userProfile.inventory;
 
-        // Deduct LexiCredit
+        // Deduct LexiCredit from spendable balance
         this.userProfile.lexiCredit = Math.max(0, (this.userProfile.lexiCredit || 0) - cost);
-        this.userProfile.totalLexiCredit = Math.max(0, (this.userProfile.totalLexiCredit || 0) - cost);
 
         // Apply item reward to inventory
         if (item.category === 'buffs') {

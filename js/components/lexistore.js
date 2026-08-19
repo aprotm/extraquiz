@@ -73,7 +73,7 @@ export default {
             }
 
             const cost = item.price || 0;
-            const currentLC = store.userProfile?.totalLexiCredit || store.userProfile?.lexiCredit || 0;
+            const currentLC = store.userProfile?.lexiCredit || 0;
 
             if (currentLC < cost) {
                 showToast(`Bạn còn thiếu ${cost - currentLC} LC. Hãy làm bài tập hoặc thắng Boss để tích lũy thêm!`, 'error');
@@ -184,7 +184,7 @@ export default {
                             <div>
                                 <div class="text-[10px] font-black uppercase tracking-widest text-gray-300">Số Dư Khả Dụng</div>
                                 <div class="text-3xl font-black text-white font-mono flex items-baseline gap-1.5">
-                                    {{ store.userProfile?.totalLexiCredit || store.userProfile?.lexiCredit || 0 }}
+                                    {{ store.userProfile?.lexiCredit || 0 }}
                                     <span class="text-sm font-black text-amber-300">LC</span>
                                 </div>
                                 <div class="text-[10px] text-gray-300 mt-0.5 flex items-center gap-1">

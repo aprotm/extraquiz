@@ -386,18 +386,22 @@ export default {
                 let lvl = parseInt(editForm.value.level) || 1;
                 let newRank = getRankFromLevel(lvl);
                 
-                await updateOtherUser(editingUser.value.id, {
+                const dataToUpdate = {
                     level: lvl,
                     rank: newRank.title,
                     lexiCredit: lc,
+                    totalLexiCredit: Math.max(lc, editingUser.value.totalLexiCredit || 0),
                     isAdmin: editForm.value.isAdmin,
                     badges: editForm.value.badges
-                });
+                };
+
+                await updateOtherUser(editingUser.value.id, dataToUpdate);
                 
                 if (editingUser.value.id === store.user?.uid) {
                     store.userProfile.level = lvl;
                     store.userProfile.rank = newRank.title;
                     store.userProfile.lexiCredit = lc;
+                    store.userProfile.totalLexiCredit = dataToUpdate.totalLexiCredit;
                     store.userProfile.isAdmin = editForm.value.isAdmin;
                     store.userProfile.badges = editForm.value.badges;
                 }
