@@ -29,7 +29,6 @@ export const store = reactive({
     // User Settings
     settings: JSON.parse(localStorage.getItem('app_settings')) || {
         voiceUri: 'Google UK English Female',
-        theme: 'light',
         readingFontSize: 16,
         focusMode: false,
         language: 'vi',
@@ -40,13 +39,11 @@ export const store = reactive({
     },
     
     saveSettings() {
+        if (this.settings.theme) delete this.settings.theme;
         localStorage.setItem('app_settings', JSON.stringify(this.settings));
-        // Apply theme immediately
-        if (this.settings.theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        // Always enforce clean light mode
+        document.documentElement.classList.remove('dark');
+        if (document.body) document.body.classList.remove('dark');
         // Apply focus mode
         if (this.settings.focusMode) {
             document.body.classList.add('focus-mode');

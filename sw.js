@@ -1,11 +1,10 @@
-const CACHE_NAME = 'extraquiz-v102';
+const CACHE_NAME = 'extraquiz-v103';
 const ASSETS = [
     './',
     './index.html',
     './js/ranks.js',
     './js/components/LevelUpPopup.js',
     './css/style.css',
-    './css/style-dark.css',
     './assets/logo.png',
     './js/app.js',
     './js/store.js',

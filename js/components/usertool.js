@@ -55,12 +55,6 @@ export default {
         onMounted(() => { document.addEventListener('click', closeMenu); });
         onUnmounted(() => { document.removeEventListener('click', closeMenu); });
 
-        const changeTheme = (theme) => {
-            store.settings.theme = theme;
-            store.saveSettings();
-            showToast(theme === 'dark' ? 'Đã bật chế độ Tối (Dark Mode)' : 'Đã bật chế độ Sáng (Light Mode)', 'info');
-        };
-
         const adjustFontSize = (delta) => {
             let size = (store.settings.readingFontSize || 16) + delta;
             if (size >= 12 && size <= 26) {
@@ -119,7 +113,6 @@ export default {
             store.settings = {
                 voiceUri: '',
                 speechRate: 0.95,
-                theme: 'light',
                 readingFontSize: 16,
                 focusMode: false,
                 language: 'vi',
@@ -140,7 +133,7 @@ export default {
         });
 
         return { 
-            isOpen, activeSettingTab, toggleMenu, closeMenu, store, changeTheme, 
+            isOpen, activeSettingTab, toggleMenu, closeMenu, store, 
             adjustFontSize, adjustDailyTarget, setSpeechRate, toggleFocusMode, toggleChestAnimation, 
             toggleFloatingCredit, toggleLevelUpNotification, toggleSfx, voices, handleVoiceChange, 
             testSelectedVoice, formatVoiceLabel, resetToDefaults, isStudyOrGameMode, t 
@@ -205,26 +198,6 @@ export default {
 
                         <!-- ================= TAB 1: HIỂN THỊ ================= -->
                         <div v-if="activeSettingTab === 'display'" class="space-y-3 animate-fade-in">
-                            <!-- Theme Toggle -->
-                            <div class="flex justify-between items-center p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-circle-half-stroke text-indigo-500 text-sm"></i>
-                                    <span class="font-bold text-gray-700 dark:text-gray-300">Giao diện</span>
-                                </div>
-                                <div class="flex bg-gray-200 dark:bg-gray-700 rounded-xl p-0.5">
-                                    <button @click="changeTheme('light')" 
-                                            :class="store.settings.theme !== 'dark' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 dark:text-gray-400'" 
-                                            class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1">
-                                        <i class="fa-solid fa-sun text-amber-500 text-[10px]"></i> Sáng
-                                    </button>
-                                    <button @click="changeTheme('dark')" 
-                                            :class="store.settings.theme === 'dark' ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'" 
-                                            class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1">
-                                        <i class="fa-solid fa-moon text-indigo-400 text-[10px]"></i> Tối
-                                    </button>
-                                </div>
-                            </div>
-
                             <!-- Focus Mode -->
                             <div class="flex justify-between items-center p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
                                 <div>
