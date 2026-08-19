@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { store } from '../store.js';
 import { t } from '../i18n.js';
 import { getAvailableEnglishVoices, speakEnglishText } from '../voice.js';

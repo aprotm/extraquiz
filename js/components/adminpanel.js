@@ -57,7 +57,7 @@ export default {
         });
 
         // Current App Cache Version
-        const CURRENT_CACHE_NAME = 'extraquiz-v101';
+        const CURRENT_CACHE_NAME = 'extraquiz-v102';
 
         // Diagnostic States
         const diagState = ref({
