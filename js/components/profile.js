@@ -21,7 +21,10 @@ export default {
             }
         };
         
-        const currentLevelInfo = computed(() => getLevelProgressInfo(store.userProfile?.totalLexiCredit || 0));
+        const currentLevelInfo = computed(() => {
+            const totalLC = Math.max(store.userProfile?.totalLexiCredit || 0, store.userProfile?.lexiCredit || 0, ((store.userProfile?.level || 1) - 1) * 50);
+            return getLevelProgressInfo(totalLC);
+        });
         const currentRank = computed(() => getRankFromLevel(currentLevelInfo.value.currentLevel));
 
         onMounted(() => {
@@ -181,24 +184,41 @@ export default {
                             </div>
 
                             <!-- Rank Badge (Positioned Bottom-Center) -->
-                            <div v-if="currentRank" class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gray-900/95 dark:bg-[#0B1020]/95 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-white dark:border-[#1E2540] shadow-lg flex items-center gap-1.5 whitespace-nowrap z-10">
+                            <div v-if="currentRank" class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gray-900/95 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 whitespace-nowrap z-10">
                                 <img v-if="currentRank.image3d" :src="currentRank.image3d" class="w-3.5 h-3.5 object-contain">
                                 <i v-else :data-lucide="currentRank.icon" :class="[currentRank.color, 'w-3 h-3']"></i>
                                 <span>{{ currentRank.title }}</span>
                             </div>
                         </div>
 
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mt-5 mb-1">Cấp độ {{ currentLevelInfo.currentLevel }}</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
+                        <h2 class="text-xl font-bold text-gray-900 mt-5 mb-0.5">Cấp độ {{ currentLevelInfo.currentLevel }}</h2>
+                        <p class="text-xs text-gray-400 font-medium mb-3">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
+
+                        <!-- Level EXP Progress Bar -->
+                        <div class="max-w-xs mx-auto mb-6 px-2">
+                            <div class="flex justify-between text-[11px] font-bold text-gray-500 mb-1">
+                                <span>Tiến độ cấp: {{ currentLevelInfo.currentProgress }} / {{ currentLevelInfo.requiredLC }} LC</span>
+                                <span class="text-indigo-600 font-mono">{{ Math.round(currentLevelInfo.percent) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden shadow-inner">
+                                <div class="h-2 rounded-full bg-gradient-to-r from-amber-400 via-purple-500 to-indigo-500 transition-all duration-700" :style="{ width: currentLevelInfo.percent + '%' }"></div>
+                            </div>
+                        </div>
 
                         <div class="grid grid-cols-2 gap-3 mb-6">
-                            <div class="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
-                                <div class="text-xl font-black text-purple-600 dark:text-purple-400">{{ stats?.streak || 0 }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Ngày liên tiếp (Streak)</div>
+                            <div class="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 flex flex-col justify-between">
+                                <div class="text-2xl font-black text-purple-600">{{ stats?.streak || 0 }} 🔥</div>
+                                <div>
+                                    <div class="text-xs text-gray-700 font-bold mt-1">Ngày liên tiếp</div>
+                                    <div class="text-[10px] text-gray-400">Chuỗi học tập</div>
+                                </div>
                             </div>
-                            <div class="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
-                                <div class="text-xl font-black text-amber-500">{{ store.userProfile?.totalLexiCredit || 0 }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Tổng Credit</div>
+                            <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-100 flex flex-col justify-between">
+                                <div class="text-2xl font-black text-amber-500">{{ (store.userProfile?.lexiCredit || 0).toLocaleString('vi-VN') }} 💎</div>
+                                <div>
+                                    <div class="text-xs text-gray-700 font-bold mt-1">Số Dư Khả Dụng</div>
+                                    <div class="text-[10px] text-gray-400 font-mono">Tích lũy: {{ (currentLevelInfo.totalLC || 0).toLocaleString('vi-VN') }} LC</div>
+                                </div>
                             </div>
                         </div>
                     </div>

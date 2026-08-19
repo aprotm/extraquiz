@@ -66,3 +66,22 @@ export function getLevelProgressInfo(totalLC) {
         nextLevelMinimum
     };
 }
+
+export function normalizeUserStats(profile) {
+    if (!profile) return profile;
+    const spendable = Math.max(0, parseInt(profile.lexiCredit) || 0);
+    const existingTotal = Math.max(0, parseInt(profile.totalLexiCredit) || 0);
+    const levelDerivedTotal = Math.max(0, ((parseInt(profile.level) || 1) - 1) * LC_PER_LEVEL);
+    
+    // Lifetime credit must be at least spendable balance and at least level threshold
+    const trueTotalLC = Math.max(existingTotal, spendable, levelDerivedTotal);
+    const trueLevel = Math.max(parseInt(profile.level) || 1, getLevelFromLifetimeLC(trueTotalLC));
+    const trueRankObj = getRankFromLevel(trueLevel);
+
+    profile.lexiCredit = spendable;
+    profile.totalLexiCredit = trueTotalLC;
+    profile.level = trueLevel;
+    profile.rank = trueRankObj.title;
+
+    return profile;
+}

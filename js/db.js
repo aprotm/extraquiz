@@ -1,6 +1,7 @@
 import { collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, serverTimestamp, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "./firebase-config.js";
+import { normalizeUserStats } from "./ranks.js";
 
 export async function uploadCardImage(file) {
     if (!storage) throw new Error("Firebase Storage is not initialized");
@@ -227,7 +228,23 @@ export async function fetchUserProfile(userId) {
     const docRef = doc(db, "users", userId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        return docSnap.data();
+        const data = docSnap.data();
+        const rawLC = data.lexiCredit || 0;
+        const rawTotal = data.totalLexiCredit || 0;
+        const rawLevel = data.level || 1;
+        
+        normalizeUserStats(data);
+        
+        // Auto-heal if values in Firestore were out of sync
+        if (data.totalLexiCredit !== rawTotal || data.level !== rawLevel || data.lexiCredit !== rawLC) {
+            updateUserProfile(userId, {
+                lexiCredit: data.lexiCredit,
+                totalLexiCredit: data.totalLexiCredit,
+                level: data.level,
+                rank: data.rank
+            }).catch(() => {});
+        }
+        return data;
     } else {
         // Init profile
         const defaultProfile = { 
@@ -250,7 +267,10 @@ export async function fetchAllUsers() {
     if (!db) return [];
     const snap = await getDocs(collection(db, "users"));
     return snap.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .map(doc => {
+            const u = { id: doc.id, ...doc.data() };
+            return normalizeUserStats(u);
+        })
         .filter(u => !u.isDeleted);
 }
 

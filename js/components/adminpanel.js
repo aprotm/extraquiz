@@ -57,7 +57,7 @@ export default {
         });
 
         // Current App Cache Version
-        const CURRENT_CACHE_NAME = 'extraquiz-v103';
+        const CURRENT_CACHE_NAME = 'extraquiz-v104';
 
         // Diagnostic States
         const diagState = ref({
@@ -385,15 +385,17 @@ export default {
 
         const saveEditUser = async () => {
             try {
-                let lc = parseInt(editForm.value.lexiCredit) || 0;
-                let lvl = parseInt(editForm.value.level) || 1;
-                let newRank = getRankFromLevel(lvl);
+                let lc = Math.max(0, parseInt(editForm.value.lexiCredit) || 0);
+                let lvl = Math.max(1, parseInt(editForm.value.level) || 1);
+                let totalLC = Math.max(lc, (lvl - 1) * 50, editingUser.value.totalLexiCredit || 0);
+                let trueLevel = Math.max(lvl, getLevelFromLifetimeLC(totalLC));
+                let newRank = getRankFromLevel(trueLevel);
                 
                 const dataToUpdate = {
-                    level: lvl,
+                    level: trueLevel,
                     rank: newRank.title,
                     lexiCredit: lc,
-                    totalLexiCredit: Math.max(lc, editingUser.value.totalLexiCredit || 0),
+                    totalLexiCredit: totalLC,
                     isAdmin: editForm.value.isAdmin,
                     badges: editForm.value.badges
                 };
@@ -401,10 +403,10 @@ export default {
                 await updateOtherUser(editingUser.value.id, dataToUpdate);
                 
                 if (editingUser.value.id === store.user?.uid) {
-                    store.userProfile.level = lvl;
+                    store.userProfile.level = trueLevel;
                     store.userProfile.rank = newRank.title;
                     store.userProfile.lexiCredit = lc;
-                    store.userProfile.totalLexiCredit = dataToUpdate.totalLexiCredit;
+                    store.userProfile.totalLexiCredit = totalLC;
                     store.userProfile.isAdmin = editForm.value.isAdmin;
                     store.userProfile.badges = editForm.value.badges;
                 }

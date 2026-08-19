@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import { updateUserProfile } from './db.js';
-import { getLevelFromLifetimeLC, getRankFromLevel } from './ranks.js';
+import { getLevelFromLifetimeLC, getRankFromLevel, normalizeUserStats } from './ranks.js';
 import { BADGES_DICT, EXCLUSIVE_ADMIN_BADGES, getVisibleBadges, getBadgeById } from './badges.js';
 export { BADGES_DICT, EXCLUSIVE_ADMIN_BADGES, getVisibleBadges, getBadgeById };
 
@@ -427,31 +427,27 @@ export const store = reactive({
         }
 
         this.userProfile.lexiCredit = (this.userProfile.lexiCredit || 0) + finalAmount;
-        this.userProfile.totalLexiCredit = (this.userProfile.totalLexiCredit || 0) + finalAmount;
+        this.userProfile.totalLexiCredit = Math.max((this.userProfile.totalLexiCredit || 0) + finalAmount, this.userProfile.lexiCredit);
         
-        // Cập nhật Level
+        // Cập nhật Level & Rank chuẩn xác
         let oldLevel = this.userProfile.level || 1;
-        let newLevel = getLevelFromLifetimeLC(this.userProfile.totalLexiCredit);
+        normalizeUserStats(this.userProfile);
+        let newLevel = this.userProfile.level;
         
         let leveledUp = false;
         
-        // Auto-fix level if the formula drastically changes it for old users
-        if (newLevel !== oldLevel) {
-            if (newLevel > oldLevel) leveledUp = true;
-            this.userProfile.level = newLevel;
+        if (newLevel > oldLevel) {
+            leveledUp = true;
             const newRank = getRankFromLevel(newLevel);
-            this.userProfile.rank = newRank.title;
             
-            if (leveledUp) {
-                // Dispatch event for the Level Up animation popup if not disabled
-                if (this.settings.showLevelUpNotification !== false) {
-                    window.dispatchEvent(new CustomEvent('level-up', {
-                        detail: {
-                            level: newLevel,
-                            rank: newRank
-                        }
-                    }));
-                }
+            // Dispatch event for the Level Up animation popup if not disabled
+            if (this.settings.showLevelUpNotification !== false) {
+                window.dispatchEvent(new CustomEvent('level-up', {
+                    detail: {
+                        level: newLevel,
+                        rank: newRank
+                    }
+                }));
             }
         }
 

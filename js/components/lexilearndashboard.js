@@ -44,7 +44,10 @@ export default {
             });
         });
 
-        const levelProgress = computed(() => getLevelProgressInfo(store.userProfile?.totalLexiCredit || 0));
+        const levelProgress = computed(() => {
+            const totalLC = Math.max(store.userProfile?.totalLexiCredit || 0, store.userProfile?.lexiCredit || 0, ((store.userProfile?.level || 1) - 1) * 50);
+            return getLevelProgressInfo(totalLC);
+        });
         const currentRank = computed(() => getRankFromLevel(levelProgress.value.currentLevel));
         
         const firstName = computed(() => {

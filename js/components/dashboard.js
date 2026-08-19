@@ -152,7 +152,8 @@ export default {
         const ringOffset = computed(() => ringCircumference - (todayProgress.value / 100) * ringCircumference);
 
         const levelProgress = computed(() => {
-            return getLevelProgressInfo(store.userProfile?.totalLexiCredit || 0);
+            const totalLC = Math.max(store.userProfile?.totalLexiCredit || 0, store.userProfile?.lexiCredit || 0, ((store.userProfile?.level || 1) - 1) * 50);
+            return getLevelProgressInfo(totalLC);
         });
 
         const hasStudyHistory = computed(() => stats.value?.history?.some(d => d.words > 0) || false);
