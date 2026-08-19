@@ -165,11 +165,11 @@ export default {
                                     <i class="fa-solid fa-arrow-left text-indigo-300"></i> Trang Chủ
                                 </button>
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/30 text-amber-300 border border-amber-400/40 flex items-center gap-1">
-                                    <i class="fa-solid fa-sparkles text-amber-300"></i> LexiStore (Admin Beta)
+                                    <i class="fa-solid fa-sparkles text-amber-300"></i> Cửa Hàng (Admin Beta)
                                 </span>
                             </div>
                             <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-                                Cửa Hàng & Trao Đổi LexiStore 🏬
+                                Cửa Hàng & Trao Đổi Vật Phẩm 🏬
                             </h1>
                             <p class="text-xs sm:text-sm text-gray-300 max-w-xl leading-relaxed">
                                 Đổi điểm thưởng <b class="text-amber-300 font-extrabold">LexiCredit (LC)</b> để mở khóa các bộ từ vựng cao cấp, vật phẩm bảo vệ chuỗi Streak và hiệu ứng độc quyền.

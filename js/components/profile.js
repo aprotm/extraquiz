@@ -198,7 +198,7 @@ export default {
                             </div>
                             <div class="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
                                 <div class="text-xl font-black text-amber-500">{{ store.userProfile?.totalLexiCredit || 0 }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Tổng LexiCredit</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Tổng Credit</div>
                             </div>
                         </div>
                     </div>
