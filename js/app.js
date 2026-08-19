@@ -23,6 +23,7 @@ import UserTool from './components/usertool.js';
 import Guide from './components/guide.js';
 import Quotes from './components/quotes.js';
 import LevelUpPopup from './components/LevelUpPopup.js';
+import Activate from './components/activate.js';
 import LexiLearnDashboard from './components/lexilearndashboard.js';
 import LexiStore from './components/lexistore.js';
 import BossBattle from './components/bossbattle.js';
