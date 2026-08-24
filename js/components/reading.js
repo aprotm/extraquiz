@@ -375,9 +375,27 @@ export default {
             const mcqAnswers = answerKey.mcq || [];
             let rawCorrect = mcqAnswers[qIndex] || q.answer || '';
             if (typeof rawCorrect === 'object') rawCorrect = rawCorrect.answer || '';
-            const normalizedCorrect = normalizeAns(rawCorrect);
+            const isCorrectAns = normalizedCorrect === normalizedOpt;
+            const isSelected = userVal === normalizedOpt;
 
-return { 
+            if (isCorrectAns) return 'border-green-500 bg-green-50 text-green-800 font-bold ring-2 ring-green-300';
+            if (isSelected && !isCorrectAns) return 'border-red-500 bg-red-50 text-red-800 line-through ring-2 ring-red-300';
+            return 'border-gray-200 opacity-50 bg-gray-50';
+        };
+
+        const formatText = (text) => {
+            return text ? text.replace(/\n/g, '<br>') : '';
+        };
+
+        const goBack = () => {
+            if (store.activeDeck) {
+                store.navigate('deck-detail');
+            } else {
+                store.navigate('dashboard');
+            }
+        };
+
+        return { 
             store, isLoading, isConfiguring, testData, parsedPassage, 
             userFill, userMcq, isSubmitted, checkAnswers, score,
             viewMode, showWordBank, getInputClass, getOptionClass, formatText, 
