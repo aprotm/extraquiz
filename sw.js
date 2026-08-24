@@ -1,8 +1,9 @@
-const CACHE_NAME = 'extraquiz-v105';
+const CACHE_NAME = 'extraquiz-v106';
 const ASSETS = [
     './',
     './index.html',
     './js/ranks.js',
+    './js/vocabresolver.js',
     './js/components/LevelUpPopup.js',
     './css/style.css',
     './assets/logo.png',

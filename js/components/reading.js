@@ -1,11 +1,13 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { store } from '../store.js';
-import { generateReadingTest } from '../ai.js';
+import { generateReadingTest, IELTS_READING_LEVELS } from '../ai.js';
+import { resolveVocabulary } from '../vocabresolver.js';
 import { showToast } from '../toast.js';
 
 export default {
     setup() {
-        const isLoading = ref(true);
+        const isLoading = ref(false);
+        const isConfiguring = ref(false);
         const testData = ref(null);
         const isSubmitted = ref(false);
         const viewMode = ref('fill'); // 'fill', 'read'
@@ -16,58 +18,156 @@ export default {
         const userMcq = ref({});
         const results = ref({ fill: [], mcq: {} });
 
-        const loadTest = async (forceNew = false) => {
-            isLoading.value = true;
-            isSubmitted.value = false;
-            
-            const testStorageKey = `reading_test_${store.activeDeck.id}`;
-            const inputStorageKey = `reading_inputs_${store.activeDeck.id}`;
+        // Configuration State
+        const readingLevel = ref('5.5-6.5'); // '4.5-5.5' | '5.5-6.5' | '6.5-7.5' | '7.5-8.5+'
+        const vocabSource = ref(store.activeDeck ? 'current' : 'all'); // 'current' | 'all' | 'selected'
+        const selectedDeckIds = ref(store.activeDeck ? [store.activeDeck.id] : []);
+        const lastMeta = ref({ level: '5.5-6.5', sourceLabel: '', wordCount: 0 });
 
-            if (forceNew) {
-                localStorage.removeItem(testStorageKey);
-                localStorage.removeItem(inputStorageKey);
-                testData.value = null;
-                userFill.value = [];
-                userMcq.value = {};
-                results.value = { fill: [], mcq: {} };
+        const availableDecks = computed(() => store.decks || []);
+
+        const levelOptions = [
+            {
+                id: '4.5-5.5',
+                range: '4.5–5.5',
+                label: 'Foundation',
+                badge: 'Nền tảng',
+                desc: '350–500 từ · Cấu trúc câu ngắn, từ vựng thông dụng, dễ tiếp cận',
+                icon: 'fa-seedling',
+                color: 'text-emerald-600',
+                borderActive: 'border-emerald-500 bg-emerald-50/50 text-emerald-900 shadow-emerald-100'
+            },
+            {
+                id: '5.5-6.5',
+                range: '5.5–6.5',
+                label: 'Intermediate',
+                badge: 'Khuyên dùng',
+                desc: '450–650 từ · Chuẩn format IELTS, câu phức & paraphrasing rõ nét',
+                icon: 'fa-compass',
+                color: 'text-indigo-600',
+                borderActive: 'border-indigo-500 bg-indigo-50/50 text-indigo-900 shadow-indigo-100'
+            },
+            {
+                id: '6.5-7.5',
+                range: '6.5–7.5',
+                label: 'Upper-Intermediate',
+                badge: 'Học thuật',
+                desc: '550–750 từ · Từ vựng trừu tượng, đa mệnh đề, suy luận sâu',
+                icon: 'fa-graduation-cap',
+                color: 'text-purple-600',
+                borderActive: 'border-purple-500 bg-purple-50/50 text-purple-900 shadow-purple-100'
+            },
+            {
+                id: '7.5-8.5+',
+                range: '7.5–8.5+',
+                label: 'Advanced',
+                badge: 'Chuyên sâu',
+                desc: '650–850 từ · Học thuật cao cấp, liên kết ngầm, luận điểm đa tầng',
+                icon: 'fa-gem',
+                color: 'text-amber-600',
+                borderActive: 'border-amber-500 bg-amber-50/50 text-amber-900 shadow-amber-100'
+            }
+        ];
+
+        const toggleDeckSelection = (deckId) => {
+            const idx = selectedDeckIds.value.indexOf(deckId);
+            if (idx > -1) {
+                selectedDeckIds.value.splice(idx, 1);
+            } else {
+                selectedDeckIds.value.push(deckId);
+            }
+        };
+
+        const selectAllDecks = () => {
+            selectedDeckIds.value = availableDecks.value.map(d => d.id);
+        };
+
+        const deselectAllDecks = () => {
+            selectedDeckIds.value = [];
+        };
+
+        const currentSourceSummary = computed(() => {
+            if (vocabSource.value === 'current') {
+                return store.activeDeck ? `Bộ "${store.activeDeck.title}" (${store.activeCards?.length || 0} từ)` : 'Bộ thẻ hiện tại';
+            }
+            if (vocabSource.value === 'all') {
+                const totalCards = availableDecks.value.reduce((acc, d) => acc + (d.cardsCount || 0), 0);
+                return `Toàn bộ kho từ (${availableDecks.value.length} bộ thẻ · ~${totalCards} từ)`;
+            }
+            if (vocabSource.value === 'selected') {
+                const selDecks = availableDecks.value.filter(d => selectedDeckIds.value.includes(d.id));
+                const totalCards = selDecks.reduce((acc, d) => acc + (d.cardsCount || 0), 0);
+                return `Đã chọn ${selectedDeckIds.value.length} bộ thẻ (~${totalCards} từ)`;
+            }
+            return '';
+        });
+
+        const isGenerateDisabled = computed(() => {
+            if (vocabSource.value === 'selected' && selectedDeckIds.value.length === 0) {
+                return true;
+            }
+            if (vocabSource.value === 'current' && (!store.activeCards || store.activeCards.length === 0)) {
+                return true;
+            }
+            return false;
+        });
+
+        const startGenerate = async (forceNew = true) => {
+            if (!localStorage.getItem('gemini_api_key')) {
+                showToast("Vui lòng nhập Gemini API Key trong Cài đặt trước khi dùng tính năng này.", "error");
+                return;
             }
 
+            if (vocabSource.value === 'selected' && selectedDeckIds.value.length === 0) {
+                showToast("Vui lòng chọn ít nhất 1 bộ thẻ!", "error");
+                return;
+            }
+
+            isLoading.value = true;
+            isConfiguring.value = false;
+            isSubmitted.value = false;
+
             try {
-                // Check cache
-                const cachedTest = localStorage.getItem(testStorageKey);
-                let data;
+                // 1. Resolve vocabulary
+                const resolved = await resolveVocabulary({
+                    source: vocabSource.value,
+                    currentDeckId: store.activeDeck?.id,
+                    selectedDeckIds: selectedDeckIds.value,
+                    userUid: store.user?.uid,
+                    activeCards: store.activeCards,
+                    allDecks: availableDecks.value,
+                    maxSampleWords: 40
+                });
 
-                if (cachedTest && !forceNew) {
-                    data = JSON.parse(cachedTest);
-                    testData.value = data;
-                } else {
-                    data = await generateReadingTest(store.activeCards);
-                    testData.value = data;
-                    localStorage.setItem(testStorageKey, JSON.stringify(data));
-                }
-                
-                // Initialize user inputs
-                const cachedInputs = localStorage.getItem(inputStorageKey);
-                if (cachedInputs && !forceNew) {
-                    const parsedInputs = JSON.parse(cachedInputs);
-                    userFill.value = parsedInputs.fill || new Array(data.answerKey?.fillBlanks?.length || data.wordBank?.length || 0).fill('');
-                    userMcq.value = parsedInputs.mcq || {};
-                } else {
-                    userFill.value = new Array((data.answerKey?.fillBlanks || data.answerKey?.fill_blanks || data.wordBank || []).length).fill('');
-                    (data.questions || []).forEach(q => {
-                        userMcq.value[q.id] = '';
-                    });
+                if (!resolved.words || resolved.words.length < 3) {
+                    showToast("Nguồn từ vựng đã chọn không có đủ từ (cần ít nhất 3 từ vựng) để tạo bài đọc!", "error");
+                    isLoading.value = false;
+                    isConfiguring.value = true;
+                    return;
                 }
 
-                // Save inputs as user types
-                watch([userFill, userMcq], () => {
-                    localStorage.setItem(inputStorageKey, JSON.stringify({
-                        fill: userFill.value,
-                        mcq: userMcq.value
-                    }));
-                }, { deep: true });
+                // 2. Call AI with target difficulty level and words
+                const data = await generateReadingTest({
+                    wordList: resolved.words,
+                    readingLevel: readingLevel.value
+                });
 
-                // Parse passage, regex handles optional backticks around [điền từ] or [answer]
+                testData.value = data;
+                lastMeta.value = {
+                    level: readingLevel.value,
+                    sourceLabel: currentSourceSummary.value,
+                    wordCount: resolved.words.length
+                };
+
+                // Reset inputs
+                userFill.value = new Array((data.answerKey?.fillBlanks || data.answerKey?.fill_blanks || data.wordBank || []).length).fill('');
+                userMcq.value = {};
+                (data.questions || []).forEach(q => {
+                    userMcq.value[q.id] = '';
+                });
+                results.value = { fill: [], mcq: {} };
+
+                // Parse passage slots
                 const regex = /[`]?\[([^\]]+)\][`]?(?:\s*(?:\r?\n)?\(([^)]+)\))?/g;
                 const parts = [];
                 let lastIndex = 0;
@@ -95,40 +195,36 @@ export default {
                 data.fallbackAnswers = fallbackAnswers;
                 testData.value = data;
 
-                // Ensure userFill length matches inputs if wordBank was missing/incomplete
-                if (userFill.value.length < inputIndex) {
-                    const newFill = new Array(inputIndex).fill('');
-                    userFill.value.forEach((v, i) => newFill[i] = v);
-                    userFill.value = newFill;
-                }
+                showToast("Đã tạo bài đọc IELTS thành công!", "success");
 
             } catch (e) {
-                console.error("Load Test Error:", e);
-                showToast("Lỗi khi tải bài đọc: " + e.message, 'error');
-                if (!testData.value) {
-                    store.navigate('deck-detail');
-                }
+                console.error("Generate Reading Error:", e);
+                showToast("Lỗi khi tạo bài đọc: " + e.message, 'error');
+                isConfiguring.value = true;
             } finally {
                 isLoading.value = false;
             }
         };
 
+        const openConfiguration = () => {
+            isConfiguring.value = true;
+        };
+
         onMounted(() => {
             if (!store.activeDeck) {
-                store.navigate('dashboard');
-                return;
+                vocabSource.value = 'all';
+                selectedDeckIds.value = availableDecks.value.map(d => d.id);
+                isConfiguring.value = true;
+            } else {
+                vocabSource.value = 'current';
+                selectedDeckIds.value = [store.activeDeck.id];
+                if (store.activeCards && store.activeCards.length >= 3) {
+                    isConfiguring.value = true;
+                } else {
+                    vocabSource.value = 'all';
+                    isConfiguring.value = true;
+                }
             }
-            if (store.activeCards.length < 5) {
-                alert("Bộ thẻ cần ít nhất 5 từ vựng để tạo bài đọc hiểu.");
-                store.navigate('deck-detail');
-                return;
-            }
-            if (!localStorage.getItem('gemini_api_key')) {
-                alert("Vui lòng nhập Gemini API Key trong Cài đặt (nút bánh răng góc trên phải) trước khi dùng tính năng này.");
-                store.navigate('deck-detail');
-                return;
-            }
-            loadTest();
         });
 
         const checkMatch = (ans, correct) => {
@@ -147,7 +243,6 @@ export default {
             try {
                 isSubmitted.value = true;
                 
-                // Fallback objects if AI format varies
                 const answerKey = testData.value.answerKey || {};
                 const fillBlanks = answerKey.fillBlanks || answerKey.fill_blanks || testData.value.wordBank || [];
                 const mcqAnswers = answerKey.mcq || [];
@@ -164,7 +259,6 @@ export default {
 
                 // Check MCQ
                 testData.value.questions.forEach((q, idx) => {
-                    // Fallback to q.answer if answerKey.mcq is missing
                     let correctAns = mcqAnswers[idx] || q.answer || '';
                     if (typeof correctAns === 'object') correctAns = correctAns.answer || '';
                     correctAns = correctAns.toString().trim().charAt(0).toUpperCase();
@@ -173,16 +267,13 @@ export default {
                     results.value.mcq[q.id] = userAns === correctAns;
                 });
                 
-                // Give LexiCredit instead of XP
-                store.addLexiCredit(20, 'quiz');
-                
+                store.addLexiCredit(25, 'quiz');
                 if (score.value === 100) store.unlockBadge('bookworm');
 
-                // Scroll to top
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (e) {
                 console.error("Lỗi khi chấm điểm:", e);
-                alert("Đã xảy ra lỗi khi chấm điểm. Chi tiết: " + e.message);
+                showToast("Đã xảy ra lỗi khi chấm điểm: " + e.message, "error");
             }
         };
 
@@ -200,7 +291,7 @@ export default {
         });
 
         const getInputClass = (idx) => {
-            if (!isSubmitted.value) return 'border-gray-400 focus:border-blue-500 text-blue-700 bg-transparent';
+            if (!isSubmitted.value) return 'border-gray-400 focus:border-indigo-500 text-indigo-700 bg-transparent';
             return results.value.fill[idx] ? 'border-green-500 text-green-700 bg-green-50' : 'border-red-500 text-red-700 bg-red-50';
         };
 
@@ -217,7 +308,7 @@ export default {
 
         const getOptionClass = (qId, opt) => {
             const optLetter = opt.charAt(0).toUpperCase();
-            if (!isSubmitted.value) return (userMcq.value[qId] || '').toUpperCase() === optLetter ? 'border-blue-500 bg-blue-50' : 'border-gray-200';
+            if (!isSubmitted.value) return (userMcq.value[qId] || '').toUpperCase() === optLetter ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200';
             
             const qIndex = testData.value.questions.findIndex(q => q.id === qId);
             const q = testData.value.questions[qIndex];
@@ -240,55 +331,212 @@ export default {
             return text ? text.replace(/\n/g, '<br>') : '';
         };
 
-        const finishTest = () => {
-            localStorage.removeItem(`reading_test_${store.activeDeck.id}`);
-            localStorage.removeItem(`reading_inputs_${store.activeDeck.id}`);
-            store.navigate('deck-detail');
-        };
-
-        const generateNewTest = () => {
-            loadTest(true);
+        const goBack = () => {
+            if (store.activeDeck) {
+                store.navigate('deck-detail');
+            } else {
+                store.navigate('dashboard');
+            }
         };
 
         return { 
-            store, isLoading, testData, parsedPassage, 
+            store, isLoading, isConfiguring, testData, parsedPassage, 
             userFill, userMcq, isSubmitted, checkAnswers, score,
-            viewMode, showWordBank, getInputClass, getOptionClass, formatText, finishTest, getCorrectFillAnswer, generateNewTest, results
+            viewMode, showWordBank, getInputClass, getOptionClass, formatText, 
+            getCorrectFillAnswer, results, readingLevel, vocabSource,
+            selectedDeckIds, levelOptions, availableDecks, toggleDeckSelection,
+            selectAllDecks, deselectAllDecks, currentSourceSummary,
+            isGenerateDisabled, startGenerate, openConfiguration, goBack, lastMeta
         };
     },
     template: `
-        <div class="max-w-5xl mx-auto space-y-6 pb-20">
-            <button @click="store.navigate('deck-detail')" class="text-gray-500 hover:text-blue-600 mb-2 font-medium flex items-center gap-2 hide-in-focus">
-                <i class="fa-solid fa-arrow-left"></i> Quay lại
-            </button>
+        <div class="max-w-5xl mx-auto space-y-6 pb-20 select-none">
+            <!-- Top Navigation & Return -->
+            <div class="flex items-center justify-between">
+                <button @click="goBack" class="text-gray-500 hover:text-indigo-600 font-bold flex items-center gap-2 transition text-sm">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại
+                </button>
+                <button v-if="testData && !isLoading && !isConfiguring" 
+                        @click="openConfiguration"
+                        class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 flex items-center gap-2 transition shadow-sm">
+                    <i class="fa-solid fa-sliders"></i> Tùy Chỉnh & Tạo Đề Mới
+                </button>
+            </div>
 
-            <!-- Neural Core Glow AI Loading State -->
-            <div v-if="isLoading" class="bg-white/90 backdrop-blur-xl p-12 sm:p-16 rounded-3xl text-center shadow-xl border border-indigo-100 flex flex-col items-center justify-center space-y-6 relative overflow-hidden animate-fade-in">
+            <!-- 1. CONFIGURATION MODE -->
+            <div v-if="isConfiguring && !isLoading" class="space-y-6 animate-fade-in">
+                <!-- Configuration Hero Card -->
+                <div class="glass-panel-strong p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-black text-gray-900">AI IELTS Reading Generator</h2>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium leading-relaxed">
+                                Tự động biên soạn bài đọc học thuật IELTS, bài tập điền từ theo ngữ cảnh và câu hỏi đọc hiểu chuẩn khảo thí.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 1: IELTS Reading Difficulty -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-indigo-600 text-base"></i>
+                            <h3 class="font-extrabold text-sm sm:text-base text-gray-900">1. Chọn Thang Độ Khó IELTS (Target Difficulty)</h3>
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-400 hidden sm:inline">Kiểm soát từ vựng, ngữ pháp & suy luận</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                        <div v-for="lvl in levelOptions" :key="lvl.id"
+                             @click="readingLevel = lvl.id"
+                             class="p-4 rounded-2xl border-2 cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between"
+                             :class="readingLevel === lvl.id ? lvl.borderActive + ' shadow-md scale-[1.02]' : 'border-gray-100 hover:border-gray-200 bg-white hover:bg-gray-50/50'">
+                            
+                            <!-- Active Check Icon -->
+                            <div v-if="readingLevel === lvl.id" class="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-sm" :class="lvl.color">
+                                        <i :class="'fa-solid ' + lvl.icon"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100" :class="lvl.color">{{ lvl.badge }}</span>
+                                    </div>
+                                </div>
+                                <h4 class="font-black text-base text-gray-900 mb-1">IELTS {{ lvl.range }}</h4>
+                                <p class="text-xs font-bold text-gray-500 mb-2">{{ lvl.label }}</p>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-snug">{{ lvl.desc }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Vocabulary Source Selection -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-database text-purple-600 text-base"></i>
+                            <h3 class="font-extrabold text-sm sm:text-base text-gray-900">2. Nguồn Từ Vựng Để AI Tạo Bài Đọc</h3>
+                        </div>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+                            {{ currentSourceSummary }}
+                        </span>
+                    </div>
+
+                    <!-- Source Tabs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button v-if="store.activeDeck"
+                                type="button"
+                                @click="vocabSource = 'current'"
+                                class="p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between"
+                                :class="vocabSource === 'current' ? 'border-purple-500 bg-purple-50/50 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 bg-white'">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-black text-sm text-gray-900">Bộ thẻ hiện tại</span>
+                                <i class="fa-solid fa-folder text-purple-500"></i>
+                            </div>
+                            <p class="text-[11px] text-gray-500 truncate" :title="store.activeDeck.title">{{ store.activeDeck.title }} ({{ store.activeCards?.length || 0 }} từ)</p>
+                        </button>
+
+                        <button type="button"
+                                @click="vocabSource = 'all'"
+                                class="p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between"
+                                :class="vocabSource === 'all' ? 'border-purple-500 bg-purple-50/50 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 bg-white'">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-black text-sm text-gray-900">Toàn bộ kho từ</span>
+                                <i class="fa-solid fa-layer-group text-indigo-500"></i>
+                            </div>
+                            <p class="text-[11px] text-gray-500">Tổng hợp toàn bộ {{ availableDecks.length }} bộ thẻ của bạn</p>
+                        </button>
+
+                        <button type="button"
+                                @click="vocabSource = 'selected'"
+                                class="p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between"
+                                :class="vocabSource === 'selected' ? 'border-purple-500 bg-purple-50/50 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 bg-white'">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-black text-sm text-gray-900">Tùy chọn nhiều bộ</span>
+                                <i class="fa-solid fa-list-check text-amber-500"></i>
+                            </div>
+                            <p class="text-[11px] text-gray-500">Tự do tick chọn các bộ thẻ mong muốn</p>
+                        </button>
+                    </div>
+
+                    <!-- Selected Decks Multi-Select Grid -->
+                    <div v-if="vocabSource === 'selected'" class="pt-4 border-t border-gray-100 space-y-3 animate-fade-in">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-gray-700">Chọn các bộ thẻ đưa vào bài đọc:</span>
+                            <div class="flex items-center gap-2">
+                                <button @click="selectAllDecks" class="text-[11px] font-bold text-indigo-600 hover:underline">Chọn tất cả</button>
+                                <span class="text-gray-300">·</span>
+                                <button @click="deselectAllDecks" class="text-[11px] font-bold text-gray-500 hover:underline">Bỏ chọn</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
+                            <label v-for="d in availableDecks" :key="d.id"
+                                   class="flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition select-none"
+                                   :class="selectedDeckIds.includes(d.id) ? 'border-purple-400 bg-purple-50/60 font-bold' : 'border-gray-100 hover:bg-gray-50 text-gray-700'">
+                                <div class="flex items-center gap-2.5 overflow-hidden">
+                                    <input type="checkbox" 
+                                           :checked="selectedDeckIds.includes(d.id)"
+                                           @change="toggleDeckSelection(d.id)"
+                                           class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 border-gray-300 cursor-pointer shrink-0">
+                                    <span class="text-xs truncate" :title="d.title">{{ d.title }}</span>
+                                </div>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 shrink-0 font-mono">
+                                    {{ d.cardsCount || 0 }} từ
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Generation Button -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-6 rounded-3xl border border-indigo-100 shadow-sm">
+                    <div class="text-center sm:text-left">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Cấu hình sẵn sàng</p>
+                        <p class="text-sm font-black text-gray-900 mt-0.5">
+                            IELTS {{ levelOptions.find(l => l.id === readingLevel)?.range }} · {{ currentSourceSummary }}
+                        </p>
+                    </div>
+                    <button @click="startGenerate(true)" 
+                            :disabled="isGenerateDisabled"
+                            class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-black rounded-2xl shadow-lg shadow-indigo-200 hover:shadow-xl transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 text-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Tạo Bài Đọc Ngay</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. NEURAL CORE GLOW AI LOADING STATE -->
+            <div v-else-if="isLoading" class="bg-white/90 backdrop-blur-xl p-12 sm:p-16 rounded-3xl text-center shadow-xl border border-indigo-100 flex flex-col items-center justify-center space-y-6 relative overflow-hidden animate-fade-in">
                 <!-- Ambient Background Glow -->
                 <div class="absolute w-72 h-72 bg-gradient-to-tr from-purple-500/15 via-indigo-500/15 to-amber-400/15 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
 
                 <!-- Neural Core Visual Container -->
                 <div class="relative w-28 h-28 flex items-center justify-center my-2">
-                    <!-- Outer Pulsing Energy Ring -->
                     <div class="absolute inset-0 rounded-full border-2 border-dashed border-indigo-400/40 animate-spin" style="animation-duration: 8s;"></div>
                     <div class="absolute -inset-2 rounded-full border-2 border-purple-400/30 animate-ping" style="animation-duration: 3s;"></div>
-
-                    <!-- Middle Gradient Spinning Ring -->
                     <div class="absolute inset-2 rounded-full border-t-2 border-r-2 border-amber-400 border-b-transparent border-l-indigo-500 animate-spin" style="animation-duration: 2s;"></div>
 
-                    <!-- Glowing Central Neural Core -->
                     <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 shadow-lg shadow-indigo-500/40 flex items-center justify-center text-white text-2xl transform hover:scale-105 transition-transform">
                         <i class="fa-solid fa-brain animate-pulse"></i>
                     </div>
 
-                    <!-- Orbiting Neural Sparks -->
                     <div class="absolute -top-1 right-2 w-3 h-3 rounded-full bg-amber-400 shadow-md shadow-amber-400/80 animate-bounce"></div>
                     <div class="absolute -bottom-1 left-2 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-md shadow-cyan-400/80 animate-pulse"></div>
                 </div>
 
                 <div class="space-y-2 relative z-10">
                     <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center justify-center gap-2">
-                        <span>Đang tạo bài đọc...</span>
+                        <span>Đang tạo bài đọc IELTS {{ levelOptions.find(l => l.id === readingLevel)?.range }}...</span>
                         <span class="inline-flex gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0ms"></span>
                             <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" style="animation-delay: 150ms"></span>
@@ -296,43 +544,54 @@ export default {
                         </span>
                     </h2>
                     <p class="text-sm text-gray-500 max-w-md font-medium leading-relaxed">
-                        Hệ thống AI đang tổng hợp từ vựng và biên soạn ngữ cảnh học thuật chuẩn IELTS. Quá trình này có thể mất 10–20 giây.
+                        Hệ thống AI đang tổng hợp từ vựng và biên soạn bài đọc học thuật chuẩn IELTS theo thang độ khó đã chọn.
                     </p>
                 </div>
             </div>
 
-            <!-- Content -->
+            <!-- 3. ACTIVE READING PASSAGE & TEST -->
             <div v-else-if="testData" class="space-y-8 animate-fade-in">
-                <!-- Header -->
-                <div class="text-center space-y-2">
-                    <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ testData.title }}</h1>
-                    <p class="text-xl text-gray-500 font-medium">{{ testData.titleVi }}</p>
+                <!-- Metadata Badge -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black border border-indigo-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye"></i>
+                            <span>IELTS {{ testData.readingLevel || levelOptions.find(l => l.id === readingLevel)?.range }} · {{ testData.levelLabel || levelOptions.find(l => l.id === readingLevel)?.label }}</span>
+                        </span>
+                        <span class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>{{ lastMeta.sourceLabel || currentSourceSummary }}</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <select v-model="viewMode" class="px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs">
+                            <option value="fill">Chế độ: Điền từ</option>
+                            <option value="read">Chế độ: Chỉ đọc hiểu</option>
+                        </select>
+                        <button @click="showWordBank = !showWordBank" class="px-3.5 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5" :class="showWordBank ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+                            <i class="fa-solid fa-lightbulb"></i> Ngân hàng từ
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Controls -->
-                <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
-                    <select v-model="viewMode" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-medium">
-                        <option value="read">Chỉ đọc hiểu</option>
-                        <option value="fill">Chỉ điền từ</option>
-                    </select>
-
-                    <button @click="showWordBank = !showWordBank" class="px-4 py-2 rounded-lg font-medium transition flex items-center gap-2" :class="showWordBank ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700'">
-                        <i class="fa-solid fa-lightbulb"></i> Ngân hàng từ
-                    </button>
+                <!-- Header -->
+                <div class="text-center space-y-2">
+                    <h1 class="text-2xl sm:text-4xl font-black text-gray-900">{{ testData.title }}</h1>
+                    <p class="text-base sm:text-lg text-gray-500 font-medium">{{ testData.titleVi }}</p>
                 </div>
 
                 <!-- Word Bank -->
-                <div v-if="showWordBank" class="glass-panel p-6 rounded-2xl shadow-sm animate-fade-in border border-blue-100 bg-blue-50/30 mb-6">
-                    <h3 class="font-bold text-blue-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-box-open"></i> Word Bank</h3>
+                <div v-if="showWordBank" class="glass-panel p-6 rounded-2xl shadow-sm animate-fade-in border border-indigo-100 bg-indigo-50/30 mb-6">
+                    <h3 class="font-bold text-indigo-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-box-open"></i> Word Bank (Gợi Ý Từ Vựng)</h3>
                     <div class="flex flex-wrap gap-2">
-                        <span v-for="(word, i) in testData.wordBank" :key="i" class="px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-800 font-medium">
+                        <span v-for="(word, i) in testData.wordBank" :key="i" class="px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-800 font-bold text-xs">
                             {{ word }}
                         </span>
                     </div>
                 </div>
 
                 <!-- Reading Passage -->
-                <div class="glass-panel p-6 sm:p-10 rounded-3xl shadow-sm leading-relaxed text-gray-800 space-y-8" :style="{ fontSize: (store.settings?.readingFontSize || 16) + 'px' }">
+                <div class="glass-panel p-6 sm:p-10 rounded-3xl shadow-sm leading-relaxed text-gray-800 space-y-8 bg-white border border-gray-100" :style="{ fontSize: (store.settings?.readingFontSize || 16) + 'px' }">
                     <div class="passage-en">
                         <template v-for="(part, idx) in parsedPassage" :key="idx">
                             <span v-if="part.type === 'text'" v-html="formatText(part.content)"></span>
@@ -344,26 +603,28 @@ export default {
                                     {{ getCorrectFillAnswer(part.index) }}
                                 </span>
                             </span>
-                            <span v-else-if="viewMode === 'read'" class="text-green-600 border-b-2 border-green-600 px-1 mx-1 font-bold">
+                            <span v-else-if="viewMode === 'read'" class="text-indigo-600 border-b-2 border-indigo-600 px-1 mx-1 font-bold">
                                 {{ getCorrectFillAnswer(part.index) }}
                             </span>
                         </template>
                     </div>
                 </div>
 
-                <!-- MCQ Questions -->
-                <div class="glass-panel p-6 sm:p-10 rounded-3xl shadow-sm">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-8"><i class="fa-solid fa-clipboard-question text-blue-600 mr-2"></i> Câu hỏi đọc hiểu</h3>
+                <!-- Pure Academic English MCQ Questions (NO Vietnamese translation) -->
+                <div class="glass-panel p-6 sm:p-10 rounded-3xl shadow-sm bg-white border border-gray-100">
+                    <h3 class="text-xl sm:text-2xl font-black text-gray-900 mb-6 flex items-center gap-2.5">
+                        <i class="fa-solid fa-clipboard-question text-indigo-600"></i>
+                        <span>Reading Comprehension Questions</span>
+                    </h3>
                     
-                    <div class="space-y-8">
-                        <div v-for="q in testData.questions" :key="q.id" class="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                            <p class="font-bold text-lg mb-1">{{ q.id }}. {{ q.question }}</p>
-                            <p v-if="q.questionVi" class="text-sm text-gray-500 mb-4 italic">{{ q.questionVi }}</p>
+                    <div class="space-y-6">
+                        <div v-for="q in testData.questions" :key="q.id" class="p-5 sm:p-6 bg-gray-50/70 rounded-2xl border border-gray-100 shadow-sm">
+                            <p class="font-black text-base text-gray-900 mb-4">{{ q.id }}. {{ q.question }}</p>
                             
-                            <div class="space-y-3">
-                                <label v-for="opt in q.options" :key="opt" class="flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition w-full" :class="getOptionClass(q.id, opt)">
-                                    <input type="radio" :name="'q'+q.id" :value="opt.charAt(0)" v-model="userMcq[q.id]" :disabled="isSubmitted" class="mt-1 w-4 h-4 text-blue-600 shrink-0">
-                                    <span class="leading-snug">{{ opt }}</span>
+                            <div class="space-y-2.5">
+                                <label v-for="opt in q.options" :key="opt" class="flex items-start gap-3 p-3.5 border-2 rounded-xl cursor-pointer transition w-full bg-white" :class="getOptionClass(q.id, opt)">
+                                    <input type="radio" :name="'q'+q.id" :value="opt.charAt(0)" v-model="userMcq[q.id]" :disabled="isSubmitted" class="mt-1 w-4 h-4 text-indigo-600 shrink-0">
+                                    <span class="leading-snug text-sm font-medium">{{ opt }}</span>
                                 </label>
                             </div>
                         </div>
@@ -371,24 +632,24 @@ export default {
                 </div>
 
                 <!-- Submit Area -->
-                <div class="text-center py-8">
-                    <div v-if="isSubmitted" class="mb-8 p-8 bg-white rounded-3xl shadow-lg max-w-md mx-auto transform scale-105">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Kết quả của bạn</h3>
-                        <div class="text-6xl font-black" :class="score >= 80 ? 'text-green-500' : (score >= 50 ? 'text-yellow-500' : 'text-red-500')">
+                <div class="text-center py-6">
+                    <div v-if="isSubmitted" class="mb-8 p-8 bg-white rounded-3xl shadow-lg border border-gray-100 max-w-md mx-auto transform scale-105">
+                        <h3 class="text-2xl font-black text-gray-900 mb-2">Kết quả của bạn</h3>
+                        <div class="text-6xl font-black my-2" :class="score >= 80 ? 'text-green-500' : (score >= 50 ? 'text-amber-500' : 'text-red-500')">
                             {{ score }}%
                         </div>
-                        <p class="text-gray-500 mt-2">Số câu đúng: {{ results.fill.filter(Boolean).length + Object.values(results.mcq).filter(Boolean).length }} / {{ (testData.answerKey?.fillBlanks || testData.answerKey?.fill_blanks || testData.wordBank || []).length + (testData.questions || []).length }}</p>
+                        <p class="text-gray-500 font-bold text-sm mt-2">Số câu đúng: {{ results.fill.filter(Boolean).length + Object.values(results.mcq).filter(Boolean).length }} / {{ (testData.answerKey?.fillBlanks || testData.answerKey?.fill_blanks || testData.wordBank || []).length + (testData.questions || []).length }}</p>
                     </div>
 
-                    <button v-if="!isSubmitted" @click="checkAnswers" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-1 text-lg">
+                    <button v-if="!isSubmitted" @click="checkAnswers" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 text-base">
                         <i class="fa-solid fa-check-double mr-2"></i> Kiểm tra đáp án
                     </button>
                     <div v-else class="flex flex-wrap justify-center gap-4">
-                        <button @click="finishTest" class="bg-gray-800 hover:bg-black text-white px-8 py-4 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-1 text-lg">
+                        <button @click="goBack" class="bg-gray-800 hover:bg-black text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition text-sm">
                             Hoàn thành
                         </button>
-                        <button @click="generateNewTest" class="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-1 text-lg flex items-center gap-2">
-                            <i class="fa-solid fa-arrows-rotate"></i> Tạo đề mới
+                        <button @click="openConfiguration" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-sliders"></i> Tùy chỉnh đề mới
                         </button>
                     </div>
                 </div>

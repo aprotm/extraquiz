@@ -112,64 +112,141 @@ Hãy trả lời bằng văn bản có cấu trúc Markdown, với các phần c
     return text;
 }
 
-export async function generateReadingTest(wordList) {
+export const IELTS_READING_LEVELS = {
+    '4.5-5.5': {
+        range: '4.5–5.5',
+        label: 'Foundation',
+        targetWords: '350–500 words (2-3 clear paragraphs)',
+        vocabTarget: '80–90% familiar/common vocabulary, 10–20% basic academic vocabulary. When incorporating user flashcard terms, embed them in clear, supportive contexts.',
+        grammar: 'Simple and compound sentences, common complex sentences, basic relative clauses and passive voice. Avoid deeply nested embedded clauses.',
+        sentenceLength: '10–20 words per sentence.',
+        cohesion: 'Explicit familiar connectors (however, therefore, because, although, for example, as a result).',
+        infoDensity: 'Low to moderate. Information stated directly.',
+        paraphrasing: 'Straightforward synonym and phrase substitution without distorting semantic meaning.',
+        inference: 'Explicit information matching and basic single-step inference (main ideas, supporting facts, basic cause-effect).'
+    },
+    '5.5-6.5': {
+        range: '5.5–6.5',
+        label: 'Intermediate',
+        targetWords: '450–650 words (3-4 paragraphs)',
+        vocabTarget: '65–80% familiar vocabulary, 20–35% academic/uncommon vocabulary, academic collocations, moderate abstract nouns.',
+        grammar: 'Varied sentence structures (complex sentences, relative clauses, passive constructions, concessive & comparative structures).',
+        sentenceLength: '15–25 words per sentence, occasional 30+ word sentences.',
+        cohesion: 'Balanced mix of explicit connectors, lexical cohesion, pronoun referencing, and synonym repetition.',
+        infoDensity: 'Moderate. A single sentence may carry multiple related details.',
+        paraphrasing: 'Distinct paraphrasing and sentence transformation representing source ideas with academic alternatives.',
+        inference: 'Requires connecting information across two sentences, interpreting author perspective and single-step deductive reasoning.'
+    },
+    '6.5-7.5': {
+        range: '6.5–7.5',
+        label: 'Upper-Intermediate',
+        targetWords: '550–750 words (4-5 paragraphs)',
+        vocabTarget: '50–65% familiar vocabulary, 35–50% academic / abstract / domain-specific vocabulary, sophisticated collocations, nominalisation.',
+        grammar: 'Multi-clause complex sentences, reduced relative clauses, participial clauses, complex noun phrases, nominalised syntax.',
+        sentenceLength: '18–30 words per sentence with dynamic variation between short, medium, and extended sentences.',
+        cohesion: 'Multi-layered cohesion: discourse markers, lexical chains, subtle transitions, and implicit thematic relationships.',
+        infoDensity: 'Moderate to high. Complex arguments, qualifying statements, and contrasting viewpoints within the same paragraph.',
+        paraphrasing: 'Strong paraphrasing using structural transformations, nominalisation, and conceptual synonyms.',
+        inference: 'Multi-sentence inference, identifying author stance/attitude, evaluating counterarguments, and interpreting nuanced comparisons.'
+    },
+    '7.5-8.5+': {
+        range: '7.5–8.5+',
+        label: 'Advanced',
+        targetWords: '650–850 words (4-6 paragraphs)',
+        vocabTarget: '35–50% common vocabulary, 50–65% advanced academic, abstract terminology, nuanced lexical choices, and sophisticated academic collocations.',
+        grammar: 'Sophisticated academic syntax, multiple embedded clauses, dense noun phrases, reduced participial structures, and concessive logic.',
+        sentenceLength: '20–35 words per sentence with occasional natural 40+ word analytical sentences.',
+        cohesion: 'Sophisticated discourse cohesion: semantic recurrence, thematic progression, implicit logical development without connector overuse.',
+        infoDensity: 'High. Dense interconnected ideas, epistemological qualifications, and theoretical perspectives.',
+        paraphrasing: 'Highly advanced paraphrasing and conceptual abstraction.',
+        inference: 'Subtle multi-step inference, identifying implied assumptions, nuanced distinction between closely related hypotheses.'
+    }
+};
+
+export async function generateReadingTest(input, options = {}) {
+    let wordList = [];
+    let readingLevel = '5.5-6.5';
+
+    if (Array.isArray(input)) {
+        wordList = input;
+        if (typeof options === 'object' && options?.readingLevel) {
+            readingLevel = options.readingLevel;
+        }
+    } else if (typeof input === 'object' && input !== null) {
+        wordList = input.wordList || input.cards || [];
+        readingLevel = input.readingLevel || '5.5-6.5';
+    }
+
+    const levelProfile = IELTS_READING_LEVELS[readingLevel] || IELTS_READING_LEVELS['5.5-6.5'];
     const listString = wordList.map(w => `${w.term} – ${w.definition}`).join('\n');
-    const prompt = `Bạn là chuyên gia ra đề thi IELTS Reading. Nhiệm vụ của bạn là tạo một **bài tập đọc hiểu dạng điền từ** hoàn chỉnh, dựa trên danh sách từ vựng mà người học đang ôn.
 
-**YÊU CẦU ĐẶC BIỆT:**
-- Mỗi chỗ trống cần được đánh dấu bằng \`[điền từ]\` và **ngay bên dưới** có gợi ý nghĩa tiếng Việt của từ cần điền (trong ngoặc đơn, ví dụ: \`(phi thường, đáng kinh ngạc)\`).
-- Cung cấp **bản dịch tiếng Việt cho toàn bộ bài đọc** (để người học có thể đối chiếu).
-- Mỗi câu trong passage có thể được đánh số hoặc tách đoạn để dễ theo dõi.
+    const prompt = `You are a premier IELTS Reading test designer and academic linguist.
+Your mission is to generate a complete academic reading passage and comprehension test based on the learner's vocabulary list.
 
-**ĐỊNH DẠNG ĐẦU RA (JSON):**
+=======================================================
+TARGET DIFFICULTY PROFILE: IELTS ${levelProfile.range} (${levelProfile.label})
+=======================================================
+- Target Passage Length: ${levelProfile.targetWords}
+- Vocabulary Profile: ${levelProfile.vocabTarget}
+- Grammar & Syntax: ${levelProfile.grammar}
+- Average Sentence Length: ${levelProfile.sentenceLength}
+- Cohesion & Discourse: ${levelProfile.cohesion}
+- Information Density: ${levelProfile.infoDensity}
+- Paraphrasing Strategy: ${levelProfile.paraphrasing}
+- Inference Depth: ${levelProfile.inference}
 
-\`\`\`json
+=======================================================
+VOCABULARY INTEGRATION RULES:
+=======================================================
+1. Naturally incorporate as many terms from the learner's vocabulary list as fits the context smoothly. Do NOT artificially cram every single word if it degrades natural academic prose.
+2. Mark blank fill slots inside the English passage with [điền từ] and immediately underneath provide the Vietnamese meaning prompt in parentheses. Example:
+   [điền từ]
+   (phi thường, đáng kinh ngạc)
+3. Provide a full, natural Vietnamese translation for the entire passage in "passageVi".
+4. MCQ Comprehension Questions:
+   - Provide 3 to 4 rigorous multiple-choice questions (4 options: A, B, C, D each).
+   - IMPORTANT: Questions and options MUST be 100% in English (NO Vietnamese translation inside questions/options).
+   - Questions should test main ideas, specific factual details, structural purpose, and implicit reasoning appropriate for IELTS ${levelProfile.range}.
+
+=======================================================
+JSON OUTPUT SPECIFICATION:
+=======================================================
+Respond with ONLY a valid JSON object matching this schema (no extra markdown backticks, no text before or after):
 {
-  "title": "Tiêu đề bài đọc (tiếng Anh)",
+  "title": "Passage Title in English",
   "titleVi": "Tiêu đề bài đọc (tiếng Việt)",
-  "passage": "Nội dung bài đọc tiếng Anh, với các [điền từ] và gợi ý nghĩa tiếng Việt ngay bên dưới mỗi chỗ trống (ví dụ: [điền từ]\\n(phi thường, đáng kinh ngạc))",
-  "passageVi": "Bản dịch tiếng Việt của toàn bộ bài đọc (giữ nguyên các chỗ trống nhưng có thể dịch nghĩa của từ cần điền để tham khảo)",
-  "wordBank": ["danh sách các từ cần điền (dạng nguyên mẫu, không có nghĩa)"],
+  "readingLevel": "${levelProfile.range}",
+  "levelLabel": "${levelProfile.label}",
+  "passage": "English passage content with [điền từ]\\n(nghĩa tiếng Việt) for each fill-in slot",
+  "passageVi": "Bản dịch tiếng Việt hoàn chỉnh của bài đọc",
+  "wordBank": ["word1", "word2", "word3"],
   "questions": [
     {
       "id": 1,
-      "question": "Câu hỏi đọc hiểu (tiếng Anh)",
-      "questionVi": "Câu hỏi đọc hiểu (tiếng Việt - tùy chọn)",
-      "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+      "question": "Comprehension question in English?",
+      "options": ["A. Option one", "B. Option two", "C. Option three", "D. Option four"],
       "answer": "A"
     }
   ],
   "answerKey": {
-    "fillBlanks": ["từ đúng cho chỗ trống 1", "từ đúng cho chỗ trống 2"],
-    "mcq": ["A", "B"]
+    "fillBlanks": ["word1", "word2", "word3"],
+    "mcq": ["A", "B", "C"]
   }
 }
-\`\`\`
 
-DANH SÁCH TỪ VỰNG CỦA NGƯỜI HỌC (điền vào chỗ trống bên dưới):
-${listString}
-
-HƯỚNG DẪN CỤ THỂ KHI VIẾT PASSAGE:
-Bài đọc tiếng Anh dài khoảng 200-250 từ, chia thành 2-3 đoạn.
-Tích hợp ít nhất 6-8 từ vựng từ danh sách vào bài đọc, mỗi từ xuất hiện ít nhất một lần (có thể biến đổi dạng từ nếu cần, nhưng phần điền phải là dạng gốc trong wordBank).
-Với mỗi chỗ trống, cung cấp gợi ý nghĩa tiếng Việt ngay bên dưới nó trong dấu ngoặc đơn.
-Bản dịch tiếng Việt (passageVi) cần dịch sát nghĩa, tự nhiên.
-
-YÊU CẦU VỀ CÂU HỎI TRẮC NGHIỆM:
-Có 3-4 câu hỏi đọc hiểu, mỗi câu 4 lựa chọn (A, B, C, D).
-Câu hỏi kiểm tra ý chính, chi tiết, suy luận. Đáp án phải dựa trên thông tin trong bài đọc.
-
-LƯU Ý QUAN TRỌNG:
-Trả về duy nhất một JSON object hợp lệ, không kèm bất kỳ văn bản nào khác.
-Đảm bảo JSON có thể parse được bằng JSON.parse().`;
+=======================================================
+LEARNER'S VOCABULARY LIST:
+=======================================================
+${listString}`;
 
     const text = await askGemini(prompt);
-    // Xử lý loại bỏ block markdown (nếu AI cố tình trả về)
+    // Remove markdown code blocks if present
     const cleanText = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
     try {
         return JSON.parse(cleanText);
     } catch (e) {
-        throw new Error("Lỗi đọc dữ liệu từ AI. Hãy thử lại!");
+        console.error("JSON Parse Error in generateReadingTest:", e, cleanText);
+        throw new Error("Lỗi xử lý dữ liệu bài đọc từ AI. Vui lòng bấm thử lại!");
     }
 }
 
