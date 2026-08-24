@@ -118,13 +118,21 @@ export default {
         };
         let timer;
         onMounted(() => { 
-            if (!store.activeDeck) { store.navigate('dashboard'); return; } 
+            if (!store.activeDeck) {
+                if (store.decks && store.decks.length > 0) {
+                    store.activeDeck = store.decks[0];
+                    store.activeCards = store.activeDeck.cards || [];
+                } else {
+                    store.navigate('dashboard');
+                    return;
+                }
+            } 
             try { 
                 const saved = JSON.parse(localStorage.getItem('learn-settings-v3')); 
                 if (saved) settings.value = { ...defaults, ...saved, questionTypes: { ...defaults.questionTypes, ...saved.questionTypes }, directions: { ...defaults.directions, ...saved.directions } }; 
             } catch (_) {} 
             startSession(); 
-            timer = setInterval(() => now.value = Date.now(), 1000); 
+            timer = setInterval(() => { now.value = Date.now(); }, 1000); 
             window.addEventListener('keydown', keyboard); 
         });
         onUnmounted(() => { window.removeEventListener('keydown', keyboard); clearInterval(timer); });

@@ -134,7 +134,7 @@ const App = {
             window.addEventListener('hashchange', () => {
                 const hash = window.location.hash.slice(1);
                 if (hash && store.currentRoute !== hash) {
-                    store.currentRoute = hash;
+                    store.navigate(hash);
                 }
             });
 
@@ -167,6 +167,12 @@ const App = {
                         store.user = user;
                         store.userProfile = profile;
                         store.decks = await fetchDecks(user.uid);
+
+                        // Auto-select first deck if activeDeck is missing
+                        if (!store.activeDeck && store.decks && store.decks.length > 0) {
+                            store.activeDeck = store.decks[0];
+                            store.activeCards = store.decks[0].cards || [];
+                        }
                         
                         // Check retro-active badges
                         await store.checkRetroactiveBadges();

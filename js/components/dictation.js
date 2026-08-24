@@ -20,7 +20,16 @@ export default {
         };
 
         onMounted(() => {
-            if (store.activeCards.length === 0) return;
+            if (!store.activeCards || store.activeCards.length === 0) {
+                if (store.decks && store.decks.length > 0) {
+                    store.activeDeck = store.decks[0];
+                    store.activeCards = store.decks[0].cards || [];
+                }
+            }
+            if (!store.activeCards || store.activeCards.length === 0) {
+                store.navigate('dashboard');
+                return;
+            }
             let shuffled = [...store.activeCards].sort(() => 0.5 - Math.random());
             let selected = shuffled.slice(0, 20); 
             

@@ -29,6 +29,17 @@ export default {
         const isLoadingReflection = ref(false);
 
         onMounted(() => {
+            if (!store.activeCards || store.activeCards.length === 0) {
+                if (store.decks && store.decks.length > 0) {
+                    store.activeDeck = store.decks[0];
+                    store.activeCards = store.decks[0].cards || [];
+                }
+            }
+            if (!store.activeCards || store.activeCards.length === 0) {
+                store.navigate('dashboard');
+                return;
+            }
+
             let filtered = store.activeCards.filter(c => {
                 if (!c.last_reviewed_at) return true; // Thẻ mới
                 const lastTime = c.last_reviewed_at.toMillis ? c.last_reviewed_at.toMillis() : Date.parse(c.last_reviewed_at);

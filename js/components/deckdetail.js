@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { store } from '../store.js';
 import { getIELTSAnalysis } from '../ai.js';
 import { showToast } from '../toast.js';
@@ -6,6 +6,17 @@ import { speakEnglishText } from '../voice.js';
 
 export default {
     setup() {
+        onMounted(() => {
+            if (!store.activeDeck) {
+                if (store.decks && store.decks.length > 0) {
+                    store.activeDeck = store.decks[0];
+                    store.activeCards = store.activeDeck.cards || [];
+                } else {
+                    store.navigate('dashboard');
+                }
+            }
+        });
+
         const speakWord = (text) => {
             speakEnglishText(text);
         };
@@ -42,7 +53,7 @@ export default {
         return { store, speakWord, getStatusClass, getStatusText, isAiModalOpen, aiLoading, aiResult, currentAiWord, askAI };
     },
     template: `
-        <div class="max-w-5xl mx-auto space-y-6">
+        <div v-if="store.activeDeck" class="max-w-5xl mx-auto space-y-6 animate-fade-in">
             <!-- Back Button -->
             <button @click="store.navigate('dashboard')" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-purple-600 transition group hide-in-focus">
                 <span class="w-8 h-8 flex items-center justify-center rounded-xl bg-white shadow-sm group-hover:bg-purple-50 group-hover:shadow-md transition">
@@ -60,8 +71,8 @@ export default {
                     <div class="w-16 h-16 mx-auto rounded-3xl flex items-center justify-center mb-4 shadow-lg" style="background: linear-gradient(135deg, #6d55d1, #8b5cf6);">
                         <i class="fa-solid fa-layer-group text-2xl text-white"></i>
                     </div>
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-2" style="letter-spacing: -0.02em;">{{ store.activeDeck.title }}</h1>
-                    <p class="text-gray-500 mb-8 max-w-xl mx-auto text-sm leading-relaxed">{{ store.activeDeck.description }}</p>
+                    <h1 class="text-4xl font-extrabold text-gray-900 mb-2" style="letter-spacing: -0.02em;">{{ store.activeDeck?.title || 'Bộ thẻ' }}</h1>
+                    <p class="text-gray-500 mb-8 max-w-xl mx-auto text-sm leading-relaxed">{{ store.activeDeck?.description || '' }}</p>
                     
                     <!-- Category 1: ARCADE GAME MODES -->
                     <div class="mb-6">
@@ -249,6 +260,16 @@ export default {
                     </div>
                 </div>
             </div>
+        </div>
+        <div v-else class="max-w-md mx-auto text-center py-20 space-y-4 animate-fade-in">
+            <div class="w-16 h-16 mx-auto rounded-3xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-2xl shadow-sm">
+                <i class="fa-solid fa-folder-open animate-bounce"></i>
+            </div>
+            <h3 class="text-lg font-black text-gray-900">Đang tải bộ thẻ...</h3>
+            <p class="text-xs text-gray-500">Nếu chưa chọn bộ thẻ, bạn có thể quay lại trang Tổng quan để chọn hoặc tạo mới.</p>
+            <button @click="store.navigate('dashboard')" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md transition">
+                Về Trang Tổng Quan
+            </button>
         </div>
     `
 };
