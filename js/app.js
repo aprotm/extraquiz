@@ -565,7 +565,7 @@ const App = {
         </div>
 
         <!-- Main App Layout (Redesigned) -->
-        <div v-else class="flex-1 flex h-screen max-h-screen overflow-hidden relative bg-cover bg-center transition-all duration-500" :style="bgImage ? { backgroundImage: 'url(' + bgImage + ')' } : {}">
+        <div v-else class="flex-1 flex w-full max-w-full h-full max-h-full sm:h-screen sm:max-h-screen overflow-hidden relative bg-cover bg-center transition-all duration-500" :style="bgImage ? { backgroundImage: 'url(' + bgImage + ')' } : {}">
             <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
             <div v-if="bgImage" class="absolute inset-0 bg-white/50 backdrop-blur-[4px] z-0 pointer-events-none"></div>
 
@@ -822,7 +822,7 @@ const App = {
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
 
-            <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:p-8 relative z-10 outline-none focus:outline-none focus:ring-0" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
+            <main id="main-content" tabindex="-1" class="flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full p-4 pb-24 sm:p-6 lg:p-8 relative z-10 outline-none focus:outline-none focus:ring-0" :class="store.currentRoute === 'lexilearn-dashboard' ? 'p-0 sm:p-0 lg:p-0' : ''">
                 <Dashboard v-if="store.currentRoute === 'dashboard'" />
                 <LexiLearnDashboard v-else-if="store.currentRoute === 'lexilearn-dashboard'" />
                 <LexiStore v-else-if="store.currentRoute === 'store' || store.currentRoute === 'lexistore'" />

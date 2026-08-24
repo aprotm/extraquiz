@@ -299,8 +299,7 @@ VOCABULARY INTEGRATION RULES:
    - Mix IELTS Question Types:
      * Multiple Choice (type: "mcq"): 4 options (A, B, C, D)
      * True / False / Not Given (type: "tfng"): options ["True", "False", "Not Given"]
-   - IMPORTANT: Questions and options MUST be 100% in English (NO Vietnamese translation inside questions/options).
-   - Provide a concise 1-sentence English explanation for each question explaining why the correct answer is right according to the passage.
+- IMPORTANT: Questions, options, and explanations MUST be 100% in English. ABSOLUTELY NO VIETNAMESE in the questions array. Do not translate the questions or options to Vietnamese.
 
 =======================================================
 JSON OUTPUT SPECIFICATION:

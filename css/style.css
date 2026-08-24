@@ -126,8 +126,10 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     box-shadow: var(--shadow-sm);
     transition: box-shadow var(--motion-base), transform var(--motion-base);
 }
-.glass-panel:hover {
-    box-shadow: var(--shadow-md);
+@media (hover: hover) {
+    .glass-panel:hover {
+        box-shadow: var(--shadow-md);
+    }
 }
 
 .glass-panel-strong {
@@ -143,6 +145,12 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
 .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .rotate-y-180 { transform: rotateY(180deg); }
 .transition-transform { transition: transform 0.55s cubic-bezier(0.35, 0.1, 0.15, 1); }
+
+/* ===== LOGO FIX ===== */
+img[src*="logo.png"] {
+    transform: scale(1.4);
+    transform-origin: center;
+}
 
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -353,10 +361,12 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     background-color: var(--color-primary);
     color: white;
 }
-.btn-primary:hover {
-    background: linear-gradient(135deg, #5b44bf, #6d28d9);
-    box-shadow: 0 8px 25px rgba(109, 85, 209, 0.4);
-    transform: translateY(-2px);
+@media (hover: hover) {
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5b44bf, #6d28d9);
+        box-shadow: 0 8px 25px rgba(109, 85, 209, 0.4);
+        transform: translateY(-2px);
+    }
 }
 .btn-primary:active { transform: scale(0.95); }
 
@@ -377,9 +387,11 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
 .interactive-card {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.interactive-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(109, 85, 209, 0.15);
+@media (hover: hover) {
+    .interactive-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(109, 85, 209, 0.15);
+    }
 }
 
 .btn-ghost {
@@ -388,7 +400,9 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     border-radius: 10px;
     transition: all 0.2s;
 }
-.btn-ghost:hover { background: rgba(109, 85, 209, 0.08); color: var(--color-accent); }
+@media (hover: hover) {
+    .btn-ghost:hover { background: rgba(109, 85, 209, 0.08); color: var(--color-accent); }
+}
 
 /* ===== STUDY CARD GLOW ===== */
 .card-correct-glow { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35), 0 8px 30px rgba(16, 185, 129, 0.15); }
@@ -477,11 +491,6 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
 .theme-handdrawn .interactive-card:nth-child(even) {
     transform: rotate(1.5deg);
 }
-.theme-handdrawn .interactive-card:hover {
-    transform: translateY(-4px) rotate(0deg) !important;
-    box-shadow: 6px 6px 0px 0px #2d2d2d !important;
-}
-
 /* Buttons */
 .theme-handdrawn .btn-primary {
     background: #ffffff !important;
@@ -491,12 +500,6 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     box-shadow: 4px 4px 0px 0px #2d2d2d !important;
     font-family: 'Patrick Hand', cursive !important;
     transition: all 0.15s ease-out;
-}
-.theme-handdrawn .btn-primary:hover {
-    background: #ff4d4d !important;
-    color: #ffffff !important;
-    box-shadow: 2px 2px 0px 0px #2d2d2d !important;
-    transform: translate(2px, 2px) !important;
 }
 .theme-handdrawn .btn-primary:active {
     box-shadow: 0px 0px 0px 0px #2d2d2d !important;
@@ -508,12 +511,24 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     font-family: 'Patrick Hand', cursive !important;
     border: 2px dashed transparent;
 }
-.theme-handdrawn .btn-ghost:hover {
-    background: transparent !important;
-    border: 2px dashed #2d2d2d !important;
-    border-radius: var(--radius-xl) !important;
-    color: #2d2d2d !important;
-    transform: rotate(-2deg);
+@media (hover: hover) {
+    .theme-handdrawn .interactive-card:hover {
+        transform: translateY(-4px) rotate(0deg) !important;
+        box-shadow: 6px 6px 0px 0px #2d2d2d !important;
+    }
+    .theme-handdrawn .btn-primary:hover {
+        background: #ff4d4d !important;
+        color: #ffffff !important;
+        box-shadow: 2px 2px 0px 0px #2d2d2d !important;
+        transform: translate(2px, 2px) !important;
+    }
+    .theme-handdrawn .btn-ghost:hover {
+        background: transparent !important;
+        border: 2px dashed #2d2d2d !important;
+        border-radius: var(--radius-xl) !important;
+        color: #2d2d2d !important;
+        transform: rotate(-2deg);
+    }
 }
 
 /* Inputs */
@@ -681,9 +696,11 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.arcade-game-btn:hover {
-    border-color: #C7D2FE;
-    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+@media (hover: hover) {
+    .arcade-game-btn:hover {
+        border-color: #C7D2FE;
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+    }
 }
 
 /* ========================================================================= */

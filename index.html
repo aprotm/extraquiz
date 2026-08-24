@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
     <meta name="theme-color" content="#6d55d1">
     <title>LexiLearn Pro - AI Flashcards & IELTS Mastery</title>
     <!-- PWA Manifest -->
@@ -15,6 +15,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
       tailwind.config = {
+        future: { hoverOnlyWhenSupported: true },
         theme: {
           extend: {
             fontFamily: {
@@ -66,9 +67,9 @@
       }
     </script>
 </head>
-<body>
+<body ontouchstart="">
     <!-- Ứng dụng Vue -->
-    <div id="app" v-cloak class="h-[100dvh] flex flex-col overflow-hidden">
+    <div id="app" v-cloak class="h-[100dvh] flex flex-col overflow-hidden w-full max-w-full">
         <!-- Nội dung sẽ được Vue mount vào đây -->
     </div>
     
