@@ -274,12 +274,12 @@ export default {
                         <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center">
                             <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
                         </div>
-                        <h3 class="font-bold text-indigo-900">Gemini Insight - Đánh giá phiên học</h3>
+                        <h3 class="font-bold text-indigo-900">AI Insight - Đánh giá phiên học</h3>
                     </div>
                     
-                    <div v-if="isLoadingReflection" class="flex flex-col items-center justify-center py-6">
-                        <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                        <p class="text-indigo-400 text-sm mt-3 font-medium">Gemini đang phân tích biểu đồ trí nhớ của bạn...</p>
+                    <div v-if="isLoadingReflection" class="flex flex-col items-center justify-center py-6 space-y-2">
+                        <div class="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-amber-400 animate-spin"></div>
+                        <p class="text-indigo-600 text-xs font-bold">Hệ thống AI đang phân tích biểu đồ trí nhớ của bạn...</p>
                     </div>
                     <div v-else class="text-sm text-indigo-900 leading-relaxed space-y-2">
                         <ul class="list-disc pl-5 space-y-2" v-html="renderReflection(aiReflection)"></ul>

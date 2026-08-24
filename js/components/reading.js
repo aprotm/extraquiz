@@ -262,11 +262,43 @@ export default {
                 <i class="fa-solid fa-arrow-left"></i> Quay lại
             </button>
 
-            <!-- Loading State -->
-            <div v-if="isLoading" class="glass-panel p-16 rounded-3xl text-center shadow-lg flex flex-col items-center justify-center space-y-6">
-                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-                <h2 class="text-2xl font-bold text-gray-800">AI đang biên soạn bài đọc...</h2>
-                <p class="text-gray-500 max-w-md">Gemini đang đọc qua kho từ vựng của bạn và viết một bài báo học thuật chuẩn IELTS. Quá trình này có thể mất 10-20 giây.</p>
+            <!-- Neural Core Glow AI Loading State -->
+            <div v-if="isLoading" class="bg-white/90 backdrop-blur-xl p-12 sm:p-16 rounded-3xl text-center shadow-xl border border-indigo-100 flex flex-col items-center justify-center space-y-6 relative overflow-hidden animate-fade-in">
+                <!-- Ambient Background Glow -->
+                <div class="absolute w-72 h-72 bg-gradient-to-tr from-purple-500/15 via-indigo-500/15 to-amber-400/15 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+
+                <!-- Neural Core Visual Container -->
+                <div class="relative w-28 h-28 flex items-center justify-center my-2">
+                    <!-- Outer Pulsing Energy Ring -->
+                    <div class="absolute inset-0 rounded-full border-2 border-dashed border-indigo-400/40 animate-spin" style="animation-duration: 8s;"></div>
+                    <div class="absolute -inset-2 rounded-full border-2 border-purple-400/30 animate-ping" style="animation-duration: 3s;"></div>
+
+                    <!-- Middle Gradient Spinning Ring -->
+                    <div class="absolute inset-2 rounded-full border-t-2 border-r-2 border-amber-400 border-b-transparent border-l-indigo-500 animate-spin" style="animation-duration: 2s;"></div>
+
+                    <!-- Glowing Central Neural Core -->
+                    <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 shadow-lg shadow-indigo-500/40 flex items-center justify-center text-white text-2xl transform hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-brain animate-pulse"></i>
+                    </div>
+
+                    <!-- Orbiting Neural Sparks -->
+                    <div class="absolute -top-1 right-2 w-3 h-3 rounded-full bg-amber-400 shadow-md shadow-amber-400/80 animate-bounce"></div>
+                    <div class="absolute -bottom-1 left-2 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-md shadow-cyan-400/80 animate-pulse"></div>
+                </div>
+
+                <div class="space-y-2 relative z-10">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center justify-center gap-2">
+                        <span>Đang tạo bài đọc...</span>
+                        <span class="inline-flex gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0ms"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" style="animation-delay: 150ms"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-pink-600 animate-bounce" style="animation-delay: 300ms"></span>
+                        </span>
+                    </h2>
+                    <p class="text-sm text-gray-500 max-w-md font-medium leading-relaxed">
+                        Hệ thống AI đang tổng hợp từ vựng và biên soạn ngữ cảnh học thuật chuẩn IELTS. Quá trình này có thể mất 10–20 giây.
+                    </p>
+                </div>
             </div>
 
             <!-- Content -->

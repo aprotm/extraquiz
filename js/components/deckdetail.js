@@ -218,9 +218,15 @@ export default {
                         </div>
                     </div>
                     
-                    <div v-if="aiLoading" class="flex flex-col items-center justify-center py-12 space-y-4">
-                        <div class="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
-                        <p class="text-gray-500 font-medium text-sm">Gemini đang phân tích...</p>
+                    <div v-if="aiLoading" class="flex flex-col items-center justify-center py-10 space-y-4">
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full border-2 border-dashed border-purple-400 animate-spin" style="animation-duration: 6s;"></div>
+                            <div class="absolute inset-1.5 rounded-full border-t-2 border-amber-400 border-b-transparent border-l-indigo-500 animate-spin" style="animation-duration: 1.5s;"></div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-sm shadow-md">
+                                <i class="fa-solid fa-brain animate-pulse"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 font-bold text-sm">Hệ thống AI đang phân tích từ vựng...</p>
                     </div>
                     
                     <div v-else-if="aiResult" class="space-y-4 animate-fade-in">

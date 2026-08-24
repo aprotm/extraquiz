@@ -195,7 +195,7 @@ export default {
                 
                 <div class="relative z-10 text-center md:text-left flex-1">
                     <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-2 flex items-center justify-center md:justify-start gap-2">
-                        <span>Chào {{ store.userProfile?.displayName?.split(' ')[0] || 'Học giả' }}</span>
+                        <span>Chào {{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'bạn' }}</span>
                         <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-8 h-8 inline-block object-contain filter drop-shadow-sm animate-wiggle">
                     </h1>
                     <p class="text-gray-500 font-medium mb-6 text-sm md:text-base">Hôm nay bạn đã học được <span class="font-bold text-indigo-600">{{ stats?.todayWords || 0 }} / {{ store.settings?.dailyTarget || 20 }}</span> từ vựng mục tiêu.</p>

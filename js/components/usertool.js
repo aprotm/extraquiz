@@ -1,5 +1,6 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { store } from '../store.js';
+import { updateUserProfile } from '../db.js';
 import { t } from '../i18n.js';
 import { getAvailableEnglishVoices, speakEnglishText } from '../voice.js';
 import { showToast } from '../toast.js';
@@ -9,6 +10,33 @@ export default {
         const isOpen = ref(false);
         const activeSettingTab = ref('display'); // 'display' | 'audio' | 'game'
         const voices = ref([]);
+        const customDisplayName = ref(store.userProfile?.displayName || '');
+        const isUpdatingName = ref(false);
+
+        watch(() => store.userProfile?.displayName, (newVal) => {
+            if (newVal) customDisplayName.value = newVal;
+        });
+
+        const saveCustomName = async () => {
+            const name = customDisplayName.value.trim();
+            if (!name) {
+                showToast("Vui lòng nhập tên hiển thị hợp lệ!", "error");
+                return;
+            }
+            isUpdatingName.value = true;
+            try {
+                if (!store.userProfile) store.userProfile = {};
+                store.userProfile.displayName = name;
+                if (store.user?.uid) {
+                    await updateUserProfile(store.user.uid, { displayName: name });
+                }
+                showToast("Đã cập nhật Tên hiển thị thành công!", "success");
+            } catch (e) {
+                showToast("Lỗi cập nhật tên: " + e.message, "error");
+            } finally {
+                isUpdatingName.value = false;
+            }
+        };
 
         const loadVoices = () => {
             voices.value = getAvailableEnglishVoices();
@@ -136,7 +164,8 @@ export default {
             isOpen, activeSettingTab, toggleMenu, closeMenu, store, 
             adjustFontSize, adjustDailyTarget, setSpeechRate, toggleFocusMode, toggleChestAnimation, 
             toggleFloatingCredit, toggleLevelUpNotification, toggleSfx, voices, handleVoiceChange, 
-            testSelectedVoice, formatVoiceLabel, resetToDefaults, isStudyOrGameMode, t 
+            testSelectedVoice, formatVoiceLabel, resetToDefaults, isStudyOrGameMode, t,
+            customDisplayName, saveCustomName, isUpdatingName
         };
     },
     template: `
@@ -151,43 +180,43 @@ export default {
                 leave-to-class="transform scale-95 opacity-0 translate-y-4"
             >
                 <div v-if="isOpen" id="settings-panel" role="dialog" aria-modal="false" 
-                     class="absolute bottom-16 right-0 mb-2 w-[min(22rem,calc(100vw-2rem))] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden text-xs">
+                     class="absolute bottom-16 right-0 mb-2 w-[min(22rem,calc(100vw-2rem))] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden text-xs">
                     
                     <!-- Header -->
-                    <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/60 flex justify-between items-center">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50/60 flex justify-between items-center">
                         <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                            <div class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold">
                                 <i class="fa-solid fa-sliders"></i>
                             </div>
-                            <h3 class="font-extrabold text-sm text-gray-900 dark:text-gray-100">Thiết Lập Trải Nghiệm</h3>
+                            <h3 class="font-extrabold text-sm text-gray-900">Thiết Lập Trải Nghiệm</h3>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <button @click="resetToDefaults" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition" title="Khôi phục mặc định">
+                            <button @click="resetToDefaults" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 transition" title="Khôi phục mặc định">
                                 <i class="fa-solid fa-rotate-left mr-0.5"></i> Mặc định
                             </button>
-                            <button @click="isOpen = false" class="w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 flex items-center justify-center transition">
+                            <button @click="isOpen = false" class="w-6 h-6 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center transition">
                                 <i class="fa-solid fa-xmark text-xs"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Category Tabs -->
-                    <div class="flex border-b border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/30 p-1.5 gap-1">
+                    <div class="flex border-b border-gray-100 bg-gray-50/30 p-1.5 gap-1">
                         <button @click="activeSettingTab = 'display'"
                                 class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5"
-                                :class="activeSettingTab === 'display' ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'">
+                                :class="activeSettingTab === 'display' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
                             <i class="fa-solid fa-palette"></i>
                             <span>Hiển Thị</span>
                         </button>
                         <button @click="activeSettingTab = 'audio'"
                                 class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5"
-                                :class="activeSettingTab === 'audio' ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'">
+                                :class="activeSettingTab === 'audio' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
                             <i class="fa-solid fa-headphones"></i>
                             <span>Âm Thanh</span>
                         </button>
                         <button @click="activeSettingTab = 'game'"
                                 class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5"
-                                :class="activeSettingTab === 'game' ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-300 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'">
+                                :class="activeSettingTab === 'game' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
                             <i class="fa-solid fa-gamepad"></i>
                             <span>Học Tập</span>
                         </button>
@@ -198,6 +227,23 @@ export default {
 
                         <!-- ================= TAB 1: HIỂN THỊ ================= -->
                         <div v-if="activeSettingTab === 'display'" class="space-y-3 animate-fade-in">
+                            <!-- Custom Display Name / Nickname -->
+                            <div class="p-3 rounded-2xl bg-gray-50 border border-gray-100">
+                                <div class="flex items-center gap-2 font-bold text-gray-700 text-xs mb-2">
+                                    <i class="fa-solid fa-user-pen text-indigo-500"></i>
+                                    <span>Tên hiển thị (Nickname)</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <input type="text" v-model="customDisplayName" placeholder="Nhập tên của bạn..." 
+                                           class="flex-1 px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white"
+                                           @keydown.enter="saveCustomName">
+                                    <button @click="saveCustomName" :disabled="isUpdatingName" 
+                                            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center gap-1">
+                                        <i v-if="!isUpdatingName" class="fa-solid fa-check text-[10px]"></i>
+                                        <span>{{ isUpdatingName ? '...' : 'Lưu' }}</span>
+                                    </button>
+                                </div>
+                            </div>
                             <!-- Focus Mode -->
                             <div class="flex justify-between items-center p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
                                 <div>

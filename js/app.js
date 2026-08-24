@@ -737,19 +737,19 @@ const App = {
                 
                 <!-- Bottom Profile Area -->
                 <div class="p-3 border-t border-gray-100 dark:border-[#1E2540] shrink-0">
-                    <div class="flex items-center rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-all"
+                    <div class="flex items-center rounded-xl hover:bg-gray-50 cursor-pointer transition-all"
                          :class="isSidebarExpandedVisual ? 'p-2 justify-between' : 'p-1.5 justify-center'"
                          @click="store.navigate('profile')"
-                         :title="!isSidebarExpandedVisual ? (store.userProfile?.displayName || 'Học giả') : ''">
+                         :title="!isSidebarExpandedVisual ? (store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'Tài khoản') : ''">
                         <div class="flex items-center gap-3 overflow-hidden">
                             <div class="relative w-10 h-10 shrink-0">
-                                <div class="w-full h-full rounded-full bg-indigo-100 dark:bg-indigo-900/60 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold overflow-hidden border-2 border-white dark:border-[#1E2540] shadow-sm">
+                                <div class="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm">
                                     <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
                                     <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
                                 </div>
                                 <!-- Equipped Badge -->
                                 <div v-if="store.userProfile?.equippedBadge" 
-                                     class="absolute -bottom-1 -right-1 bg-white dark:bg-[#131B2E] rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-10 select-none"
+                                     class="absolute -bottom-1 -right-1 bg-white rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-10 select-none"
                                      :title="'Huy hiệu: ' + getBadgeTitle(store.userProfile.equippedBadge)">
                                     <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain">
                                     <span v-else class="text-[10px]">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>
@@ -757,10 +757,10 @@ const App = {
                             </div>
                             <div class="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300"
                                  :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[110px]' : 'opacity-0 max-w-0 hidden'">
-                                <span class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ store.userProfile?.displayName || 'Học giả' }}</span>
+                                <span class="text-sm font-bold text-gray-900 truncate">{{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'Tài khoản' }}</span>
                                 <div class="flex items-center gap-1">
                                     <i data-lucide="gem" class="w-3 h-3 text-amber-500 fill-amber-500"></i>
-                                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400">{{ store.userProfile?.lexiCredit || 0 }}</span>
+                                    <span class="text-xs font-bold text-amber-600">{{ store.userProfile?.lexiCredit || 0 }}</span>
                                 </div>
                             </div>
                         </div>

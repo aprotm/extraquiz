@@ -292,11 +292,17 @@ export default {
                 </div>
 
                 <!-- Loading State -->
-                <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 space-y-4 glass-panel rounded-3xl bg-white/60">
-                    <div class="w-12 h-12 rounded-full border-4 border-teal-500 border-t-transparent animate-spin"></div>
+                <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 space-y-4 glass-panel rounded-3xl bg-white/80 border border-teal-100">
+                    <div class="relative w-16 h-16 flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full border-2 border-dashed border-teal-400 animate-spin" style="animation-duration: 6s;"></div>
+                        <div class="absolute inset-1.5 rounded-full border-t-2 border-amber-400 border-b-transparent border-l-teal-600 animate-spin" style="animation-duration: 1.5s;"></div>
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 flex items-center justify-center text-white text-sm shadow-md">
+                            <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+                        </div>
+                    </div>
                     <div class="text-center">
-                        <h4 class="font-extrabold text-gray-800 text-base">Gemini đang phân tích ngữ nghĩa...</h4>
-                        <p class="text-xs text-gray-400 mt-1">Đang tái cấu trúc ngữ pháp và trích xuất collocations Band 8.0+</p>
+                        <h4 class="font-extrabold text-gray-800 text-base">Hệ thống AI đang phân tích ngữ nghĩa...</h4>
+                        <p class="text-xs text-gray-500 mt-1">Đang tái cấu trúc ngữ pháp và trích xuất collocations Band 8.0+</p>
                     </div>
                 </div>
 

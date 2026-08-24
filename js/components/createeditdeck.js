@@ -59,12 +59,47 @@ export default {
             }
             const parsed = lines.map(line => {
                 const parts = line.split(sep1);
-                return { id: null, term: parts[0]?.trim() || '', definition: parts[1]?.trim() || '', pronunciation: parts[2]?.trim() || '', pos: parts[3]?.trim() || '', collocations: parts[4]?.trim() || '', synonyms: parts[5]?.trim() || '', example: parts[6]?.trim() || '', wordFamily: '', imageUrl: '', selected: false, acceptedAnswers: [], acceptedEnglishAnswers: [], showAdvanced: false };
-            });
-            if (parsed.length > 0) { newCards.value = [...newCards.value, ...parsed]; }
+                return { 
+                    id: null, 
+                    term: sanitizeText(parts[0] || ''), 
+                    definition: sanitizeText(parts[1] || ''), 
+                    pronunciation: sanitizeText(parts[2] || ''), 
+                    pos: sanitizeText(parts[3] || ''), 
+                    collocations: sanitizeText(parts[4] || ''), 
+                    synonyms: sanitizeText(parts[5] || ''), 
+                    example: sanitizeText(parts[6] || ''), 
+                    wordFamily: '', 
+                    imageUrl: '', 
+                    selected: false, 
+                    acceptedAnswers: [], 
+                    acceptedEnglishAnswers: [], 
+                    showAdvanced: false 
+                };
+            }).filter(c => c.term || c.definition);
+
+            if (bulkAutoDeduplicate.value) {
+                const existingTerms = new Set(newCards.value.map(c => c.term.trim().toLowerCase()).filter(Boolean));
+                const uniqueParsed = [];
+                let dupsSkipped = 0;
+                for (const card of parsed) {
+                    const t = card.term.trim().toLowerCase();
+                    if (t && existingTerms.has(t)) {
+                        dupsSkipped++;
+                        continue;
+                    }
+                    if (t) existingTerms.add(t);
+                    uniqueParsed.push(card);
+                }
+                if (uniqueParsed.length > 0) { 
+                    newCards.value = [...newCards.value, ...uniqueParsed]; 
+                }
+                showToast(`Đã nhập ${uniqueParsed.length} thẻ (${dupsSkipped > 0 ? dupsSkipped + ' thẻ trùng lặp đã tự động bỏ qua' : 'sạch sẽ'})!`, 'success');
+            } else {
+                if (parsed.length > 0) { newCards.value = [...newCards.value, ...parsed]; }
+                showToast(`Đã nhập ${parsed.length} thẻ thành công!`, 'success');
+            }
             bulkText.value = '';
             isModalOpen.value = false;
-            showToast('Đã nhập ' + parsed.length + ' thẻ thành công!', 'success');
         };
 
         const saveDeck = async () => {
@@ -194,28 +229,173 @@ export default {
             newCards.value[index].imageUrl = '';
         };
 
-        const duplicateIndices = computed(() => {
-            const indices = [];
-            const termMap = new Map();
+        // Helper to detect weird OCR symbols, garbled unicode, broken HTML
+        const hasOcrArtifacts = (str) => {
+            if (!str) return false;
+            if (/&[a-z0-9#]+;|<\/?[a-z0-9]+[^>]*>/i.test(str)) return true;
+            if (/[\uFFFD\x00-\x08\x0B\x0C\x0E-\x1F]/.test(str)) return true;
+            if (/_{3,}|\.{4,}|\?{3,}|!{3,}/.test(str)) return true;
+            if (/^(\d+[\.\)]\s*){2,}/.test(str)) return true;
+            return false;
+        };
+
+        // Clean string from OCR artifacts & bad encoding
+        const sanitizeText = (str) => {
+            if (!str) return '';
+            let res = String(str);
+            res = res.replace(/&nbsp;/gi, ' ')
+                     .replace(/&quot;/gi, '"')
+                     .replace(/&#39;|&apos;/gi, "'")
+                     .replace(/&amp;/gi, '&')
+                     .replace(/&lt;/gi, '<')
+                     .replace(/&gt;/gi, '>');
+            res = res.replace(/<\/?[^>]+(>|$)/g, ' ');
+            res = res.replace(/[\uFFFD\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+            res = res.replace(/_{3,}/g, '__').replace(/\.{4,}/g, '...').replace(/\?{3,}/g, '?').replace(/!{3,}/g, '!');
+            res = res.replace(/\s+/g, ' ').trim();
+            return res;
+        };
+
+        const bulkAutoDeduplicate = ref(true);
+
+        const duplicateGroups = computed(() => {
+            const map = new Map();
             newCards.value.forEach((card, index) => {
                 const term = card.term.trim().toLowerCase();
                 if (!term) return;
-                if (termMap.has(term)) {
-                    indices.push(index);
-                    indices.push(termMap.get(term));
-                } else {
-                    termMap.set(term, index);
-                }
+                if (!map.has(term)) map.set(term, []);
+                map.get(term).push(index);
             });
+            const duplicates = new Map();
+            for (const [term, indices] of map.entries()) {
+                if (indices.length > 1) {
+                    duplicates.set(term, indices);
+                }
+            }
+            return duplicates;
+        });
+
+        const duplicateExcessCount = computed(() => {
+            let count = 0;
+            for (const indices of duplicateGroups.value.values()) {
+                count += (indices.length - 1);
+            }
+            return count;
+        });
+
+        const duplicateIndices = computed(() => {
+            const indices = [];
+            for (const list of duplicateGroups.value.values()) {
+                indices.push(...list);
+            }
             return indices;
         });
+
+        const corruptedCardsCount = computed(() => {
+            return newCards.value.filter(c => 
+                hasOcrArtifacts(c.term) || hasOcrArtifacts(c.definition) || hasOcrArtifacts(c.example) || hasOcrArtifacts(c.synonyms)
+            ).length;
+        });
+
+        const emptyCardsCount = computed(() => {
+            return newCards.value.filter(c => !c.term.trim() && !c.definition.trim()).length;
+        });
+
+        const hasAuditIssues = computed(() => {
+            return duplicateExcessCount.value > 0 || corruptedCardsCount.value > 0 || emptyCardsCount.value > 0;
+        });
+
+        // 1. Deduplicate cards (Keep 1 most detailed card per term)
+        const deduplicateCards = () => {
+            if (duplicateExcessCount.value === 0) {
+                showToast("Không có thẻ trùng lặp nào cần xóa.", "info");
+                return;
+            }
+            const removedCount = duplicateExcessCount.value;
+            const termSeen = new Map();
+            const result = [];
+            
+            const cardScore = (c) => {
+                let score = 0;
+                if (c.definition) score += 5;
+                if (c.pronunciation) score += 2;
+                if (c.pos) score += 2;
+                if (c.example) score += 3;
+                if (c.synonyms) score += 2;
+                if (c.collocations) score += 2;
+                if (c.imageUrl) score += 3;
+                return score;
+            };
+
+            for (const [term, indices] of duplicateGroups.value.entries()) {
+                let bestIndex = indices[0];
+                let bestScore = cardScore(newCards.value[bestIndex]);
+                for (let i = 1; i < indices.length; i++) {
+                    const sc = cardScore(newCards.value[indices[i]]);
+                    if (sc > bestScore) {
+                        bestScore = sc;
+                        bestIndex = indices[i];
+                    }
+                }
+                termSeen.set(term, bestIndex);
+            }
+
+            newCards.value.forEach((card, index) => {
+                const term = card.term.trim().toLowerCase();
+                if (!term) {
+                    result.push(card);
+                    return;
+                }
+                if (!duplicateGroups.value.has(term)) {
+                    result.push(card);
+                } else {
+                    if (termSeen.get(term) === index) {
+                        result.push(card);
+                    }
+                }
+            });
+
+            newCards.value = result;
+            showToast(`Đã xóa sạch ${removedCount} thẻ trùng lặp (giữ lại 1 thẻ hoàn chỉnh nhất cho mỗi từ)!`, 'success');
+        };
+
+        // 2. Clean corrupted OCR / HTML artifacts
+        const cleanCorruptedCharacters = () => {
+            let modified = 0;
+            newCards.value.forEach(card => {
+                const origTerm = card.term;
+                const origDef = card.definition;
+                card.term = sanitizeText(card.term);
+                card.definition = sanitizeText(card.definition);
+                card.example = sanitizeText(card.example);
+                card.synonyms = sanitizeText(card.synonyms);
+                card.collocations = sanitizeText(card.collocations);
+                card.pronunciation = sanitizeText(card.pronunciation);
+                if (origTerm !== card.term || origDef !== card.definition) modified++;
+            });
+            showToast(`Đã làm sạch và chuẩn hóa ký tự cho ${modified} thẻ!`, 'success');
+        };
+
+        // 3. Remove empty cards
+        const removeEmptyCards = () => {
+            const beforeCount = newCards.value.length;
+            newCards.value = newCards.value.filter(c => c.term.trim() || c.definition.trim());
+            const deleted = beforeCount - newCards.value.length;
+            if (deleted > 0) {
+                showToast(`Đã xóa ${deleted} thẻ rỗng!`, 'success');
+            } else {
+                showToast(`Không có thẻ rỗng nào cần xóa.`, 'info');
+            }
+        };
 
         return { 
             store, isEditMode, deckForm, newCards, addEmptyCard, removeCard, saveDeck, cancel, handleAutoFill, isGeneratingCard,
             isModalOpen, bulkText, bulkConfig, processBulkImport, isSaving, duplicateIndices, showBulkGuide,
             handleImageUpload, removeImage, isUploadingImage,
             isBatchGenerating, handleBulkAutoFill, selectAll, deselectAll, selectedCount,
-            isAllSelected, toggleAll, deleteSelected
+            isAllSelected, toggleAll, deleteSelected,
+            duplicateGroups, duplicateExcessCount, corruptedCardsCount, emptyCardsCount, hasAuditIssues,
+            deduplicateCards, cleanCorruptedCharacters, removeEmptyCards, bulkAutoDeduplicate
         };
     },
     template: `
@@ -297,6 +477,61 @@ export default {
                         </div>
                     </div>
                 </div>
+
+                <!-- Smart Auditor & Data Cleaner Banner -->
+                <transition enter-active-class="transition duration-300 ease-out"
+                            enter-from-class="transform -translate-y-2 opacity-0"
+                            enter-to-class="transform translate-y-0 opacity-100"
+                            leave-active-class="transition duration-200 ease-in"
+                            leave-from-class="transform translate-y-0 opacity-100"
+                            leave-to-class="transform -translate-y-2 opacity-0">
+                    <div v-if="hasAuditIssues" class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm relative overflow-hidden animate-fade-in">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-black text-gray-900 flex items-center gap-2">
+                                        <span>Trợ lý Sàng Lọc & Dọn Dẹp Thẻ</span>
+                                    </h4>
+                                    <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                        <span v-if="duplicateExcessCount > 0" class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-lg flex items-center gap-1.5 border border-red-200">
+                                            <i class="fa-solid fa-clone text-[11px]"></i>
+                                            <span>{{ duplicateExcessCount }} thẻ bị trùng lặp</span>
+                                        </span>
+                                        <span v-if="corruptedCardsCount > 0" class="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-lg flex items-center gap-1.5 border border-amber-200">
+                                            <i class="fa-solid fa-triangle-exclamation text-[11px]"></i>
+                                            <span>{{ corruptedCardsCount }} thẻ có ký tự rác OCR / HTML</span>
+                                        </span>
+                                        <span v-if="emptyCardsCount > 0" class="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-lg flex items-center gap-1.5 border border-gray-200">
+                                            <i class="fa-solid fa-eraser text-[11px]"></i>
+                                            <span>{{ emptyCardsCount }} thẻ rỗng</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                                <button v-if="duplicateExcessCount > 0" @click="deduplicateCards" 
+                                        class="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-broom"></i>
+                                    <span>Xóa Trùng (Giữ 1 Thẻ)</span>
+                                </button>
+                                <button v-if="corruptedCardsCount > 0" @click="cleanCorruptedCharacters" 
+                                        class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-sparkles"></i>
+                                    <span>Sửa Ký Tự Rác</span>
+                                </button>
+                                <button v-if="emptyCardsCount > 0" @click="removeEmptyCards" 
+                                        class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span>Xóa Thẻ Rỗng</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
 
                 <!-- Card List -->
                 <div class="space-y-4">
@@ -494,9 +729,15 @@ export default {
                             </div>
                         </div>
                     </div>
-                    <div class="p-5 border-t flex justify-end gap-3" style="border-color: rgba(109,85,209,0.1);">
-                        <button @click="isModalOpen = false" class="px-5 py-2.5 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition text-sm">Hủy</button>
-                        <button @click="processBulkImport" class="btn-primary px-7 py-2.5 text-sm">Nhập thẻ</button>
+                    <div class="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style="border-color: rgba(109,85,209,0.1);">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 select-none">
+                            <input type="checkbox" v-model="bulkAutoDeduplicate" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300 cursor-pointer">
+                            <span>Tự động loại bỏ thẻ trùng lặp khi nhập</span>
+                        </label>
+                        <div class="flex items-center gap-3">
+                            <button @click="isModalOpen = false" class="px-5 py-2.5 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition text-sm">Hủy</button>
+                            <button @click="processBulkImport" class="btn-primary px-7 py-2.5 text-sm">Nhập thẻ</button>
+                        </div>
                     </div>
                 </div>
             </div>

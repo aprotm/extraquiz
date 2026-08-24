@@ -21,6 +21,29 @@ export default {
             }
         };
         
+        const isEditingName = ref(false);
+        const editNameInput = ref('');
+
+        const startEditName = () => {
+            editNameInput.value = store.userProfile?.displayName || store.user?.email?.split('@')[0] || '';
+            isEditingName.value = true;
+        };
+
+        const saveDisplayName = async () => {
+            const name = editNameInput.value.trim();
+            if (!name) {
+                showToast("Vui lòng nhập tên hiển thị hợp lệ!", "error");
+                return;
+            }
+            if (!store.userProfile) store.userProfile = {};
+            store.userProfile.displayName = name;
+            if (store.user?.uid) {
+                await updateUserProfile(store.user.uid, { displayName: name });
+            }
+            isEditingName.value = false;
+            showToast("Đã cập nhật Tên hiển thị!", "success");
+        };
+
         const currentLevelInfo = computed(() => {
             const totalLC = Math.max(store.userProfile?.totalLexiCredit || 0, store.userProfile?.lexiCredit || 0, ((store.userProfile?.level || 1) - 1) * 50);
             return getLevelProgressInfo(totalLC);
@@ -140,7 +163,8 @@ export default {
             store, stats, BADGES_DICT, visibleBadges,
             handleAvatarUpload, triggerAvatarUpload, currentLevelInfo, currentRank,
             geminiApiKey, saveApiKey, goBack, t, getBadgeClasses,
-            getBadgeTitle, getBadgeIcon, getBadge3D, equippedBadgeObj
+            getBadgeTitle, getBadgeIcon, getBadge3D, equippedBadgeObj,
+            isEditingName, editNameInput, startEditName, saveDisplayName
         };
     },
     template: `
@@ -164,7 +188,7 @@ export default {
                         <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-20"></div>
                         
                         <div class="relative w-28 h-28 mx-auto mb-5">
-                            <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white dark:border-[#1E2540] shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative" 
+                            <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative" 
                                  style="background: linear-gradient(135deg, #6d55d1, #8b5cf6);">
                                 <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
                                 <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
@@ -176,7 +200,7 @@ export default {
                             
                             <!-- Equipped Badge on Avatar (Positioned Top-Right to prevent overlapping Rank Pill) -->
                             <div v-if="store.userProfile?.equippedBadge" 
-                                 class="absolute -top-1.5 -right-1.5 bg-white dark:bg-[#131B2E] rounded-full shadow-xl w-9 h-9 flex items-center justify-center border-2 border-amber-400 p-1 z-20 hover:scale-110 transition-transform select-none cursor-pointer"
+                                 class="absolute -top-1.5 -right-1.5 bg-white rounded-full shadow-xl w-9 h-9 flex items-center justify-center border-2 border-amber-400 p-1 z-20 hover:scale-110 transition-transform select-none cursor-pointer"
                                  :title="'Huy hiệu đang trang bị: ' + getBadgeTitle(store.userProfile.equippedBadge)"
                                  @click.stop="store.equipBadge(store.userProfile.equippedBadge)">
                                 <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain drop-shadow-sm">
@@ -191,8 +215,27 @@ export default {
                             </div>
                         </div>
 
-                        <h2 class="text-xl font-bold text-gray-900 mt-5 mb-0.5">Cấp độ {{ currentLevelInfo.currentLevel }}</h2>
-                        <p class="text-xs text-gray-400 font-medium mb-3">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
+                        <!-- User Display Name Header with Inline Edit -->
+                        <div class="mt-5 mb-1 flex items-center justify-center gap-1.5">
+                            <div v-if="!isEditingName" class="flex items-center gap-2">
+                                <h2 class="text-xl font-black text-gray-900">{{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'Chưa đặt tên' }}</h2>
+                                <button @click="startEditName" class="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Đổi tên hiển thị">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                            </div>
+                            <div v-else class="flex items-center gap-1.5">
+                                <input type="text" v-model="editNameInput" class="px-3 py-1 text-sm font-bold rounded-xl border-2 border-indigo-400 focus:outline-none bg-white text-gray-900 max-w-[160px]" placeholder="Tên hiển thị..." @keydown.enter="saveDisplayName">
+                                <button @click="saveDisplayName" class="p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition" title="Lưu">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button @click="isEditingName = false" class="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs transition" title="Hủy">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="text-xs font-bold text-indigo-600 mb-0.5">Cấp độ {{ currentLevelInfo.currentLevel }} · {{ currentRank?.title }}</p>
+                        <p class="text-[11px] text-gray-400 font-medium mb-3">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
 
                         <!-- Level EXP Progress Bar -->
                         <div class="max-w-xs mx-auto mb-6 px-2">
