@@ -732,3 +732,107 @@ img[style*="display:none"] + .only-fallback { display: inline-block !important; 
     animation: wave 2.5s infinite;
 }
 
+/* ========================================================================= */
+/* NEURAL QUANTUM REACTOR AI LOADING SUITE                                  */
+/* ========================================================================= */
+@keyframes neuralSpinClockwise {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes neuralSpinCounterClockwise {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes neuralSonarPulse {
+    0% { transform: scale(0.85); opacity: 0.8; }
+    50% { transform: scale(1.4); opacity: 0.2; }
+    100% { transform: scale(1.7); opacity: 0; }
+}
+
+@keyframes neuralCoreBreathing {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(99, 102, 241, 0.45), 0 0 45px rgba(168, 85, 247, 0.3);
+    }
+    50% { 
+        transform: scale(1.12);
+        box-shadow: 0 0 40px rgba(99, 102, 241, 0.8), 0 0 70px rgba(236, 72, 153, 0.5);
+    }
+}
+
+@keyframes neuralBrainFloat {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-4px) scale(1.1); }
+}
+
+@keyframes neuralOrbit1 {
+    0% { transform: rotate(0deg) translateX(62px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(62px) rotate(-360deg); }
+}
+
+@keyframes neuralOrbit2 {
+    0% { transform: rotate(180deg) translateX(52px) rotate(-180deg); }
+    100% { transform: rotate(540deg) translateX(52px) rotate(-540deg); }
+}
+
+@keyframes neuralOrbit3 {
+    0% { transform: rotate(90deg) translateX(68px) rotate(-90deg); }
+    100% { transform: rotate(-270deg) translateX(68px) rotate(270deg); }
+}
+
+@keyframes neuralShimmerBar {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.neural-ring-outer {
+    border: 2.5px dashed rgba(99, 102, 241, 0.4);
+    animation: neuralSpinClockwise 12s linear infinite !important;
+}
+
+.neural-ring-mid {
+    border: 3px solid transparent;
+    border-top-color: #F59E0B;
+    border-right-color: #EC4899;
+    border-bottom-color: #8B5CF6;
+    border-left-color: #06B6D4;
+    animation: neuralSpinCounterClockwise 3s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.6));
+}
+
+.neural-sonar-wave {
+    animation: neuralSonarPulse 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite !important;
+}
+
+.neural-sonar-wave-delay {
+    animation: neuralSonarPulse 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite 1.2s !important;
+}
+
+.neural-core-center {
+    animation: neuralCoreBreathing 2.5s ease-in-out infinite !important;
+}
+
+.neural-brain-icon {
+    animation: neuralBrainFloat 2s ease-in-out infinite !important;
+}
+
+.neural-particle-1 {
+    animation: neuralOrbit1 4s linear infinite !important;
+}
+
+.neural-particle-2 {
+    animation: neuralOrbit2 3.2s linear infinite !important;
+}
+
+.neural-particle-3 {
+    animation: neuralOrbit3 5.5s linear infinite !important;
+}
+
+.neural-shimmer-progress {
+    background: linear-gradient(90deg, #6366F1 0%, #A855F7 25%, #EC4899 50%, #F59E0B 75%, #6366F1 100%);
+    background-size: 200% 100%;
+    animation: neuralShimmerBar 2s linear infinite !important;
+}
+

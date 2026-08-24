@@ -277,9 +277,18 @@ export default {
                         <h3 class="font-bold text-indigo-900">AI Insight - Đánh giá phiên học</h3>
                     </div>
                     
-                    <div v-if="isLoadingReflection" class="flex flex-col items-center justify-center py-6 space-y-2">
-                        <div class="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-amber-400 animate-spin"></div>
-                        <p class="text-indigo-600 text-xs font-bold">Hệ thống AI đang phân tích biểu đồ trí nhớ của bạn...</p>
+                    <div v-if="isLoadingReflection" class="flex flex-col items-center justify-center py-6 space-y-3">
+                        <div class="relative w-14 h-14 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full neural-ring-outer"></div>
+                            <div class="absolute inset-1 rounded-full neural-ring-mid"></div>
+                            <div class="w-7 h-7 rounded-xl bg-indigo-600 neural-core-center flex items-center justify-center text-white text-xs shadow-md z-10">
+                                <i class="fa-solid fa-brain neural-brain-icon"></i>
+                            </div>
+                        </div>
+                        <p class="text-indigo-700 text-xs font-extrabold flex items-center gap-1.5">
+                            <i class="fa-solid fa-sparkles text-amber-500 animate-spin" style="animation-duration: 3s;"></i>
+                            <span>Hệ thống AI đang phân tích biểu đồ trí nhớ của bạn...</span>
+                        </p>
                     </div>
                     <div v-else class="text-sm text-indigo-900 leading-relaxed space-y-2">
                         <ul class="list-disc pl-5 space-y-2" v-html="renderReflection(aiReflection)"></ul>

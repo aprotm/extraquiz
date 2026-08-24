@@ -24,6 +24,31 @@ export default {
         const selectedDeckIds = ref(store.activeDeck ? [store.activeDeck.id] : []);
         const lastMeta = ref({ level: '5.5-6.5', sourceLabel: '', wordCount: 0 });
 
+        // Dynamic Loading Steps
+        const loadingStepIndex = ref(0);
+        const loadingSteps = [
+            "Đang phân tích cấu trúc ngữ pháp & từ vựng mục tiêu...",
+            "Đang thiết lập chủ đề học thuật & cấu trúc đoạn văn IELTS...",
+            "Đang biên soạn câu hỏi đọc hiểu & bẫy trắc nghiệm...",
+            "Đang hoàn thiện đề thi & tổng hợp bảng từ vựng..."
+        ];
+        let stepInterval = null;
+
+        const startLoadingSteps = () => {
+            loadingStepIndex.value = 0;
+            if (stepInterval) clearInterval(stepInterval);
+            stepInterval = setInterval(() => {
+                loadingStepIndex.value = (loadingStepIndex.value + 1) % loadingSteps.length;
+            }, 2500);
+        };
+
+        const stopLoadingSteps = () => {
+            if (stepInterval) {
+                clearInterval(stepInterval);
+                stepInterval = null;
+            }
+        };
+
         const availableDecks = computed(() => store.decks || []);
 
         const levelOptions = [
@@ -126,6 +151,7 @@ export default {
             isLoading.value = true;
             isConfiguring.value = false;
             isSubmitted.value = false;
+            startLoadingSteps();
 
             try {
                 // 1. Resolve vocabulary
@@ -143,6 +169,7 @@ export default {
                     showToast("Nguồn từ vựng đã chọn không có đủ từ (cần ít nhất 3 từ vựng) để tạo bài đọc!", "error");
                     isLoading.value = false;
                     isConfiguring.value = true;
+                    stopLoadingSteps();
                     return;
                 }
 
@@ -203,6 +230,7 @@ export default {
                 isConfiguring.value = true;
             } finally {
                 isLoading.value = false;
+                stopLoadingSteps();
             }
         };
 
@@ -346,7 +374,8 @@ export default {
             getCorrectFillAnswer, results, readingLevel, vocabSource,
             selectedDeckIds, levelOptions, availableDecks, toggleDeckSelection,
             selectAllDecks, deselectAllDecks, currentSourceSummary,
-            isGenerateDisabled, startGenerate, openConfiguration, goBack, lastMeta
+            isGenerateDisabled, startGenerate, openConfiguration, goBack, lastMeta,
+            loadingStepIndex, loadingSteps
         };
     },
     template: `
@@ -515,37 +544,68 @@ export default {
                 </div>
             </div>
 
-            <!-- 2. NEURAL CORE GLOW AI LOADING STATE -->
-            <div v-else-if="isLoading" class="bg-white/90 backdrop-blur-xl p-12 sm:p-16 rounded-3xl text-center shadow-xl border border-indigo-100 flex flex-col items-center justify-center space-y-6 relative overflow-hidden animate-fade-in">
-                <!-- Ambient Background Glow -->
-                <div class="absolute w-72 h-72 bg-gradient-to-tr from-purple-500/15 via-indigo-500/15 to-amber-400/15 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+            <!-- 2. NEURAL QUANTUM REACTOR AI LOADING STATE -->
+            <div v-else-if="isLoading" class="bg-white/95 backdrop-blur-2xl p-10 sm:p-14 rounded-3xl text-center shadow-2xl border-2 border-indigo-100/80 flex flex-col items-center justify-center space-y-8 relative overflow-hidden animate-fade-in my-4">
+                <!-- Ambient Background Nebula Glow -->
+                <div class="absolute w-96 h-96 bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-pink-400/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+                <div class="absolute -top-16 -left-16 w-64 h-64 bg-amber-400/15 rounded-full blur-3xl pointer-events-none"></div>
 
-                <!-- Neural Core Visual Container -->
-                <div class="relative w-28 h-28 flex items-center justify-center my-2">
-                    <div class="absolute inset-0 rounded-full border-2 border-dashed border-indigo-400/40 animate-spin" style="animation-duration: 8s;"></div>
-                    <div class="absolute -inset-2 rounded-full border-2 border-purple-400/30 animate-ping" style="animation-duration: 3s;"></div>
-                    <div class="absolute inset-2 rounded-full border-t-2 border-r-2 border-amber-400 border-b-transparent border-l-indigo-500 animate-spin" style="animation-duration: 2s;"></div>
+                <!-- Quantum Core Visual Stage -->
+                <div class="relative w-40 h-40 flex items-center justify-center my-2">
+                    <!-- Sonar Expanding Waves -->
+                    <div class="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/30 to-purple-500/30 neural-sonar-wave pointer-events-none"></div>
+                    <div class="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/25 to-pink-500/25 neural-sonar-wave-delay pointer-events-none"></div>
 
-                    <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 shadow-lg shadow-indigo-500/40 flex items-center justify-center text-white text-2xl transform hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-brain animate-pulse"></i>
+                    <!-- Outer Holographic Orbital Ring -->
+                    <div class="absolute inset-0 rounded-full neural-ring-outer"></div>
+
+                    <!-- Counter-Rotating Neon Gradient Laser Ring -->
+                    <div class="absolute inset-2.5 rounded-full neural-ring-mid"></div>
+
+                    <!-- Revolving Orbiting Photons -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 shadow-lg shadow-amber-400/90 neural-particle-1"></div>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-teal-300 shadow-lg shadow-cyan-400/90 neural-particle-2"></div>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-400 shadow-lg shadow-pink-500/90 neural-particle-3"></div>
                     </div>
 
-                    <div class="absolute -top-1 right-2 w-3 h-3 rounded-full bg-amber-400 shadow-md shadow-amber-400/80 animate-bounce"></div>
-                    <div class="absolute -bottom-1 left-2 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-md shadow-cyan-400/80 animate-pulse"></div>
+                    <!-- Glowing Central Neural Core -->
+                    <div class="relative w-18 h-18 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 neural-core-center flex items-center justify-center text-white text-3xl shadow-xl shadow-indigo-500/50 z-10 border-2 border-white/40">
+                        <i class="fa-solid fa-brain neural-brain-icon drop-shadow-md"></i>
+                    </div>
                 </div>
 
-                <div class="space-y-2 relative z-10">
-                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center justify-center gap-2">
-                        <span>Đang tạo bài đọc IELTS {{ levelOptions.find(l => l.id === readingLevel)?.range }}...</span>
+                <!-- Live Dynamic AI Step Title & Description -->
+                <div class="space-y-3 relative z-10 max-w-lg mx-auto">
+                    <h2 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight flex items-center justify-center gap-2.5">
+                        <span>Đang tạo bài đọc IELTS {{ levelOptions.find(l => l.id === readingLevel)?.range }}</span>
                         <span class="inline-flex gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0ms"></span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" style="animation-delay: 150ms"></span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-pink-600 animate-bounce" style="animation-delay: 300ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-purple-600 animate-bounce" style="animation-delay: 150ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-pink-600 animate-bounce" style="animation-delay: 300ms"></span>
                         </span>
                     </h2>
-                    <p class="text-sm text-gray-500 max-w-md font-medium leading-relaxed">
-                        Hệ thống AI đang tổng hợp từ vựng và biên soạn bài đọc học thuật chuẩn IELTS theo thang độ khó đã chọn.
+
+                    <!-- Live Cycling AI Thinking Stages -->
+                    <div class="h-9 flex items-center justify-center">
+                        <p class="text-xs sm:text-sm font-extrabold text-indigo-700 bg-indigo-50/90 px-4 py-1.5 rounded-full border border-indigo-200/80 inline-flex items-center gap-2 shadow-sm animate-fade-in">
+                            <i class="fa-solid fa-sparkles text-amber-500 animate-spin" style="animation-duration: 3s;"></i>
+                            <span>{{ loadingSteps[loadingStepIndex] }}</span>
+                        </p>
+                    </div>
+
+                    <p class="text-xs text-gray-500 font-medium leading-relaxed">
+                        Hệ thống AI đang tổng hợp từ vựng và biên soạn ngữ cảnh học thuật chuẩn IELTS theo thang độ khó đã chọn.
                     </p>
+                </div>
+
+                <!-- Animated Shimmer Progress Bar -->
+                <div class="w-full max-w-md bg-gray-100 rounded-full h-2 overflow-hidden shadow-inner relative z-10 border border-gray-200/60">
+                    <div class="h-2 rounded-full neural-shimmer-progress w-full"></div>
                 </div>
             </div>
 

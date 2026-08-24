@@ -292,16 +292,20 @@ export default {
                 </div>
 
                 <!-- Loading State -->
-                <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 space-y-4 glass-panel rounded-3xl bg-white/80 border border-teal-100">
-                    <div class="relative w-16 h-16 flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full border-2 border-dashed border-teal-400 animate-spin" style="animation-duration: 6s;"></div>
-                        <div class="absolute inset-1.5 rounded-full border-t-2 border-amber-400 border-b-transparent border-l-teal-600 animate-spin" style="animation-duration: 1.5s;"></div>
-                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 flex items-center justify-center text-white text-sm shadow-md">
-                            <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+                <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 space-y-4 glass-panel rounded-3xl bg-white/90 border-2 border-teal-100 shadow-sm relative overflow-hidden">
+                    <div class="relative w-20 h-20 flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full neural-ring-outer"></div>
+                        <div class="absolute inset-1.5 rounded-full neural-ring-mid"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-teal-400 neural-particle-1 absolute"></div>
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-500 neural-core-center flex items-center justify-center text-white text-base shadow-lg z-10">
+                            <i class="fa-solid fa-wand-magic-sparkles neural-brain-icon"></i>
                         </div>
                     </div>
                     <div class="text-center">
-                        <h4 class="font-extrabold text-gray-800 text-base">Hệ thống AI đang phân tích ngữ nghĩa...</h4>
+                        <h4 class="font-extrabold text-teal-900 text-base flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-sparkles text-amber-500 animate-spin" style="animation-duration: 3s;"></i>
+                            <span>Hệ thống AI đang phân tích ngữ nghĩa...</span>
+                        </h4>
                         <p class="text-xs text-gray-500 mt-1">Đang tái cấu trúc ngữ pháp và trích xuất collocations Band 8.0+</p>
                     </div>
                 </div>
