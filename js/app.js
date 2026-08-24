@@ -565,7 +565,7 @@ const App = {
         </div>
 
         <!-- Main App Layout (Redesigned) -->
-        <div v-else class="flex-1 flex h-screen max-h-screen overflow-auto relative bg-cover bg-center transition-all duration-500" :style="bgImage ? { backgroundImage: 'url(' + bgImage + ')' } : {}">
+        <div v-else class="flex-1 flex h-screen max-h-screen overflow-hidden relative bg-cover bg-center transition-all duration-500" :style="bgImage ? { backgroundImage: 'url(' + bgImage + ')' } : {}">
             <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
             <div v-if="bgImage" class="absolute inset-0 bg-white/50 backdrop-blur-[4px] z-0 pointer-events-none"></div>
 

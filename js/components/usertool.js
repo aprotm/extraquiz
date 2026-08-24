@@ -91,12 +91,14 @@ export default {
             store.saveSettings();
         });
 
-        const toggleMenu = () => { 
+        const toggleMenu = (e) => { 
+            if (e) e.stopPropagation();
             isOpen.value = !isOpen.value; 
         };
         
         const closeMenu = (e) => {
-            if (!e.target.closest('#user-tool-widget')) {
+            const widget = document.getElementById('user-tool-widget');
+            if (widget && !widget.contains(e.target)) {
                 isOpen.value = false;
             }
         };
@@ -177,7 +179,7 @@ export default {
         };
 
         const isStudyOrGameMode = computed(() => {
-            const activeRoutes = ['study', 'learn', 'quiz', 'dictation', 'matching', 'boss-battle', 'cyber-cipher', 'ai-arena', 'paraphrase', 'writing', 'reading'];
+            const activeRoutes = ['study', 'learn', 'quiz', 'dictation', 'matching', 'boss-battle', 'cyber-cipher', 'ai-arena'];
             return activeRoutes.includes(store.currentRoute);
         });
 
@@ -191,7 +193,7 @@ export default {
         };
     },
     template: `
-        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 select-none hide-in-focus transition-all duration-300" @keydown.escape="isOpen = false">
+        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[9999] select-none hide-in-focus transition-all duration-300 pointer-events-auto" @keydown.escape="isOpen = false" @click.stop>
             <!-- Settings Modal Panel -->
             <transition
                 enter-active-class="transition duration-200 ease-out"
@@ -472,8 +474,8 @@ export default {
             </transition>
 
             <!-- Floating Settings Gear Button -->
-            <button @click="toggleMenu" :aria-expanded="isOpen" aria-controls="settings-panel" 
-                    class="w-13 h-13 sm:w-14 sm:h-14 bg-gradient-to-tr from-gray-900 to-gray-800 dark:from-purple-600 dark:to-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-all duration-300 hover:shadow-purple-500/30 border-2 border-white/20">
+            <button @click.stop="toggleMenu" :aria-expanded="isOpen" aria-controls="settings-panel" 
+                    class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-gray-900 to-gray-800 text-white rounded-full shadow-2xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-all duration-300 hover:shadow-purple-500/30 border-2 border-white/20 shrink-0">
                 <i :class="isOpen ? 'fa-solid fa-xmark text-lg' : 'fa-solid fa-gear text-lg hover:rotate-90 transition-transform duration-500'"></i>
             </button>
         </div>
