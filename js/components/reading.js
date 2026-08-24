@@ -20,9 +20,16 @@ export default {
 
         // Configuration State
         const readingLevel = ref('5.5-6.5'); // '4.5-5.5' | '5.5-6.5' | '6.5-7.5' | '7.5-8.5+'
+        const questionCount = ref(8); // 5 | 8 | 10
         const vocabSource = ref(store.activeDeck ? 'current' : 'all'); // 'current' | 'all' | 'selected'
         const selectedDeckIds = ref(store.activeDeck ? [store.activeDeck.id] : []);
-        const lastMeta = ref({ level: '5.5-6.5', sourceLabel: '', wordCount: 0 });
+        const lastMeta = ref({ level: '5.5-6.5', sourceLabel: '', wordCount: 0, questionCount: 8 });
+
+        const questionCountOptions = [
+            { count: 5, label: '5 câu', sub: 'Luyện nhanh · 1-2 đoạn', icon: 'fa-bolt', badge: 'Nhanh' },
+            { count: 8, label: '8 câu', sub: 'Chuẩn IELTS · 3-4 đoạn', icon: 'fa-bullseye', badge: 'Khuyên dùng' },
+            { count: 10, label: '10 câu', sub: 'Chuyên sâu · Đầy đủ dạng bài', icon: 'fa-trophy', badge: 'Mastery' }
+        ];
 
         // Dynamic Loading Steps
         const loadingStepIndex = ref(0);
@@ -173,17 +180,19 @@ export default {
                     return;
                 }
 
-                // 2. Call AI with target difficulty level and words
+                // 2. Call AI with target difficulty level, question count, and words
                 const data = await generateReadingTest({
                     wordList: resolved.words,
-                    readingLevel: readingLevel.value
+                    readingLevel: readingLevel.value,
+                    questionCount: questionCount.value
                 });
 
                 testData.value = data;
                 lastMeta.value = {
                     level: readingLevel.value,
                     sourceLabel: currentSourceSummary.value,
-                    wordCount: resolved.words.length
+                    wordCount: resolved.words.length,
+                    questionCount: questionCount.value
                 };
 
                 // Reset inputs
@@ -241,19 +250,34 @@ export default {
         onMounted(() => {
             if (!store.activeDeck) {
                 vocabSource.value = 'all';
-                selectedDeckIds.value = availableDecks.value.map(d => d.id);
-                isConfiguring.value = true;
             } else {
                 vocabSource.value = 'current';
                 selectedDeckIds.value = [store.activeDeck.id];
-                if (store.activeCards && store.activeCards.length >= 3) {
-                    isConfiguring.value = true;
-                } else {
-                    vocabSource.value = 'all';
-                    isConfiguring.value = true;
-                }
+            }
+            if (!testData.value) {
+                isConfiguring.value = true;
             }
         });
+
+        const normalizeAns = (val) => {
+            if (!val) return '';
+            const s = String(val).trim().toUpperCase();
+            if (s.startsWith('A.') || s === 'A') return 'A';
+            if (s.startsWith('B.') || s === 'B') return 'B';
+            if (s.startsWith('C.') || s === 'C') return 'C';
+            if (s.startsWith('D.') || s === 'D') return 'D';
+            if (s.startsWith('TRUE') || s === 'T') return 'TRUE';
+            if (s.startsWith('FALSE') || s === 'F') return 'FALSE';
+            if (s.startsWith('NOT GIVEN') || s.startsWith('NOT_GIVEN') || s.startsWith('NG')) return 'NOT GIVEN';
+            return s;
+        };
+
+        const getOptionVal = (opt) => {
+            if (!opt) return '';
+            const s = String(opt).trim();
+            if (/^[A-D]\./i.test(s)) return s.charAt(0).toUpperCase();
+            return s;
+        };
 
         const checkMatch = (ans, correct) => {
             if (!ans) return false;
@@ -285,13 +309,12 @@ export default {
                     results.value.fill[idx] = checkMatch(userAns, correctAns);
                 });
 
-                // Check MCQ
+                // Check Questions (MCQ & TFNG)
                 testData.value.questions.forEach((q, idx) => {
-                    let correctAns = mcqAnswers[idx] || q.answer || '';
-                    if (typeof correctAns === 'object') correctAns = correctAns.answer || '';
-                    correctAns = correctAns.toString().trim().charAt(0).toUpperCase();
-
-                    const userAns = (userMcq.value[q.id] || '').toString().trim().toUpperCase();
+                    let rawCorrect = mcqAnswers[idx] || q.answer || '';
+                    if (typeof rawCorrect === 'object') rawCorrect = rawCorrect.answer || '';
+                    const correctAns = normalizeAns(rawCorrect);
+                    const userAns = normalizeAns(userMcq.value[q.id] || '');
                     results.value.mcq[q.id] = userAns === correctAns;
                 });
                 
@@ -335,39 +358,26 @@ export default {
         };
 
         const getOptionClass = (qId, opt) => {
-            const optLetter = opt.charAt(0).toUpperCase();
-            if (!isSubmitted.value) return (userMcq.value[qId] || '').toUpperCase() === optLetter ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200';
-            
+            const optVal = getOptionVal(opt);
+            const normalizedOpt = normalizeAns(optVal);
+            const userVal = normalizeAns(userMcq.value[qId] || '');
+
+            if (!isSubmitted.value) {
+                return userVal === normalizedOpt
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-900 font-bold ring-2 ring-indigo-200'
+                    : 'border-gray-200 hover:border-gray-300 text-gray-700 bg-white';
+            }
+
             const qIndex = testData.value.questions.findIndex(q => q.id === qId);
             const q = testData.value.questions[qIndex];
-            
+
             const answerKey = testData.value.answerKey || {};
             const mcqAnswers = answerKey.mcq || [];
-            let correctAns = mcqAnswers[qIndex] || q.answer || '';
-            if (typeof correctAns === 'object') correctAns = correctAns.answer || '';
-            correctAns = correctAns.toString().trim().charAt(0).toUpperCase();
+            let rawCorrect = mcqAnswers[qIndex] || q.answer || '';
+            if (typeof rawCorrect === 'object') rawCorrect = rawCorrect.answer || '';
+            const normalizedCorrect = normalizeAns(rawCorrect);
 
-            const isCorrectAns = correctAns === optLetter;
-            const isSelected = (userMcq.value[qId] || '').toUpperCase() === optLetter;
-
-            if (isCorrectAns) return 'border-green-500 bg-green-50 text-green-800 font-bold';
-            if (isSelected && !isCorrectAns) return 'border-red-500 bg-red-50 text-red-800 line-through';
-            return 'border-gray-200 opacity-50';
-        };
-
-        const formatText = (text) => {
-            return text ? text.replace(/\n/g, '<br>') : '';
-        };
-
-        const goBack = () => {
-            if (store.activeDeck) {
-                store.navigate('deck-detail');
-            } else {
-                store.navigate('dashboard');
-            }
-        };
-
-        return { 
+return { 
             store, isLoading, isConfiguring, testData, parsedPassage, 
             userFill, userMcq, isSubmitted, checkAnswers, score,
             viewMode, showWordBank, getInputClass, getOptionClass, formatText, 
@@ -375,7 +385,7 @@ export default {
             selectedDeckIds, levelOptions, availableDecks, toggleDeckSelection,
             selectAllDecks, deselectAllDecks, currentSourceSummary,
             isGenerateDisabled, startGenerate, openConfiguration, goBack, lastMeta,
-            loadingStepIndex, loadingSteps
+            loadingStepIndex, loadingSteps, questionCount, questionCountOptions, getOptionVal
         };
     },
     template: `
@@ -527,12 +537,49 @@ export default {
                     </div>
                 </div>
 
+                <!-- Section 3: Question Count Selector -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-pink-600 text-base"></i>
+                            <h3 class="font-extrabold text-sm sm:text-base text-gray-900">3. Số Lượng Câu Hỏi Đọc Hiểu</h3>
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-400 hidden sm:inline">Phối hợp Multiple Choice & True/False/NG</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <button v-for="opt in questionCountOptions" :key="opt.count"
+                                type="button"
+                                @click="questionCount = opt.count"
+                                class="p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between cursor-pointer"
+                                :class="questionCount === opt.count ? 'border-pink-500 bg-pink-50/50 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 bg-white'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm"
+                                     :class="questionCount === opt.count ? 'bg-pink-500 text-white' : 'bg-gray-100 text-gray-600'">
+                                    <i :class="'fa-solid ' + opt.icon"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-black text-base text-gray-900">{{ opt.label }}</span>
+                                        <span v-if="opt.badge" class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full"
+                                              :class="opt.badge === 'Khuyên dùng' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'">{{ opt.badge }}</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">{{ opt.sub }}</p>
+                                </div>
+                            </div>
+                            <div v-if="questionCount === opt.count" class="w-5 h-5 rounded-full bg-pink-600 text-white flex items-center justify-center text-[10px] font-bold">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Submit Generation Button -->
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-6 rounded-3xl border border-indigo-100 shadow-sm">
                     <div class="text-center sm:text-left">
                         <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Cấu hình sẵn sàng</p>
                         <p class="text-sm font-black text-gray-900 mt-0.5">
-                            IELTS {{ levelOptions.find(l => l.id === readingLevel)?.range }} · {{ currentSourceSummary }}
+                            IELTS {{ levelOptions.find(l => l.id === readingLevel)?.range }} · {{ currentSourceSummary }} · {{ questionCount }} câu hỏi
                         </p>
                     </div>
                     <button @click="startGenerate(true)" 
@@ -618,35 +665,53 @@ export default {
                             <i class="fa-solid fa-bullseye"></i>
                             <span>IELTS {{ testData.readingLevel || levelOptions.find(l => l.id === readingLevel)?.range }} · {{ testData.levelLabel || levelOptions.find(l => l.id === readingLevel)?.label }}</span>
                         </span>
-                        <span class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200 flex items-center gap-1.5">
-                            <i class="fa-solid fa-book-open"></i>
-                            <span>{{ lastMeta.sourceLabel || currentSourceSummary }}</span>
+                        <span class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 text-xs font-black border border-purple-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-database"></i>
+                            <span>{{ lastMeta.sourceLabel }}</span>
+                        </span>
+                        <span class="px-3 py-1 rounded-xl bg-pink-50 text-pink-700 text-xs font-black border border-pink-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            <span>{{ (testData.questions || []).length }} câu hỏi</span>
                         </span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <select v-model="viewMode" class="px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs">
-                            <option value="fill">Chế độ: Điền từ</option>
-                            <option value="read">Chế độ: Chỉ đọc hiểu</option>
-                        </select>
-                        <button @click="showWordBank = !showWordBank" class="px-3.5 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5" :class="showWordBank ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
-                            <i class="fa-solid fa-lightbulb"></i> Ngân hàng từ
-                        </button>
-                    </div>
+                    <button @click="openConfiguration" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders"></i> Tùy chỉnh đề mới
+                    </button>
                 </div>
 
                 <!-- Header -->
-                <div class="text-center space-y-2">
-                    <h1 class="text-2xl sm:text-4xl font-black text-gray-900">{{ testData.title }}</h1>
-                    <p class="text-base sm:text-lg text-gray-500 font-medium">{{ testData.titleVi }}</p>
-                </div>
+                <div class="glass-panel-strong p-6 sm:p-8 rounded-3xl shadow-sm space-y-4 bg-white border border-gray-100">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs font-black uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-2 inline-block">
+                                IELTS Reading Passage
+                            </span>
+                            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">{{ testData.title }}</h2>
+                            <p class="text-sm font-semibold text-gray-500 mt-1">{{ testData.titleVi }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button @click="showWordBank = !showWordBank" class="px-4 py-2.5 rounded-xl border border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                                <i class="fa-solid fa-list-check"></i>
+                                <span>{{ showWordBank ? 'Ẩn ngân hàng từ' : 'Xem ngân hàng từ' }}</span>
+                            </button>
+                            <button @click="viewMode = viewMode === 'fill' ? 'read' : 'fill'" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                                <i :class="viewMode === 'fill' ? 'fa-solid fa-book-open' : 'fa-solid fa-pen-to-square'"></i>
+                                <span>{{ viewMode === 'fill' ? 'Chế độ Đọc' : 'Chế độ Điền từ' }}</span>
+                            </button>
+                        </div>
+                    </div>
 
-                <!-- Word Bank -->
-                <div v-if="showWordBank" class="glass-panel p-6 rounded-2xl shadow-sm animate-fade-in border border-indigo-100 bg-indigo-50/30 mb-6">
-                    <h3 class="font-bold text-indigo-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-box-open"></i> Word Bank (Gợi Ý Từ Vựng)</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span v-for="(word, i) in testData.wordBank" :key="i" class="px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-800 font-bold text-xs">
-                            {{ word }}
-                        </span>
+                    <!-- Word Bank Drawer -->
+                    <div v-if="showWordBank" class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 animate-fade-in">
+                        <h4 class="text-xs font-black text-indigo-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group"></i> Ngân hàng từ vựng mục tiêu (Word Bank)
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span v-for="(w, idx) in (testData.answerKey?.fillBlanks || testData.answerKey?.fill_blanks || testData.wordBank || [])" :key="idx"
+                                  class="px-2.5 py-1 rounded-lg bg-white border border-indigo-200 text-xs font-bold text-indigo-700 shadow-sm">
+                                {{ w }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -670,22 +735,41 @@ export default {
                     </div>
                 </div>
 
-                <!-- Pure Academic English MCQ Questions (NO Vietnamese translation) -->
+                <!-- Pure Academic English Questions (MCQ & True/False/Not Given) -->
                 <div class="glass-panel p-6 sm:p-10 rounded-3xl shadow-sm bg-white border border-gray-100">
-                    <h3 class="text-xl sm:text-2xl font-black text-gray-900 mb-6 flex items-center gap-2.5">
-                        <i class="fa-solid fa-clipboard-question text-indigo-600"></i>
-                        <span>Reading Comprehension Questions</span>
+                    <h3 class="text-xl sm:text-2xl font-black text-gray-900 mb-6 flex items-center justify-between gap-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-clipboard-question text-indigo-600"></i>
+                            <span>Reading Comprehension Questions</span>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 font-mono">{{ (testData.questions || []).length }} Questions</span>
                     </h3>
                     
                     <div class="space-y-6">
-                        <div v-for="q in testData.questions" :key="q.id" class="p-5 sm:p-6 bg-gray-50/70 rounded-2xl border border-gray-100 shadow-sm">
-                            <p class="font-black text-base text-gray-900 mb-4">{{ q.id }}. {{ q.question }}</p>
+                        <div v-for="q in testData.questions" :key="q.id" class="p-5 sm:p-6 bg-gray-50/70 rounded-2xl border border-gray-100 shadow-sm transition hover:border-gray-200">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <p class="font-black text-base text-gray-900 leading-snug">
+                                    <span class="text-indigo-600 mr-1.5 font-mono">{{ q.id }}.</span> {{ q.question }}
+                                </p>
+                                <span v-if="q.type === 'tfng' || (q.options && q.options.includes('True'))" class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-extrabold text-[10px] uppercase border border-amber-200 shrink-0">
+                                    True / False / NG
+                                </span>
+                                <span v-else class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-extrabold text-[10px] uppercase border border-indigo-200 shrink-0">
+                                    MCQ
+                                </span>
+                            </div>
                             
-                            <div class="space-y-2.5">
-                                <label v-for="opt in q.options" :key="opt" class="flex items-start gap-3 p-3.5 border-2 rounded-xl cursor-pointer transition w-full bg-white" :class="getOptionClass(q.id, opt)">
-                                    <input type="radio" :name="'q'+q.id" :value="opt.charAt(0)" v-model="userMcq[q.id]" :disabled="isSubmitted" class="mt-1 w-4 h-4 text-indigo-600 shrink-0">
+                            <div class="grid gap-2.5" :class="q.type === 'tfng' || (q.options && q.options.length === 3 && q.options.includes('True')) ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'">
+                                <label v-for="opt in q.options" :key="opt" class="flex items-center gap-3 p-3.5 border-2 rounded-xl cursor-pointer transition w-full bg-white shadow-sm" :class="getOptionClass(q.id, opt)">
+                                    <input type="radio" :name="'q'+q.id" :value="getOptionVal(opt)" v-model="userMcq[q.id]" :disabled="isSubmitted" class="w-4 h-4 text-indigo-600 shrink-0">
                                     <span class="leading-snug text-sm font-medium">{{ opt }}</span>
                                 </label>
+                            </div>
+
+                            <!-- Explanation after submit -->
+                            <div v-if="isSubmitted && q.explanation" class="mt-3 p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 leading-relaxed flex items-start gap-2 animate-fade-in">
+                                <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5 shrink-0"></i>
+                                <span><strong>Giải thích:</strong> {{ q.explanation }}</span>
                             </div>
                         </div>
                     </div>

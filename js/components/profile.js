@@ -11,10 +11,20 @@ export default {
         const stats = ref(null);
         const geminiApiKey = ref(localStorage.getItem('gemini_api_key') || '');
         
+        const parsedKeyCount = computed(() => {
+            const raw = geminiApiKey.value || '';
+            return raw.split(/[\n,;]+/).map(k => k.trim()).filter(k => k.length > 5).length;
+        });
+
         const saveApiKey = () => {
             if (geminiApiKey.value.trim()) {
                 localStorage.setItem('gemini_api_key', geminiApiKey.value.trim());
-                showToast("Đã lưu API Key thành công!", "success");
+                const count = parsedKeyCount.value;
+                if (count > 1) {
+                    showToast(`Đã kích hoạt Multi-Key Pool với ${count} API Keys (Tự động cân bằng tải & dự phòng)!`, "success");
+                } else {
+                    showToast("Đã lưu API Key thành công!", "success");
+                }
             } else {
                 localStorage.removeItem('gemini_api_key');
                 showToast("Đã xóa API Key.", "success");
@@ -162,7 +172,7 @@ export default {
         return { 
             store, stats, BADGES_DICT, visibleBadges,
             handleAvatarUpload, triggerAvatarUpload, currentLevelInfo, currentRank,
-            geminiApiKey, saveApiKey, goBack, t, getBadgeClasses,
+            geminiApiKey, parsedKeyCount, saveApiKey, goBack, t, getBadgeClasses,
             getBadgeTitle, getBadgeIcon, getBadge3D, equippedBadgeObj,
             isEditingName, editNameInput, startEditName, saveDisplayName
         };
@@ -183,10 +193,13 @@ export default {
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Cột trái: Thông tin tài khoản -->
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="glass-panel p-8 rounded-3xl text-center relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-20"></div>
-                        
+                <div class="space-y-6">
+                    <!-- User Info Card -->
+                    <div class="glass-panel-strong p-6 sm:p-8 rounded-3xl text-center relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <!-- Top Accent Banner -->
+                        <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-amber-500/20"></div>
+
+                        <!-- Avatar Container with Overlapping Badges -->
                         <div class="relative w-28 h-28 mx-auto mb-5">
                             <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative" 
                                  style="background: linear-gradient(135deg, #6d55d1, #8b5cf6);">
@@ -218,151 +231,107 @@ export default {
                         <!-- User Display Name Header with Inline Edit -->
                         <div class="mt-5 mb-1 flex items-center justify-center gap-1.5">
                             <div v-if="!isEditingName" class="flex items-center gap-2">
-                                <h2 class="text-xl font-black text-gray-900">{{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'Chưa đặt tên' }}</h2>
-                                <button @click="startEditName" class="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Đổi tên hiển thị">
+                                <h2 class="text-xl font-black text-gray-900">
+                                    {{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'Lexi Explorer' }}
+                                </h2>
+                                <button @click="startEditName" class="w-6 h-6 rounded-full hover:bg-gray-100 text-gray-400 hover:text-indigo-600 flex items-center justify-center transition" title="Đổi tên hiển thị">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </button>
                             </div>
+                            <!-- Inline Edit Form -->
                             <div v-else class="flex items-center gap-1.5">
-                                <input type="text" v-model="editNameInput" class="px-3 py-1 text-sm font-bold rounded-xl border-2 border-indigo-400 focus:outline-none bg-white text-gray-900 max-w-[160px]" placeholder="Tên hiển thị..." @keydown.enter="saveDisplayName">
-                                <button @click="saveDisplayName" class="p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition" title="Lưu">
+                                <input v-model="editNameInput" @keyup.enter="saveDisplayName" @keyup.esc="isEditingName = false"
+                                       type="text" maxlength="30" placeholder="Nhập tên của bạn..."
+                                       class="px-3 py-1 bg-white border-2 border-indigo-400 focus:border-indigo-600 rounded-xl text-xs font-bold text-gray-900 outline-none shadow-inner w-36">
+                                <button @click="saveDisplayName" class="w-6 h-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center text-xs shadow-sm transition">
                                     <i class="fa-solid fa-check"></i>
                                 </button>
-                                <button @click="isEditingName = false" class="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs transition" title="Hủy">
+                                <button @click="isEditingName = false" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-xs transition">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                         </div>
+                        <p class="text-xs text-gray-400 font-medium">{{ store.user?.email }}</p>
 
-                        <p class="text-xs font-bold text-indigo-600 mb-0.5">Cấp độ {{ currentLevelInfo.currentLevel }} · {{ currentRank?.title }}</p>
-                        <p class="text-[11px] text-gray-400 font-medium mb-3">Tham gia: {{ new Date(store.userProfile?.createdAt?.toDate ? store.userProfile.createdAt.toDate() : Date.now()).toLocaleDateString('vi-VN') }}</p>
-
-                        <!-- Level EXP Progress Bar -->
-                        <div class="max-w-xs mx-auto mb-6 px-2">
-                            <div class="flex justify-between text-[11px] font-bold text-gray-500 mb-1">
-                                <span>Tiến độ cấp: {{ currentLevelInfo.currentProgress }} / {{ currentLevelInfo.requiredLC }} LC</span>
-                                <span class="text-indigo-600 font-mono">{{ Math.round(currentLevelInfo.percent) }}%</span>
+                        <!-- Level Progress Bar -->
+                        <div class="mt-6 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-black text-gray-700">Cấp độ {{ currentLevelInfo.currentLevel }}</span>
+                                <span class="text-xs font-bold text-purple-600 font-mono">{{ currentLevelInfo.currentExp }} / {{ currentLevelInfo.maxExp }} EXP</span>
                             </div>
-                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden shadow-inner">
-                                <div class="h-2 rounded-full bg-gradient-to-r from-amber-400 via-purple-500 to-indigo-500 transition-all duration-700" :style="{ width: currentLevelInfo.percent + '%' }"></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500" 
+                                     :style="'width: ' + currentLevelInfo.progressPercent + '%'"></div>
                             </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <div class="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 flex flex-col justify-between">
-                                <div class="text-2xl font-black text-purple-600">{{ stats?.streak || 0 }} 🔥</div>
-                                <div>
-                                    <div class="text-xs text-gray-700 font-bold mt-1">Ngày liên tiếp</div>
-                                    <div class="text-[10px] text-gray-400">Chuỗi học tập</div>
-                                </div>
-                            </div>
-                            <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-100 flex flex-col justify-between">
-                                <div class="text-2xl font-black text-amber-500">{{ (store.userProfile?.lexiCredit || 0).toLocaleString('vi-VN') }} 💎</div>
-                                <div>
-                                    <div class="text-xs text-gray-700 font-bold mt-1">Số Dư Khả Dụng</div>
-                                    <div class="text-[10px] text-gray-400 font-mono">Tích lũy: {{ (currentLevelInfo.totalLC || 0).toLocaleString('vi-VN') }} LC</div>
-                                </div>
-                            </div>
+                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Còn {{ currentLevelInfo.maxExp - currentLevelInfo.currentExp }} EXP để thăng cấp tiếp theo</p>
                         </div>
                     </div>
 
-                    <!-- AI Learning Persona Profile -->
-                    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
-                        <div class="flex items-center gap-2 mb-4">
-                            <i class="fa-solid fa-brain text-purple-500 text-xl"></i>
-                            <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">AI Learning Persona</h3>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <div class="flex justify-between text-xs mb-1 font-bold" :class="(store.userProfile?.learning_persona?.confidence || 0) < 15 ? 'text-amber-500' : 'text-emerald-500'">
-                                <span>Độ tin cậy AI (Confidence)</span>
-                                <span class="font-mono">{{ Math.round(store.userProfile?.learning_persona?.confidence || 0) }}%</span>
+                    <!-- Persona Snapshot Card -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 font-bold">
+                                    <i class="fa-solid fa-brain"></i>
+                                </div>
+                                <h3 class="font-extrabold text-sm text-gray-900 uppercase tracking-wider">Hồ Sơ Tư Duy (Persona)</h3>
                             </div>
-                            <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                                <div class="h-2 rounded-full transition-all duration-1000" 
-                                     :class="(store.userProfile?.learning_persona?.confidence || 0) < 15 ? 'bg-amber-400' : 'bg-emerald-400'"
-                                     :style="'width: ' + (store.userProfile?.learning_persona?.confidence || 0) + '%'"></div>
-                            </div>
-                            <p v-if="(store.userProfile?.learning_persona?.confidence || 0) < 15" class="text-[10px] text-gray-400 mt-2 font-medium italic">
-                                * AI đang phân tích dữ liệu học tập của bạn...
-                            </p>
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">AI Profiler</span>
                         </div>
 
-                        <div class="space-y-4">
-                            <!-- Consistency -->
+                        <!-- Persona Metrics -->
+                        <div class="space-y-3.5">
+                            <!-- Visual vs Auditory Ratio -->
                             <div>
                                 <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Tính kiên định (Consistency)</span>
-                                    <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400">{{ Math.round(store.userProfile?.learning_persona?.consistency || 50) }}%</span>
+                                    <span>Trí nhớ Thị giác / Thính giác</span>
+                                    <span class="font-mono text-xs font-extrabold text-indigo-600 dark:text-indigo-400">{{ Math.round(store.userProfile?.learning_persona?.visual_ratio || 50) }}% Thị giác</span>
                                 </div>
                                 <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-blue-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.consistency || 50) + '%'"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- Focus -->
-                            <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Độ tập trung (Focus)</span>
-                                    <span class="font-mono text-xs font-extrabold text-indigo-600 dark:text-indigo-400">{{ Math.round(store.userProfile?.learning_persona?.focus || 50) }}%</span>
-                                </div>
-                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-indigo-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.focus || 50) + '%'"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- Persistence -->
-                            <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Sự bền bỉ sau lỗi sai (Persistence)</span>
-                                    <span class="font-mono text-xs font-extrabold text-rose-600 dark:text-rose-400">{{ Math.round(store.userProfile?.learning_persona?.persistence || 50) }}%</span>
-                                </div>
-                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-rose-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.persistence || 50) + '%'"></div>
+                                    <div class="bg-indigo-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.visual_ratio || 50) + '%'"></div>
                                 </div>
                             </div>
 
-                            <!-- Metacognition -->
+                            <!-- Metacognition Calibration -->
                             <div>
                                 <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Tự nhận thức (Metacognition)</span>
+                                    <span>Độ chuẩn tự đánh giá (Metacognition)</span>
                                     <span class="font-mono text-xs font-extrabold text-purple-600 dark:text-purple-400">{{ Math.round(store.userProfile?.learning_persona?.metacognition || 50) }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
                                     <div class="bg-purple-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.metacognition || 50) + '%'"></div>
                                 </div>
                             </div>
-
-                            <!-- Exploration -->
-                            <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Khám phá thẻ mới (Exploration)</span>
-                                    <span class="font-mono text-xs font-extrabold text-teal-600 dark:text-teal-400">{{ Math.round(store.userProfile?.learning_persona?.exploration || 50) }}%</span>
-                                </div>
-                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-teal-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.exploration || 50) + '%'"></div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- API Key Settings -->
-                    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
-                        <div class="flex items-center gap-2 mb-4">
-                            <i class="fa-solid fa-key text-amber-500 text-xl"></i>
-                            <h3 class="font-bold text-gray-900 uppercase tracking-wider text-sm">Cấu hình AI (Gemini API)</h3>
+                    <!-- Multi-API Key Pool Settings -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                                <h3 class="font-black text-gray-900 uppercase tracking-wider text-xs">Cấu hình Multi-API Key Pool</h3>
+                            </div>
+                            <span v-if="parsedKeyCount > 0" class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                                  :class="parsedKeyCount > 1 ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-indigo-100 text-indigo-700'">
+                                {{ parsedKeyCount > 1 ? parsedKeyCount + ' Keys (Pool Active)' : '1 Key Active' }}
+                            </span>
                         </div>
-                        <p class="text-xs text-gray-500 mb-4 font-medium leading-relaxed">
-                            Nhập Google Gemini API Key của bạn để sử dụng các tính năng AI (chữa bài, tạo flashcard, coach). Hệ thống chỉ lưu trên trình duyệt của bạn (Local Storage).
+                        <p class="text-xs text-gray-500 mb-3 font-medium leading-relaxed">
+                            Nhập 1 hoặc nhiều Gemini API Keys (ngăn cách bằng dấu phẩy hoặc xuống dòng). Hệ thống sẽ <strong>tự động cân bằng tải Round-Robin</strong> và <strong>tự động đổi sang Key dự phòng khi gặp lỗi Rate Limit (429)</strong>.
                         </p>
-                        <div class="flex flex-col gap-2">
-                            <input type="password" v-model="geminiApiKey" placeholder="AIzaSy..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm bg-gray-50">
-                            <button @click="saveApiKey" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition-colors shadow-sm text-sm">
-                                Lưu API Key
+                        <div class="space-y-2.5">
+                            <textarea v-model="geminiApiKey" rows="3" placeholder="AIzaSy...&#10;AIzaSy... (Thêm key dự phòng)" 
+                                      class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs font-mono bg-gray-50 transition"></textarea>
+                            <button @click="saveApiKey" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-2.5 rounded-xl transition-all shadow-sm text-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Lưu Cấu Hình Key Pool ({{ parsedKeyCount }} Keys)</span>
                             </button>
                         </div>
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-indigo-500 hover:underline mt-4 inline-block font-medium">
-                            <i class="fa-solid fa-external-link-alt mr-1"></i> Lấy API Key miễn phí tại Google AI Studio
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-indigo-500 hover:underline mt-3 inline-flex items-center gap-1 font-bold">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Lấy thêm API Key miễn phí tại Google AI Studio
                         </a>
                     </div>
                 </div>

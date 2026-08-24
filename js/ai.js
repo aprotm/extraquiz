@@ -1,43 +1,131 @@
-export async function askGemini(prompt) {
-    const apiKey = localStorage.getItem('gemini_api_key');
-    if (!apiKey) {
-        throw new Error("Vui lòng nhập Gemini API Key trong Cài đặt trước khi sử dụng tính năng này.");
+/**
+ * Multi-API Key Pool & Smart Load Balancer
+ */
+class KeyPoolManager {
+    constructor() {
+        this.currentIndex = 0;
+        this.rateLimitedKeys = new Map(); // key -> cooldown timestamp
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-    
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
-            })
-        });
+    // Parses single key or multiple keys separated by comma, newline, or whitespace
+    getAllKeys() {
+        const raw = localStorage.getItem('gemini_api_key') || '';
+        if (!raw.trim()) return [];
+        return raw
+            .split(/[\n,;]+/)
+            .map(k => k.trim())
+            .filter(k => k.length > 5);
+    }
 
-        if (!response.ok) {
-            const err = await response.json();
-            let msg = err.error?.message || "Lỗi khi gọi Gemini API";
-            if (msg.includes("high demand") || msg.includes("overloaded") || response.status === 503) {
-                msg = "Hệ thống AI Google đang quá tải. Vui lòng thử lại sau giây lát!";
-            } else if (response.status === 429 || msg.includes("quota")) {
-                msg = "Vượt quá giới hạn gọi API (Rate limit). Vui lòng đợi một phút rồi thử lại!";
-            } else if (response.status === 400 && msg.includes("API key not valid")) {
-                msg = "Gemini API Key không hợp lệ. Vui lòng kiểm tra lại trong Cài đặt!";
+    getActiveKeys() {
+        const now = Date.now();
+        const allKeys = this.getAllKeys();
+        // Clean expired cooldowns
+        for (const [key, expireTime] of this.rateLimitedKeys.entries()) {
+            if (now >= expireTime) {
+                this.rateLimitedKeys.delete(key);
             }
-            throw new Error(msg);
         }
-
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
-    } catch (e) {
-        console.error("Gemini Error:", e);
-        throw e;
+        const active = allKeys.filter(k => !this.rateLimitedKeys.has(k));
+        // If all keys are temporarily rate-limited, fallback to all keys
+        return active.length > 0 ? active : allKeys;
     }
+
+    getNextKey() {
+        const keys = this.getActiveKeys();
+        if (keys.length === 0) return null;
+        const key = keys[this.currentIndex % keys.length];
+        this.currentIndex = (this.currentIndex + 1) % keys.length;
+        return key;
+    }
+
+    markRateLimited(key, cooldownMs = 60000) {
+        if (!key) return;
+        this.rateLimitedKeys.set(key, Date.now() + cooldownMs);
+    }
+
+    getKeyStats() {
+        const all = this.getAllKeys();
+        const active = this.getActiveKeys();
+        return {
+            total: all.length,
+            active: active.length,
+            isPool: all.length > 1
+        };
+    }
+}
+
+export const keyPool = new KeyPoolManager();
+
+export async function askGemini(prompt, maxRetries = null) {
+    const allKeys = keyPool.getAllKeys();
+    if (allKeys.length === 0) {
+        throw new Error("Vui lòng nhập ít nhất 1 Gemini API Key trong Cài đặt trước khi sử dụng tính năng này.");
+    }
+
+    const retries = maxRetries !== null ? maxRetries : Math.max(allKeys.length, 2);
+    let lastError = null;
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+        const apiKey = keyPool.getNextKey();
+        if (!apiKey) break;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                let msg = err.error?.message || "Lỗi khi gọi Gemini API";
+
+                // Handle Rate Limit (429) or Quota
+                if (response.status === 429 || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
+                    console.warn(`[KeyPool] API Key ending with ...${apiKey.slice(-4)} reached rate limit/quota. Switching to next key...`);
+                    keyPool.markRateLimited(apiKey, 60000);
+                    lastError = new Error("Vượt quá giới hạn gọi API (Rate limit). Đang tự động đổi sang Key dự phòng...");
+                    continue; // Try next key in pool
+                }
+
+                if (msg.includes("high demand") || msg.includes("overloaded") || response.status === 503) {
+                    console.warn(`[KeyPool] Google AI overloaded for key ...${apiKey.slice(-4)}. Trying next key...`);
+                    lastError = new Error("Hệ thống AI Google đang quá tải. Đang tự động thử lại...");
+                    continue;
+                }
+
+                if (response.status === 400 && msg.includes("API key not valid")) {
+                    console.warn(`[KeyPool] Invalid API key ...${apiKey.slice(-4)}.`);
+                    keyPool.markRateLimited(apiKey, 86400000);
+                    lastError = new Error("Gemini API Key không hợp lệ. Vui lòng kiểm tra lại trong Cài đặt!");
+                    continue;
+                }
+
+                throw new Error(msg);
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+
+        } catch (e) {
+            console.error(`[KeyPool] Request error with key ...${apiKey.slice(-4)}:`, e);
+            lastError = e;
+            if (attempt < retries - 1) {
+                continue;
+            }
+        }
+    }
+
+    throw lastError || new Error("Không thể kết nối tới Google AI với các API Key hiện có. Vui lòng thử lại!");
 }
 
 export async function getIELTSAnalysis(word, definition) {
@@ -166,22 +254,25 @@ export const IELTS_READING_LEVELS = {
 export async function generateReadingTest(input, options = {}) {
     let wordList = [];
     let readingLevel = '5.5-6.5';
+    let questionCount = 8;
 
     if (Array.isArray(input)) {
         wordList = input;
-        if (typeof options === 'object' && options?.readingLevel) {
-            readingLevel = options.readingLevel;
+        if (typeof options === 'object') {
+            readingLevel = options.readingLevel || options.level || '5.5-6.5';
+            questionCount = options.questionCount || 8;
         }
     } else if (typeof input === 'object' && input !== null) {
         wordList = input.wordList || input.cards || [];
         readingLevel = input.readingLevel || '5.5-6.5';
+        questionCount = parseInt(input.questionCount || options.questionCount || 8, 10);
     }
 
     const levelProfile = IELTS_READING_LEVELS[readingLevel] || IELTS_READING_LEVELS['5.5-6.5'];
     const listString = wordList.map(w => `${w.term} – ${w.definition}`).join('\n');
 
     const prompt = `You are a premier IELTS Reading test designer and academic linguist.
-Your mission is to generate a complete academic reading passage and comprehension test based on the learner's vocabulary list.
+Your mission is to generate a complete academic reading passage and comprehension test with EXACTLY ${questionCount} QUESTIONS based on the learner's vocabulary list.
 
 =======================================================
 TARGET DIFFICULTY PROFILE: IELTS ${levelProfile.range} (${levelProfile.label})
@@ -203,10 +294,13 @@ VOCABULARY INTEGRATION RULES:
    [điền từ]
    (phi thường, đáng kinh ngạc)
 3. Provide a full, natural Vietnamese translation for the entire passage in "passageVi".
-4. MCQ Comprehension Questions:
-   - Provide 3 to 4 rigorous multiple-choice questions (4 options: A, B, C, D each).
+4. Comprehension Questions:
+   - Provide EXACTLY ${questionCount} rigorous comprehension questions testing main ideas, details, inference, tone, and specific arguments.
+   - Mix IELTS Question Types:
+     * Multiple Choice (type: "mcq"): 4 options (A, B, C, D)
+     * True / False / Not Given (type: "tfng"): options ["True", "False", "Not Given"]
    - IMPORTANT: Questions and options MUST be 100% in English (NO Vietnamese translation inside questions/options).
-   - Questions should test main ideas, specific factual details, structural purpose, and implicit reasoning appropriate for IELTS ${levelProfile.range}.
+   - Provide a concise 1-sentence English explanation for each question explaining why the correct answer is right according to the passage.
 
 =======================================================
 JSON OUTPUT SPECIFICATION:
@@ -217,20 +311,31 @@ Respond with ONLY a valid JSON object matching this schema (no extra markdown ba
   "titleVi": "Tiêu đề bài đọc (tiếng Việt)",
   "readingLevel": "${levelProfile.range}",
   "levelLabel": "${levelProfile.label}",
+  "questionCount": ${questionCount},
   "passage": "English passage content with [điền từ]\\n(nghĩa tiếng Việt) for each fill-in slot",
   "passageVi": "Bản dịch tiếng Việt hoàn chỉnh của bài đọc",
   "wordBank": ["word1", "word2", "word3"],
   "questions": [
     {
       "id": 1,
+      "type": "mcq",
       "question": "Comprehension question in English?",
       "options": ["A. Option one", "B. Option two", "C. Option three", "D. Option four"],
-      "answer": "A"
+      "answer": "A",
+      "explanation": "According to paragraph 1, option A is directly supported by..."
+    },
+    {
+      "id": 2,
+      "type": "tfng",
+      "question": "Statement to verify according to the passage.",
+      "options": ["True", "False", "Not Given"],
+      "answer": "True",
+      "explanation": "The author explicitly mentions that..."
     }
   ],
   "answerKey": {
     "fillBlanks": ["word1", "word2", "word3"],
-    "mcq": ["A", "B", "C"]
+    "mcq": ["A", "True"]
   }
 }
 

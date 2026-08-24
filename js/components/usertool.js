@@ -8,10 +8,31 @@ import { showToast } from '../toast.js';
 export default {
     setup() {
         const isOpen = ref(false);
-        const activeSettingTab = ref('display'); // 'display' | 'audio' | 'game'
+        const activeSettingTab = ref('display'); // 'display' | 'audio' | 'game' | 'ai'
         const voices = ref([]);
         const customDisplayName = ref(store.userProfile?.displayName || '');
         const isUpdatingName = ref(false);
+        const geminiApiKey = ref(localStorage.getItem('gemini_api_key') || '');
+
+        const parsedKeyCount = computed(() => {
+            const raw = geminiApiKey.value || '';
+            return raw.split(/[\n,;]+/).map(k => k.trim()).filter(k => k.length > 5).length;
+        });
+
+        const saveApiKey = () => {
+            if (geminiApiKey.value.trim()) {
+                localStorage.setItem('gemini_api_key', geminiApiKey.value.trim());
+                const count = parsedKeyCount.value;
+                if (count > 1) {
+                    showToast(`Đã kích hoạt Multi-Key Pool với ${count} Keys (Tự động cân bằng tải & dự phòng)!`, "success");
+                } else {
+                    showToast("Đã lưu API Key thành công!", "success");
+                }
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                showToast("Đã xóa API Key.", "success");
+            }
+        };
 
         watch(() => store.userProfile?.displayName, (newVal) => {
             if (newVal) customDisplayName.value = newVal;
@@ -165,7 +186,8 @@ export default {
             adjustFontSize, adjustDailyTarget, setSpeechRate, toggleFocusMode, toggleChestAnimation, 
             toggleFloatingCredit, toggleLevelUpNotification, toggleSfx, voices, handleVoiceChange, 
             testSelectedVoice, formatVoiceLabel, resetToDefaults, isStudyOrGameMode, t,
-            customDisplayName, saveCustomName, isUpdatingName
+            customDisplayName, saveCustomName, isUpdatingName,
+            geminiApiKey, parsedKeyCount, saveApiKey
         };
     },
     template: `
@@ -180,7 +202,7 @@ export default {
                 leave-to-class="transform scale-95 opacity-0 translate-y-4"
             >
                 <div v-if="isOpen" id="settings-panel" role="dialog" aria-modal="false" 
-                     class="absolute bottom-16 right-0 mb-2 w-[min(22rem,calc(100vw-2rem))] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden text-xs">
+                     class="absolute bottom-16 right-0 mb-2 w-[min(23rem,calc(100vw-2rem))] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden text-xs">
                     
                     <!-- Header -->
                     <div class="p-4 border-b border-gray-100 bg-gray-50/60 flex justify-between items-center">
@@ -200,25 +222,31 @@ export default {
                         </div>
                     </div>
 
-                    <!-- Category Tabs -->
-                    <div class="flex border-b border-gray-100 bg-gray-50/30 p-1.5 gap-1">
+                    <!-- Category Tabs (4 Tabs) -->
+                    <div class="grid grid-cols-4 border-b border-gray-100 bg-gray-50/30 p-1.5 gap-1">
                         <button @click="activeSettingTab = 'display'"
-                                class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5"
+                                class="py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1 text-[11px]"
                                 :class="activeSettingTab === 'display' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
                             <i class="fa-solid fa-palette"></i>
-                            <span>Hiển Thị</span>
+                            <span>Hiển thị</span>
                         </button>
                         <button @click="activeSettingTab = 'audio'"
-                                class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5"
+                                class="py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1 text-[11px]"
                                 :class="activeSettingTab === 'audio' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
                             <i class="fa-solid fa-headphones"></i>
-                            <span>Âm Thanh</span>
+                            <span>Âm thanh</span>
                         </button>
                         <button @click="activeSettingTab = 'game'"
-                                class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5"
+                                class="py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1 text-[11px]"
                                 :class="activeSettingTab === 'game' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
                             <i class="fa-solid fa-gamepad"></i>
-                            <span>Học Tập</span>
+                            <span>Học tập</span>
+                        </button>
+                        <button @click="activeSettingTab = 'ai'"
+                                class="py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1 text-[11px]"
+                                :class="activeSettingTab === 'ai' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
+                            <i class="fa-solid fa-key"></i>
+                            <span>AI Key</span>
                         </button>
                     </div>
                     
@@ -406,8 +434,37 @@ export default {
                                         :class="store.settings.showLevelUpNotification !== false ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'">
                                     <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform" 
                                           :class="store.settings.showLevelUpNotification !== false ? 'translate-x-5' : 'translate-x-1'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ================= TAB 4: MULTI-KEY POOL ================= -->
+                        <div v-if="activeSettingTab === 'ai'" class="space-y-3 animate-fade-in">
+                            <div class="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-1.5">
+                                    <div class="flex items-center gap-1.5 font-bold text-amber-900 text-xs">
+                                        <i class="fa-solid fa-layer-group text-amber-600"></i>
+                                        <span>Multi-API Key Pool</span>
+                                    </div>
+                                    <span v-if="parsedKeyCount > 0" class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full"
+                                          :class="parsedKeyCount > 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                                        {{ parsedKeyCount > 1 ? parsedKeyCount + ' Keys Active' : '1 Key Active' }}
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-gray-600 leading-snug mb-2">
+                                    Nhập 1 hoặc nhiều Gemini API Keys (ngăn cách bằng dấu phẩy hoặc xuống dòng). Tự động phân bổ Round-Robin & dự phòng khi gặp 429.
+                                </p>
+                                <textarea v-model="geminiApiKey" rows="3" placeholder="AIzaSy...&#10;AIzaSy..."
+                                          class="w-full p-2 text-[11px] font-mono rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white mb-2"></textarea>
+                                <button @click="saveApiKey"
+                                        class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-floppy-disk text-[10px]"></i>
+                                    <span>Lưu Cấu Hình ({{ parsedKeyCount }} Keys)</span>
                                 </button>
                             </div>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-indigo-500 hover:underline block text-center font-semibold">
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Lấy API Key miễn phí từ Google
+                            </a>
                         </div>
 
                     </div>
