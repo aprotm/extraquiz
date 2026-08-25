@@ -534,7 +534,7 @@ export default {
                     <div>
                         <div class="flex items-center gap-2.5">
                             <h1 class="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">ExtraQuiz Command Center</h1>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">v115</span><span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 uppercase tracking-widest border border-rose-200">Admin Pro v2.0</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">v116</span><span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 uppercase tracking-widest border border-rose-200">Admin Pro v2.0</span>
                         </div>
                         <p class="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">Quản trị toàn diện Người dùng, Kho Bộ Thẻ, Phân Tích Bộ Nhớ Web & Chẩn Đoán Hệ Thống</p>
                     </div>

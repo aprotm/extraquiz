@@ -5,6 +5,36 @@ import { t } from '../i18n.js';
 import { getAvailableEnglishVoices, speakEnglishText } from '../voice.js';
 import { showToast } from '../toast.js';
 
+export const THEME_OPTIONS = [
+    {
+        id: 'default',
+        name: 'Chuẩn Gốc (Default Light/Glass)',
+        shortName: 'Chuẩn Gốc',
+        icon: 'fa-solid fa-palette',
+        previewClass: 'bg-gradient-to-br from-slate-100 via-sky-50 to-blue-100 border-slate-300 text-slate-700',
+        price: 0,
+        desc: 'Giao diện mặc định thanh lịch & tinh tế'
+    },
+    {
+        id: 'theme_matrix',
+        name: 'Cyber Matrix Neon',
+        shortName: 'Matrix Neon',
+        icon: 'fa-solid fa-terminal',
+        previewClass: 'bg-[#040810] border-[#00FF9D] text-[#00FF9D] shadow-[0_0_10px_rgba(0,255,157,0.3)]',
+        price: 1800,
+        desc: 'Deep Obsidian & Cyber Emerald Neon'
+    },
+    {
+        id: 'theme_synthwave',
+        name: 'Sunset Synthwave 80s',
+        shortName: 'Synthwave 80s',
+        icon: 'fa-solid fa-sun',
+        previewClass: 'bg-gradient-to-br from-[#0A0618] via-[#FF2A85]/25 to-[#FF7B00]/25 border-[#FF2A85] text-[#FF2A85] shadow-[0_0_10px_rgba(255,42,133,0.3)]',
+        price: 2400,
+        desc: 'Retro Outrun 80s & Laser Pink'
+    }
+];
+
 export default {
     setup() {
         const isOpen = ref(false);
@@ -13,6 +43,44 @@ export default {
         const customDisplayName = ref(store.userProfile?.displayName || '');
         const isUpdatingName = ref(false);
         const geminiApiKey = ref(localStorage.getItem('gemini_api_key') || '');
+
+        const themeOptions = THEME_OPTIONS;
+
+        const isThemeUnlocked = (themeId) => {
+            if (!themeId || themeId === 'default') return true;
+            const isAdmin = store.user?.email === 'test@test.com' || 
+                            store.userProfile?.isAdmin === true || 
+                            store.userProfile?.role === 'admin';
+            if (isAdmin) return true;
+            const unlocked = store.userProfile?.inventory?.unlockedThemes || [];
+            return Array.isArray(unlocked) && unlocked.includes(themeId);
+        };
+
+        const isThemeActive = (themeId) => {
+            const current = store.userProfile?.equippedTheme || (typeof localStorage !== 'undefined' ? localStorage.getItem('active_theme') : null) || 'default';
+            return current === themeId;
+        };
+
+        const handleEquipTheme = async (themeId) => {
+            try {
+                const equipped = await store.equipTheme(themeId);
+                if (equipped === 'theme_matrix') {
+                    showToast("⚡ Đã kích hoạt giao diện Cyber Matrix Neon!", 'success');
+                } else if (equipped === 'theme_synthwave') {
+                    showToast("🌅 Đã kích hoạt giao diện Sunset Synthwave 80s!", 'success');
+                } else {
+                    showToast("🎨 Đã khôi phục giao diện Chuẩn Gốc!", 'info');
+                }
+            } catch (e) {
+                showToast(e.message || "Không thể áp dụng giao diện!", "error");
+            }
+        };
+
+        const handleOpenStoreForTheme = (themeId) => {
+            isOpen.value = false;
+            store.navigate('store');
+            showToast("Đang chuyển đến LexiStore...", "info");
+        };
 
         const parsedKeyCount = computed(() => {
             const raw = geminiApiKey.value || '';
@@ -201,7 +269,8 @@ export default {
             toggleFloatingCredit, toggleLevelUpNotification, toggleSfx, voices, handleVoiceChange, 
             testSelectedVoice, formatVoiceLabel, resetToDefaults, isStudyOrGameMode, t,
             customDisplayName, saveCustomName, isUpdatingName,
-            geminiApiKey, parsedKeyCount, saveApiKey
+            geminiApiKey, parsedKeyCount, saveApiKey,
+            themeOptions, isThemeUnlocked, isThemeActive, handleEquipTheme, handleOpenStoreForTheme
         };
     },
     template: `
@@ -269,6 +338,74 @@ export default {
 
                         <!-- ================= TAB 1: HIỂN THỊ ================= -->
                         <div v-if="activeSettingTab === 'display'" class="space-y-3 animate-fade-in">
+                            <!-- Quick Theme Selector (Theme Picker) -->
+                            <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5 font-bold text-gray-800 dark:text-gray-200 text-xs">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i>
+                                        <span>Giao Diện VIP (Theme Picker)</span>
+                                    </div>
+                                    <button @click="handleOpenStoreForTheme()" 
+                                            class="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                            title="Mở LexiStore">
+                                        <i class="fa-solid fa-store text-[9px]"></i> LexiStore
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div v-for="thm in themeOptions" :key="thm.id"
+                                         class="p-2.5 rounded-xl border transition-all relative flex items-center justify-between gap-2.5"
+                                         :class="isThemeActive(thm.id) ? 'border-purple-500 bg-purple-50/50 dark:bg-purple-950/30 ring-1 ring-purple-400/50 shadow-sm' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600'">
+                                        
+                                        <!-- Left: Swatch & Info -->
+                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                            <!-- Visual Preview Swatch -->
+                                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border text-xs shadow-sm"
+                                                 :class="thm.previewClass">
+                                                <i :class="thm.icon"></i>
+                                            </div>
+                                            <!-- Theme Details -->
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <span class="font-extrabold text-gray-900 dark:text-gray-100 text-xs truncate">{{ thm.name }}</span>
+                                                    <span v-if="thm.price > 0 && !isThemeUnlocked(thm.id)" 
+                                                          class="text-[9px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/60 dark:text-amber-300 px-1.5 py-0.5 rounded-md shrink-0 border border-amber-200 dark:border-amber-700/50">
+                                                        <i class="fa-solid fa-coins text-[8px] mr-0.5"></i>{{ thm.price }} LC
+                                                    </span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{{ thm.desc }}</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Right: Status / Action Button -->
+                                        <div class="shrink-0 flex items-center">
+                                            <!-- Glowing Active Badge -->
+                                            <span v-if="isThemeActive(thm.id)" 
+                                                  class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.5)] border border-emerald-400/60 flex items-center gap-1 animate-pulse">
+                                                <i class="fa-solid fa-circle-check text-[10px]"></i>
+                                                <span>Đang Dùng</span>
+                                            </span>
+
+                                            <!-- Unlocked Theme: Equip Button -->
+                                            <button v-else-if="isThemeUnlocked(thm.id)" 
+                                                    @click="handleEquipTheme(thm.id)" 
+                                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all flex items-center gap-1 hover:scale-105 active:scale-95">
+                                                <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i>
+                                                <span>Áp Dụng</span>
+                                            </button>
+
+                                            <!-- Locked Theme: Unlock Button Navigating to LexiStore -->
+                                            <button v-else 
+                                                    @click="handleOpenStoreForTheme(thm.id)" 
+                                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
+                                                    title="Mở LexiStore để mở khóa">
+                                                <i class="fa-solid fa-lock text-[9px]"></i>
+                                                <span>Mở Khóa</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Custom Display Name / Nickname -->
                             <div class="p-3 rounded-2xl bg-gray-50 border border-gray-100">
                                 <div class="flex items-center gap-2 font-bold text-gray-700 text-xs mb-2">

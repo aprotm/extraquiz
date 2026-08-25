@@ -291,38 +291,66 @@ export const store = reactive({
 
     // ===== DYNAMIC THEME & COSMETIC ACTIVATION ENGINE =====
     applyActiveTheme(themeId = null) {
-        const theme = themeId || this.userProfile?.equippedTheme || localStorage.getItem('active_theme') || 'default';
-        document.documentElement.classList.remove('theme-matrix', 'theme-synthwave');
-        if (document.body) document.body.classList.remove('theme-matrix', 'theme-synthwave');
+        if (typeof document === 'undefined') return;
+
+        let targetTheme = themeId || this.userProfile?.equippedTheme;
+        if (!targetTheme && typeof localStorage !== 'undefined') {
+            targetTheme = localStorage.getItem('active_theme');
+        }
+        targetTheme = targetTheme || 'default';
+
+        if (document.documentElement) {
+            document.documentElement.classList.remove('theme-matrix', 'theme-synthwave');
+        }
+        if (document.body) {
+            document.body.classList.remove('theme-matrix', 'theme-synthwave');
+        }
         
-        if (theme === 'theme_matrix') {
-            document.documentElement.classList.add('theme-matrix');
+        const themeStr = String(targetTheme).toLowerCase();
+        if (themeStr === 'theme_matrix' || themeStr.includes('matrix')) {
+            if (document.documentElement) document.documentElement.classList.add('theme-matrix');
             if (document.body) document.body.classList.add('theme-matrix');
-        } else if (theme === 'theme_synthwave') {
-            document.documentElement.classList.add('theme-synthwave');
+        } else if (themeStr === 'theme_synthwave' || themeStr.includes('synthwave')) {
+            if (document.documentElement) document.documentElement.classList.add('theme-synthwave');
             if (document.body) document.body.classList.add('theme-synthwave');
         }
-        localStorage.setItem('active_theme', theme);
+
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('active_theme', targetTheme);
+        }
     },
 
     async equipTheme(themeId) {
-        if (!this.user || !this.userProfile) {
-            throw new Error("Vui lòng đăng nhập để sử dụng giao diện.");
+        if (themeId && themeId !== 'default') {
+            const unlocked = this.userProfile?.inventory?.unlockedThemes || [];
+            const isAdmin = this.userProfile?.role === 'admin' || this.userProfile?.isAdmin === true;
+            if (!isAdmin && !unlocked.includes(themeId)) {
+                throw new Error("Bạn chưa sở hữu giao diện này!");
+            }
         }
-        if (themeId && !(this.userProfile.inventory?.unlockedThemes || []).includes(themeId)) {
-            throw new Error("Bạn chưa sở hữu giao diện này!");
+
+        const currentEquipped = this.userProfile?.equippedTheme || 'default';
+        const newTheme = (!themeId || themeId === 'default')
+            ? 'default'
+            : (currentEquipped === themeId ? 'default' : themeId);
+
+        if (!this.userProfile) {
+            this.userProfile = {};
         }
-        // Toggle if already equipped
-        const newTheme = this.userProfile.equippedTheme === themeId ? 'default' : themeId;
         this.userProfile.equippedTheme = newTheme;
-        if (!this.userProfile.inventory) this.userProfile.inventory = {};
+        if (!this.userProfile.inventory) {
+            this.userProfile.inventory = {};
+        }
         this.userProfile.inventory.equippedTheme = newTheme;
-        
+
         this.applyActiveTheme(newTheme);
-        await updateUserProfile(this.user.uid, { 
-            equippedTheme: newTheme,
-            inventory: this.userProfile.inventory 
-        });
+
+        if (this.user?.uid) {
+            await updateUserProfile(this.user.uid, { 
+                equippedTheme: newTheme,
+                inventory: this.userProfile.inventory 
+            });
+        }
         return newTheme;
     },
 
@@ -529,3 +557,18 @@ export const store = reactive({
         }));
     }
 });
+
+// Cold-boot anti-flicker theme activation
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    try {
+        store.applyActiveTheme();
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', () => {
+                store.applyActiveTheme();
+            });
+        }
+    } catch (e) {
+        console.warn("Failed to apply initial theme on cold boot:", e);
+    }
+}
+
