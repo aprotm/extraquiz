@@ -193,7 +193,7 @@ export default {
         };
     },
     template: `
-        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[9999] select-none hide-in-focus transition-all duration-300 pointer-events-auto" @keydown.escape="isOpen = false" @click.stop>
+        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 select-none hide-in-focus transition-all duration-300 pointer-events-auto" @keydown.escape="isOpen = false" @click.stop>
             <!-- Settings Modal Panel -->
             <transition
                 enter-active-class="transition duration-200 ease-out"
@@ -475,8 +475,9 @@ export default {
 
             <!-- Floating Settings Gear Button -->
             <button @click.stop="toggleMenu" :aria-expanded="isOpen" aria-controls="settings-panel" 
-                    class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-gray-900 to-gray-800 text-white rounded-full shadow-2xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-all duration-300 hover:shadow-purple-500/30 border-2 border-white/20 shrink-0">
-                <i :class="isOpen ? 'fa-solid fa-xmark text-lg' : 'fa-solid fa-gear text-lg hover:rotate-90 transition-transform duration-500'"></i>
+                    class="w-11 h-11 bg-white hover:bg-neutral-50 text-neutral-700 hover:text-indigo-600 rounded-full shadow-md border border-neutral-200 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 hover:border-indigo-200 shrink-0"
+                    title="Cài đặt trải nghiệm">
+                <i :class="isOpen ? 'fa-solid fa-xmark text-base text-neutral-700' : 'fa-solid fa-gear text-base text-neutral-600 hover:text-indigo-600 hover:rotate-90 transition-transform duration-500'"></i>
             </button>
         </div>
     `
