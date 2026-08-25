@@ -183,6 +183,18 @@ export default {
             return activeRoutes.includes(store.currentRoute);
         });
 
+        const handleOpenSettingsEvent = () => {
+            isOpen.value = true;
+        };
+
+        onMounted(() => {
+            window.addEventListener('open-settings', handleOpenSettingsEvent);
+        });
+
+        onUnmounted(() => {
+            window.removeEventListener('open-settings', handleOpenSettingsEvent);
+        });
+
         return { 
             isOpen, activeSettingTab, toggleMenu, closeMenu, store, 
             adjustFontSize, adjustDailyTarget, setSpeechRate, toggleFocusMode, toggleChestAnimation, 
@@ -193,7 +205,7 @@ export default {
         };
     },
     template: `
-        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 select-none hide-in-focus transition-all duration-300 pointer-events-auto" @keydown.escape="isOpen = false" @click.stop>
+        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-20 right-6 sm:bottom-6 sm:right-6 z-50 select-none hide-in-focus transition-all duration-300 pointer-events-auto" @keydown.escape="isOpen = false" @click.stop>
             <!-- Settings Modal Panel -->
             <transition
                 enter-active-class="transition duration-200 ease-out"

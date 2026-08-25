@@ -289,6 +289,63 @@ export const store = reactive({
         return true;
     },
 
+    // ===== DYNAMIC THEME & COSMETIC ACTIVATION ENGINE =====
+    applyActiveTheme(themeId = null) {
+        const theme = themeId || this.userProfile?.equippedTheme || localStorage.getItem('active_theme') || 'default';
+        document.documentElement.classList.remove('theme-matrix', 'theme-synthwave');
+        if (document.body) document.body.classList.remove('theme-matrix', 'theme-synthwave');
+        
+        if (theme === 'theme_matrix') {
+            document.documentElement.classList.add('theme-matrix');
+            if (document.body) document.body.classList.add('theme-matrix');
+        } else if (theme === 'theme_synthwave') {
+            document.documentElement.classList.add('theme-synthwave');
+            if (document.body) document.body.classList.add('theme-synthwave');
+        }
+        localStorage.setItem('active_theme', theme);
+    },
+
+    async equipTheme(themeId) {
+        if (!this.user || !this.userProfile) {
+            throw new Error("Vui lòng đăng nhập để sử dụng giao diện.");
+        }
+        if (themeId && !(this.userProfile.inventory?.unlockedThemes || []).includes(themeId)) {
+            throw new Error("Bạn chưa sở hữu giao diện này!");
+        }
+        // Toggle if already equipped
+        const newTheme = this.userProfile.equippedTheme === themeId ? 'default' : themeId;
+        this.userProfile.equippedTheme = newTheme;
+        if (!this.userProfile.inventory) this.userProfile.inventory = {};
+        this.userProfile.inventory.equippedTheme = newTheme;
+        
+        this.applyActiveTheme(newTheme);
+        await updateUserProfile(this.user.uid, { 
+            equippedTheme: newTheme,
+            inventory: this.userProfile.inventory 
+        });
+        return newTheme;
+    },
+
+    async equipAvatarFrame(frameId) {
+        if (!this.user || !this.userProfile) {
+            throw new Error("Vui lòng đăng nhập để sử dụng khung avatar.");
+        }
+        if (frameId && !(this.userProfile.inventory?.unlockedFrames || []).includes(frameId)) {
+            throw new Error("Bạn chưa sở hữu khung avatar này!");
+        }
+        const newFrame = this.userProfile.equippedAvatarFrame === frameId ? null : frameId;
+        this.userProfile.equippedAvatarFrame = newFrame;
+        if (!this.userProfile.inventory) this.userProfile.inventory = {};
+        this.userProfile.inventory.equippedAvatarFrame = newFrame;
+        localStorage.setItem('active_avatar_frame', newFrame || '');
+        
+        await updateUserProfile(this.user.uid, { 
+            equippedAvatarFrame: newFrame,
+            inventory: this.userProfile.inventory 
+        });
+        return newFrame;
+    },
+
     // ===== GAMIFICATION LOGIC =====
     // getRankTitle is no longer needed locally as it's replaced by getRankFromLevel in ranks.js
 

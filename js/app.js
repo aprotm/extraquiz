@@ -174,6 +174,9 @@ const App = {
                             store.activeCards = store.decks[0].cards || [];
                         }
                         
+                        // Apply active theme
+                        store.applyActiveTheme(profile.equippedTheme);
+
                         // Check retro-active badges
                         await store.checkRetroactiveBadges();
                     } catch (err) {
@@ -766,14 +769,25 @@ const App = {
                          @click="store.navigate('profile')"
                          :title="!isSidebarExpandedVisual ? (store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'Tài khoản') : ''">
                         <div class="flex items-center gap-3 overflow-hidden">
-                            <div class="relative w-10 h-10 shrink-0">
-                                <div class="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm">
+                            <div class="relative w-10 h-10 shrink-0 flex items-center justify-center">
+                                <!-- Cyber Hexagon Neon Frame Aura -->
+                                <div v-if="store.userProfile?.equippedAvatarFrame === 'frame_cyber_hex'" 
+                                     class="absolute -inset-1 rounded-full border-2 border-cyan-400 border-dashed animate-spin-slow pointer-events-none shadow-[0_0_12px_rgba(34,211,238,0.7)] z-10"></div>
+                                <!-- Imperial Gold Crown Frame Aura -->
+                                <div v-else-if="store.userProfile?.equippedAvatarFrame === 'frame_gold_crown'" 
+                                     class="absolute -inset-1 rounded-full border-2 border-amber-400 animate-pulse pointer-events-none shadow-[0_0_15px_rgba(251,191,36,0.8)] z-10"></div>
+                                <div v-if="store.userProfile?.equippedAvatarFrame === 'frame_gold_crown'" 
+                                     class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 pointer-events-none text-amber-500 drop-shadow-md">
+                                    <i class="fa-solid fa-crown text-xs animate-bounce-short"></i>
+                                </div>
+
+                                <div class="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border-2 border-white shadow-sm relative z-0">
                                     <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
                                     <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">
                                 </div>
                                 <!-- Equipped Badge -->
                                 <div v-if="store.userProfile?.equippedBadge" 
-                                     class="absolute -bottom-1 -right-1 bg-white rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-10 select-none"
+                                     class="absolute -bottom-1 -right-1 bg-white rounded-full shadow-md w-5 h-5 flex items-center justify-center border border-amber-400 p-0.5 z-20 select-none"
                                      :title="'Huy hiệu: ' + getBadgeTitle(store.userProfile.equippedBadge)">
                                     <img v-if="getBadge3D(store.userProfile.equippedBadge)" :src="getBadge3D(store.userProfile.equippedBadge)" class="w-full h-full object-contain">
                                     <span v-else class="text-[10px]">{{ getBadgeIcon(store.userProfile.equippedBadge) }}</span>

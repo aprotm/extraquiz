@@ -175,6 +175,9 @@ export default {
             dailyMissions.value[1].current = Math.min(50, Math.floor((stats.value.todayWords || 0) * 1.5));
             dailyMissions.value[2].current = stats.value.todayWords > 30 ? 1 : 0;
         }
+        const openSettings = () => {
+            window.dispatchEvent(new CustomEvent('open-settings'));
+        };
 
         return { 
             store, searchQuery, filteredDecks, openDeck, 
@@ -182,7 +185,7 @@ export default {
             todayProgress, ringCircumference, ringOffset, getDeckAccent, t,
             levelProgress, currentRank, showRankGuide, rankGuideList,
             vocabStats, aiVocabRecommendation, dailyMissions, hasStudyHistory,
-            dailyQuote, shuffleQuote
+            dailyQuote, shuffleQuote, openSettings
         };
     },
     template: `
@@ -194,10 +197,17 @@ export default {
                 <div class="absolute -left-12 -bottom-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div class="relative z-10 text-center md:text-left flex-1">
-                    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-2 flex items-center justify-center md:justify-start gap-2">
-                        <span>Chào {{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'bạn' }}</span>
-                        <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-8 h-8 inline-block object-contain filter drop-shadow-sm animate-wiggle">
-                    </h1>
+                    <div class="flex items-center justify-between gap-4 mb-2">
+                        <h1 class="text-2xl md:text-3xl font-black text-gray-900 flex items-center justify-center md:justify-start gap-2">
+                            <span>Chào {{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'bạn' }}</span>
+                            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-8 h-8 inline-block object-contain filter drop-shadow-sm animate-wiggle">
+                        </h1>
+                        <button @click="openSettings" 
+                                class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50 hover:text-indigo-600 text-neutral-600 transition-all active:scale-95 shrink-0" 
+                                title="Cài đặt trải nghiệm">
+                            <i data-lucide="settings" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                     <p class="text-gray-500 font-medium mb-6 text-sm md:text-base">Hôm nay bạn đã học được <span class="font-bold text-indigo-600">{{ stats?.todayWords || 0 }} / {{ store.settings?.dailyTarget || 20 }}</span> từ vựng mục tiêu.</p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                         <button class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm transition-all" @click="store.navigate('roadmap')">

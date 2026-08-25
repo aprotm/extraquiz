@@ -200,8 +200,19 @@ export default {
                         <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-amber-500/20"></div>
 
                         <!-- Avatar Container with Overlapping Badges -->
-                        <div class="relative w-28 h-28 mx-auto mb-5">
-                            <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative" 
+                        <div class="relative w-28 h-28 mx-auto mb-5 flex items-center justify-center">
+                            <!-- Cyber Hexagon Neon Frame Aura -->
+                            <div v-if="store.userProfile?.equippedAvatarFrame === 'frame_cyber_hex'" 
+                                 class="absolute -inset-2.5 rounded-full border-4 border-cyan-400 border-dashed animate-spin-slow pointer-events-none shadow-[0_0_20px_rgba(34,211,238,0.8)] z-10"></div>
+                            <!-- Imperial Gold Crown Frame Aura -->
+                            <div v-else-if="store.userProfile?.equippedAvatarFrame === 'frame_gold_crown'" 
+                                 class="absolute -inset-2.5 rounded-full border-4 border-amber-400 animate-pulse pointer-events-none shadow-[0_0_25px_rgba(251,191,36,0.9)] z-10"></div>
+                            <div v-if="store.userProfile?.equippedAvatarFrame === 'frame_gold_crown'" 
+                                 class="absolute -top-7 left-1/2 -translate-x-1/2 z-20 pointer-events-none text-amber-500 drop-shadow-lg text-2xl">
+                                <i class="fa-solid fa-crown animate-bounce-short"></i>
+                            </div>
+
+                            <div @click="triggerAvatarUpload" class="group w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center text-4xl font-black text-white cursor-pointer relative z-0" 
                                  style="background: linear-gradient(135deg, #6d55d1, #8b5cf6);">
                                 <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full object-cover">
                                 <img v-else :src="'https://api.dicebear.com/7.x/notionists/svg?seed=' + (store.user?.email || 'user') + '&backgroundColor=transparent'" class="w-full h-full object-cover">

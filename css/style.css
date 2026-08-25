@@ -862,3 +862,78 @@ img[style*="display:none"] + .only-fallback { display: inline-block !important; 
     animation: neuralShimmerBar 2s linear infinite !important;
 }
 
+/* ===== DYNAMIC THEME ENGINE (LEXISTORE ACTIVATION) ===== */
+
+/* 1. CYBER MATRIX NEON THEME */
+html.theme-matrix, body.theme-matrix {
+    --color-primary: #10B981 !important;
+    --color-primary-hover: #059669 !important;
+    --color-primary-light: #ECFDF5 !important;
+}
+
+html.theme-matrix .glass-panel,
+html.theme-matrix .glass-panel-strong,
+body.theme-matrix .glass-panel,
+body.theme-matrix .glass-panel-strong {
+    border-color: rgba(16, 185, 129, 0.22) !important;
+    box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.08) !important;
+}
+
+html.theme-matrix .btn-primary,
+body.theme-matrix .btn-primary {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+    border-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+html.theme-matrix aside,
+body.theme-matrix aside {
+    border-right-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* 2. SUNSET SYNTHWAVE 80s THEME */
+html.theme-synthwave, body.theme-synthwave {
+    --color-primary: #D946EF !important;
+    --color-primary-hover: #C026D3 !important;
+    --color-primary-light: #FDF4FF !important;
+}
+
+html.theme-synthwave .glass-panel,
+html.theme-synthwave .glass-panel-strong,
+body.theme-synthwave .glass-panel,
+body.theme-synthwave .glass-panel-strong {
+    border-color: rgba(217, 70, 239, 0.25) !important;
+    box-shadow: 0 4px 20px -2px rgba(217, 70, 239, 0.12) !important;
+}
+
+html.theme-synthwave .btn-primary,
+body.theme-synthwave .btn-primary {
+    background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%) !important;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.35) !important;
+    border-color: rgba(244, 114, 182, 0.4) !important;
+}
+
+html.theme-synthwave aside,
+body.theme-synthwave aside {
+    border-right-color: rgba(217, 70, 239, 0.2) !important;
+}
+
+/* ===== AVATAR FRAME ANIMATION EFFECTS ===== */
+@keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+    animation: spinSlow 8s linear infinite !important;
+}
+
+@keyframes bounceShort {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -4px); }
+}
+
+.animate-bounce-short {
+    animation: bounceShort 2s ease-in-out infinite !important;
+}
+

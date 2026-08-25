@@ -62,13 +62,47 @@ export default {
             return false;
         };
 
+        // Check if an item is currently equipped / active
+        const isItemActive = (item) => {
+            if (item.category === 'themes') {
+                return (store.userProfile?.equippedTheme || localStorage.getItem('active_theme')) === item.id;
+            }
+            if (item.category === 'cosmetics') {
+                return (store.userProfile?.equippedAvatarFrame || localStorage.getItem('active_avatar_frame')) === item.id;
+            }
+            return false;
+        };
+
+        // Equip / Activate cosmetic or theme
+        const handleToggleEquip = async (item) => {
+            try {
+                if (item.category === 'themes') {
+                    const activeTheme = await store.equipTheme(item.id);
+                    if (activeTheme === item.id) {
+                        showToast(`🎨 Đã kích hoạt giao diện "${item.title}"!`, 'success');
+                    } else {
+                        showToast("Đã khôi phục giao diện mặc định.", "info");
+                    }
+                } else if (item.category === 'cosmetics') {
+                    const activeFrame = await store.equipAvatarFrame(item.id);
+                    if (activeFrame === item.id) {
+                        showToast(`👑 Đã trang bị khung "${item.title}"!`, 'success');
+                    } else {
+                        showToast("Đã tháo khung avatar.", "info");
+                    }
+                } else if (item.category === 'decks') {
+                    showToast("Đang chuyển đến kho bài học...", "info");
+                    store.navigate('dashboard');
+                }
+            } catch (e) {
+                showToast(e.message || "Lỗi thao tác!", "error");
+            }
+        };
+
         // Purchase action
         const handlePurchase = async (item) => {
             if (isItemOwned(item)) {
-                if (item.category === 'decks') {
-                    showToast("Bạn đã sở hữu bộ thẻ này! Đang mở danh sách...", "info");
-                    store.navigate('dashboard');
-                }
+                handleToggleEquip(item);
                 return;
             }
 
@@ -76,7 +110,7 @@ export default {
             const currentLC = store.userProfile?.lexiCredit || 0;
 
             if (currentLC < cost) {
-                showToast(`Bạn còn thiếu ${cost - currentLC} LC. Hãy làm bài tập hoặc thắng Boss để tích lũy thêm!`, 'error');
+                showToast(`Bạn còn thiếu ${cost - currentLC} LC. Hãy làm bài tập hoặc tham gia Arcade để tích lũy thêm!`, 'error');
                 return;
             }
 
@@ -88,10 +122,18 @@ export default {
                 // Celebratory Confetti if available
                 if (window.confetti) {
                     window.confetti({
-                        particleCount: 80,
+                        particleCount: 90,
                         spread: 70,
-                        origin: { y: 0.6 }
+                        origin: { y: 0.6 },
+                        colors: ['#6366f1', '#f59e0b', '#10b981']
                     });
+                }
+
+                // Auto equip newly purchased theme or frame
+                if (item.category === 'themes') {
+                    await store.equipTheme(item.id);
+                } else if (item.category === 'cosmetics') {
+                    await store.equipAvatarFrame(item.id);
                 }
 
                 showToast(`🎉 Mở khóa thành công "${item.title}"!`, 'success');
@@ -125,6 +167,8 @@ export default {
             filteredItems,
             inventory,
             isItemOwned,
+            isItemActive,
+            handleToggleEquip,
             handlePurchase,
             rarityBadgeStyle,
             searchQuery,
@@ -222,14 +266,21 @@ export default {
                         <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-800 dark:text-gray-300">
                             <i class="fa-solid fa-briefcase text-indigo-500"></i> Túi Đồ Của Bạn (Active Inventory)
                         </div>
-                        <span class="text-[10px] text-gray-400 dark:text-gray-500">Tự động đồng bộ</span>
+                        <div class="flex items-center gap-3">
+                            <span v-if="store.userProfile?.equippedTheme" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                🎨 Theme: {{ store.userProfile.equippedTheme }}
+                            </span>
+                            <span v-if="store.userProfile?.equippedAvatarFrame" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                👑 Khung: {{ store.userProfile.equippedAvatarFrame }}
+                            </span>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <!-- Streak Freeze Count -->
                         <div class="bg-slate-50 dark:bg-[#0E152B] border border-gray-200/80 dark:border-[#192445] rounded-2xl p-3.5 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
-                                <span class="text-xl">🧊</span>
+                                <i class="fa-solid fa-snowflake text-cyan-500 text-lg"></i>
                             </div>
                             <div>
                                 <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Băng Bảo Vệ</div>
@@ -240,7 +291,7 @@ export default {
                         <!-- 2x XP Boosters Active -->
                         <div class="bg-slate-50 dark:bg-[#0E152B] border border-gray-200/80 dark:border-[#192445] rounded-2xl p-3.5 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-                                <span class="text-xl">⚡</span>
+                                <i class="fa-solid fa-bolt-lightning text-amber-500 text-lg"></i>
                             </div>
                             <div>
                                 <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">2x Booster</div>
@@ -251,7 +302,7 @@ export default {
                         <!-- AI Hints -->
                         <div class="bg-slate-50 dark:bg-[#0E152B] border border-gray-200/80 dark:border-[#192445] rounded-2xl p-3.5 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0">
-                                <span class="text-xl">💡</span>
+                                <i class="fa-solid fa-lightbulb text-purple-500 text-lg"></i>
                             </div>
                             <div>
                                 <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Gợi Ý AI</div>
@@ -262,7 +313,7 @@ export default {
                         <!-- Unlocked Decks -->
                         <div class="bg-slate-50 dark:bg-[#0E152B] border border-gray-200/80 dark:border-[#192445] rounded-2xl p-3.5 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                                <span class="text-xl">📚</span>
+                                <i class="fa-solid fa-book-bookmark text-emerald-500 text-lg"></i>
                             </div>
                             <div>
                                 <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Bộ Thẻ Mở Khóa</div>
@@ -275,14 +326,33 @@ export default {
                 <!-- STORE ITEMS GRID -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div v-for="item in filteredItems" :key="item.id" 
-                         class="bg-white dark:bg-gradient-to-b dark:from-[#0E152B] dark:to-[#0A0F1F] border border-gray-200/90 dark:border-[#192445] hover:border-indigo-500/50 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl group relative overflow-hidden">
+                         class="bg-white dark:bg-gradient-to-b dark:from-[#0E152B] dark:to-[#0A0F1F] border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl group relative overflow-hidden"
+                         :class="[
+                             isItemActive(item) 
+                                 ? 'ring-2 ring-emerald-500 border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.25)]' 
+                                 : 'border-gray-200/90 dark:border-[#192445] hover:border-indigo-500/50'
+                         ]">
                         
+                        <!-- Active Status Badge Ribbon -->
+                        <div v-if="isItemActive(item)" class="absolute top-0 right-0">
+                            <div class="bg-emerald-500 text-white font-black text-[9px] uppercase tracking-wider py-1 px-4 rounded-bl-2xl shadow-md flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check"></i> Đang Kích Hoạt
+                            </div>
+                        </div>
+
                         <!-- Top Row: Icon, Rarity, Badge -->
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-4">
-                                <div class="w-16 h-16 rounded-2xl bg-indigo-50/60 dark:bg-[#121A33] border border-indigo-100 dark:border-[#202E59] flex items-center justify-center p-2 group-hover:scale-105 transition-transform shrink-0 shadow-sm">
-                                    <img v-if="item.icon3d" :src="item.icon3d" :alt="item.title" class="w-12 h-12 object-contain drop-shadow-md">
-                                    <span v-else class="text-3xl">{{ item.fallbackIcon || '📦' }}</span>
+                                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center p-2 group-hover:scale-105 transition-transform shrink-0 shadow-sm"
+                                     :class="item.iconBg || 'bg-indigo-50/60 dark:bg-[#121A33] border-indigo-100 dark:border-[#202E59]'">
+                                    <img v-if="item.icon3d" 
+                                         :src="item.icon3d" 
+                                         :alt="item.title" 
+                                         class="w-12 h-12 object-contain drop-shadow-md"
+                                         @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display='flex'">
+                                    <div :style="item.icon3d ? 'display:none' : 'display:flex'" class="w-12 h-12 items-center justify-center text-2xl">
+                                        <i :class="item.fallbackIcon || 'fa-solid fa-box-open'"></i>
+                                    </div>
                                 </div>
                                 <div class="flex flex-col items-end gap-1.5">
                                     <span v-if="item.badge" class="px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">
@@ -322,13 +392,45 @@ export default {
                                 </div>
                             </div>
 
-                            <!-- Action Button -->
-                            <button v-if="isItemOwned(item)" 
-                                    @click="handlePurchase(item)" 
-                                    class="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-check text-xs"></i>
-                                <span>{{ item.category === 'decks' ? 'Học Ngay' : 'Đã Sở Hữu' }}</span>
-                            </button>
+                            <!-- Action Buttons for Owned vs Non-owned -->
+                            <div v-if="isItemOwned(item)" class="flex items-center gap-2">
+                                <!-- Themes & Cosmetics: Equip / Active State -->
+                                <template v-if="item.category === 'themes' || item.category === 'cosmetics'">
+                                    <button v-if="isItemActive(item)" 
+                                            @click="handleToggleEquip(item)"
+                                            class="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:bg-emerald-600 transition-all flex items-center gap-1.5"
+                                            title="Bấm để gỡ bỏ / đổi về mặc định">
+                                        <i class="fa-solid fa-circle-check text-xs"></i>
+                                        <span>Đang Dùng</span>
+                                    </button>
+                                    <button v-else 
+                                            @click="handleToggleEquip(item)"
+                                            class="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-xs text-indigo-500"></i>
+                                        <span>Áp Dụng</span>
+                                    </button>
+                                </template>
+
+                                <!-- Decks: Navigate directly to Study -->
+                                <template v-else-if="item.category === 'decks'">
+                                    <button @click="handleToggleEquip(item)" 
+                                            class="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm">
+                                        <i class="fa-solid fa-graduation-cap text-xs"></i>
+                                        <span>Học Ngay</span>
+                                    </button>
+                                </template>
+
+                                <!-- Buffs: Allow purchasing more -->
+                                <template v-else>
+                                    <button @click="handlePurchase(item)" 
+                                            class="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 transition-all flex items-center gap-1.5 shadow-sm">
+                                        <i class="fa-solid fa-plus text-xs"></i>
+                                        <span>Mua Thêm</span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <!-- Non-owned Purchase Button -->
                             <button v-else 
                                     @click="handlePurchase(item)" 
                                     :disabled="isPurchasing"
