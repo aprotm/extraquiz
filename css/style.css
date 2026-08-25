@@ -374,8 +374,9 @@ img[src*="logo.png"] {
 .study-card { outline-offset: 6px; }
 .study-controls { min-height: 76px; }
 .study-score-button { min-height: 48px; }
-.mobile-nav { pointer-events: none; }
-.mobile-nav__bar { pointer-events: auto; background: rgba(255, 255, 255, 0.94); border: 1px solid var(--color-border); border-radius: 18px; padding: 4px; box-shadow: 0 8px 24px rgba(25, 20, 48, 0.14); backdrop-filter: blur(14px); }
+
+/* Mobile Nav */
+.mobile-nav__bar { background: rgba(255, 255, 255, 0.94); border: 1px solid var(--color-border); border-radius: 18px; padding: 4px; box-shadow: 0 8px 24px rgba(25, 20, 48, 0.14); backdrop-filter: blur(14px); }
 .mobile-nav__item { min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 14px; color: var(--color-text-muted); font-size: 11px; font-weight: 700; transition: color var(--motion-fast), background var(--motion-fast); }
 .mobile-nav__item i { font-size: 14px; }
 .mobile-nav__item--active { color: var(--color-accent); background: var(--color-accent-light); }
