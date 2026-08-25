@@ -197,17 +197,10 @@ export default {
                 <div class="absolute -left-12 -bottom-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div class="relative z-10 text-center md:text-left flex-1">
-                    <div class="flex items-center justify-between gap-4 mb-2">
-                        <h1 class="text-2xl md:text-3xl font-black text-gray-900 flex items-center justify-center md:justify-start gap-2">
-                            <span>Chào {{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'bạn' }}</span>
-                            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-8 h-8 inline-block object-contain filter drop-shadow-sm animate-wiggle">
-                        </h1>
-                        <button @click="openSettings" 
-                                class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50 hover:text-indigo-600 text-neutral-600 transition-all active:scale-95 shrink-0" 
-                                title="Cài đặt trải nghiệm">
-                            <i data-lucide="settings" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+                    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-2 flex items-center justify-center md:justify-start gap-2">
+                        <span>Chào {{ store.userProfile?.displayName || store.user?.email?.split('@')[0] || 'bạn' }}</span>
+                        <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Waving%20hand/Default/3D/waving_hand_3d_default.png" class="w-8 h-8 inline-block object-contain filter drop-shadow-sm animate-wiggle">
+                    </h1>
                     <p class="text-gray-500 font-medium mb-6 text-sm md:text-base">Hôm nay bạn đã học được <span class="font-bold text-indigo-600">{{ stats?.todayWords || 0 }} / {{ store.settings?.dailyTarget || 20 }}</span> từ vựng mục tiêu.</p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                         <button class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm transition-all" @click="store.navigate('roadmap')">
@@ -219,18 +212,26 @@ export default {
                     </div>
                 </div>
                 
-                <!-- Gamification stats in Hero -->
-                <div class="relative z-10 flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-                    <div class="bg-gray-50/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center flex-1 md:w-[100px] shadow-sm">
+                <!-- Gamification stats & Settings in Hero -->
+                <div class="relative z-10 flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar justify-center md:justify-end">
+                    <div class="bg-gray-50/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center flex-1 md:w-[96px] shadow-sm">
                         <i data-lucide="flame" class="w-6 h-6 text-orange-500 mb-2 fill-orange-100"></i>
                         <span class="text-xl font-bold text-gray-900">{{ stats?.streak || 0 }}</span>
                         <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mt-1">Chuỗi</span>
                     </div>
-                    <div class="bg-gray-50/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center flex-1 md:w-[100px] shadow-sm">
+                    <div class="bg-gray-50/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center flex-1 md:w-[96px] shadow-sm">
                         <i data-lucide="gem" class="w-6 h-6 text-amber-500 mb-2 fill-amber-100"></i>
                         <span class="text-xl font-bold text-gray-900">{{ store.userProfile?.lexiCredit || 0 }}</span>
                         <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mt-1">LexiCredit</span>
                     </div>
+                    <!-- Single Unified Settings Card -->
+                    <button @click="openSettings" 
+                            class="bg-gray-50/80 hover:bg-white backdrop-blur-md rounded-2xl p-4 border border-gray-100 hover:border-indigo-300 flex flex-col items-center justify-center flex-1 md:w-[96px] shadow-sm hover:shadow-md transition-all group shrink-0 active:scale-95 text-gray-700 hover:text-indigo-600 cursor-pointer" 
+                            title="Cài đặt trải nghiệm">
+                        <i data-lucide="settings" class="w-6 h-6 mb-2 text-gray-500 group-hover:text-indigo-600 group-hover:rotate-90 transition-transform duration-500"></i>
+                        <span class="text-sm font-bold text-gray-900 group-hover:text-indigo-600">Cài đặt</span>
+                        <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mt-1">Hệ thống</span>
+                    </button>
                 </div>
             </div>
 

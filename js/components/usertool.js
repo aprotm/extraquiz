@@ -274,33 +274,37 @@ export default {
         };
     },
     template: `
-        <div v-if="!isStudyOrGameMode" id="user-tool-widget" class="fixed bottom-20 right-6 sm:bottom-6 sm:right-6 z-50 select-none hide-in-focus transition-all duration-300 pointer-events-auto" @keydown.escape="isOpen = false" @click.stop>
+        <div v-if="isOpen" id="user-tool-modal-overlay" 
+             class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm select-none" 
+             @keydown.escape="isOpen = false" 
+             @click.self="isOpen = false">
             <!-- Settings Modal Panel -->
             <transition
                 enter-active-class="transition duration-200 ease-out"
-                enter-from-class="transform scale-95 opacity-0 translate-y-4"
+                enter-from-class="transform scale-95 opacity-0 translate-y-3"
                 enter-to-class="transform scale-100 opacity-100 translate-y-0"
                 leave-active-class="transition duration-150 ease-in"
                 leave-from-class="transform scale-100 opacity-100 translate-y-0"
-                leave-to-class="transform scale-95 opacity-0 translate-y-4"
+                leave-to-class="transform scale-95 opacity-0 translate-y-3"
             >
-                <div v-if="isOpen" id="settings-panel" role="dialog" aria-modal="false" 
-                     class="absolute bottom-16 right-0 mb-2 w-[min(23rem,calc(100vw-2rem))] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden text-xs">
+                <div id="settings-panel" role="dialog" aria-modal="true" 
+                     class="w-full max-w-md bg-white dark:bg-[#0E152B] rounded-3xl shadow-2xl border border-gray-100 dark:border-[#192445] overflow-hidden text-xs max-h-[88vh] flex flex-col"
+                     @click.stop>
                     
                     <!-- Header -->
-                    <div class="p-4 border-b border-gray-100 bg-gray-50/60 flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold">
+                    <div class="p-4 border-b border-gray-100 dark:border-[#192445] bg-gray-50/80 dark:bg-[#121A33] flex justify-between items-center shrink-0">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm">
                                 <i class="fa-solid fa-sliders"></i>
                             </div>
-                            <h3 class="font-extrabold text-sm text-gray-900">Thiết Lập Trải Nghiệm</h3>
+                            <h3 class="font-extrabold text-sm text-gray-900 dark:text-white">Thiết Lập Trải Nghiệm</h3>
                         </div>
-                        <div class="flex items-center gap-1.5">
-                            <button @click="resetToDefaults" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 transition" title="Khôi phục mặc định">
+                        <div class="flex items-center gap-2">
+                            <button @click="resetToDefaults" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" title="Khôi phục mặc định">
                                 <i class="fa-solid fa-rotate-left mr-0.5"></i> Mặc định
                             </button>
-                            <button @click="isOpen = false" class="w-6 h-6 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center transition">
-                                <i class="fa-solid fa-xmark text-xs"></i>
+                            <button @click="isOpen = false" class="w-7 h-7 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-700 dark:hover:text-white flex items-center justify-center transition cursor-pointer" title="Đóng">
+                                <i class="fa-solid fa-xmark text-sm"></i>
                             </button>
                         </div>
                     </div>
@@ -334,7 +338,7 @@ export default {
                     </div>
                     
                     <!-- Tab Contents -->
-                    <div class="p-4 space-y-3.5 max-h-80 overflow-y-auto custom-scrollbar">
+                    <div class="p-4 sm:p-5 space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar flex-1">
 
                         <!-- ================= TAB 1: HIỂN THỊ ================= -->
                         <div v-if="activeSettingTab === 'display'" class="space-y-3 animate-fade-in">
@@ -621,13 +625,6 @@ export default {
                     </div>
                 </div>
             </transition>
-
-            <!-- Floating Settings Gear Button -->
-            <button @click.stop="toggleMenu" :aria-expanded="isOpen" aria-controls="settings-panel" 
-                    class="w-11 h-11 bg-white hover:bg-neutral-50 text-neutral-700 hover:text-indigo-600 rounded-full shadow-md border border-neutral-200 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 hover:border-indigo-200 shrink-0"
-                    title="Cài đặt trải nghiệm">
-                <i :class="isOpen ? 'fa-solid fa-xmark text-base text-neutral-700' : 'fa-solid fa-gear text-base text-neutral-600 hover:text-indigo-600 hover:rotate-90 transition-transform duration-500'"></i>
-            </button>
         </div>
     `
 };
