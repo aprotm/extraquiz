@@ -98,52 +98,52 @@ export const MOTIVATIONAL_QUOTES = [
         category: "language",
         tag: "Tầm Nhìn",
         icon: "fa-solid fa-compass",
-        bgGradient: "from-teal-500/20 via-emerald-500/10 to-transparent",
-        accentColor: "text-teal-400"
+        bgGradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
+        accentColor: "text-blue-400"
     },
     {
         id: 10,
-        quote: "Consistency is what transforms average into excellence.",
-        author: "Tony Robbins",
-        translation: "Sự kiên định là chiếc chìa khóa duy nhất biến những điều tầm thường thành xuất chúng.",
+        quote: "Patience, persistence and perspiration make an unbeatable combination for success.",
+        author: "Napoleon Hill",
+        translation: "Kự kiên nhẫn, lòng bền bỉ và những giọt mồ hôi là công thức tuyệt đỉnh tạo nên thành công không thể quật ngã.",
         category: "discipline",
-        tag: "Kiên Trì",
-        icon: "fa-solid fa-gem",
-        bgGradient: "from-fuchsia-500/20 via-pink-500/10 to-transparent",
-        accentColor: "text-fuchsia-400"
+        tag: "Nỗ Lực",
+        icon: "fa-solid fa-fire",
+        bgGradient: "from-orange-500/20 via-red-500/10 to-transparent",
+        accentColor: "text-orange-400"
     },
     {
         id: 11,
-        quote: "It always seems impossible until it is done.",
-        author: "Nelson Mandela",
-        translation: "Mọi việc dường như luôn bất khả thi cho đến khi nó được hoàn thành.",
-        category: "resilience",
-        tag: "Đột Phá",
-        icon: "fa-solid fa-mountain-sun",
-        bgGradient: "from-amber-500/20 via-red-500/10 to-transparent",
-        accentColor: "text-amber-400"
+        quote: "The more that you read, the more things you will know. The more that you learn, the more places you'll go.",
+        author: "Dr. Seuss",
+        translation: "Đọc càng nhiều, bạn càng biết nhiều điều. Học càng rộng, bạn càng đến được nhiều chân trời mới.",
+        category: "wisdom",
+        tag: "Mở Rộng",
+        icon: "fa-solid fa-book-open-reader",
+        bgGradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
+        accentColor: "text-emerald-400"
     },
     {
         id: 12,
-        quote: "Learning another language is not only learning different words for the same things, but learning another way to think about things.",
-        author: "Flora Lewis",
-        translation: "Học một ngôn ngữ khác không chỉ là học những từ ngữ mới cho cùng một sự vật, mà là học một cách tư duy hoàn toàn mới về vạn vật.",
-        category: "language",
-        tag: "Tư Duy",
-        icon: "fa-solid fa-brain",
-        bgGradient: "from-violet-500/20 via-purple-500/10 to-transparent",
-        accentColor: "text-violet-400"
+        quote: "Motivation gets you going, but habit is what keeps you growing.",
+        author: "Jim Ryun",
+        translation: "Động lực cho bạn lý do để bắt đầu, nhưng chính thói quen mới giúp bạn không ngừng phát triển.",
+        category: "habits",
+        tag: "Thói Quen Bền Vững",
+        icon: "fa-solid fa-arrow-trend-up",
+        bgGradient: "from-purple-500/20 via-indigo-500/10 to-transparent",
+        accentColor: "text-purple-400"
     },
     {
         id: 13,
-        quote: "If you talk to a man in a language he understands, that goes to his head. If you talk to him in his language, that goes to his heart.",
-        author: "Nelson Mandela",
-        translation: "Nếu bạn nói chuyện bằng ngôn ngữ người khác hiểu, lời nói chạm vào tâm trí. Nếu bạn nói bằng chính tiếng mẹ đẻ của họ, lời nói chạm thẳng vào trái tim.",
+        quote: "Knowledge of languages is the doorway to wisdom.",
+        author: "Roger Bacon",
+        translation: "Tri thức về các ngôn ngữ chính là cánh cửa dẫn tới kho tàng trí tuệ nhân loại.",
         category: "language",
-        tag: "Kết Nối",
-        icon: "fa-solid fa-heart",
-        bgGradient: "from-rose-500/20 via-pink-500/10 to-transparent",
-        accentColor: "text-rose-400"
+        tag: "Cánh Cửa Tri Thức",
+        icon: "fa-solid fa-key",
+        bgGradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
+        accentColor: "text-amber-400"
     },
     {
         id: 14,
@@ -301,73 +301,72 @@ export const MOTIVATIONAL_QUOTES = [
     },
     {
         id: 28,
-        quote: "Waste no more time arguing what a good man should be. Be one.",
-        author: "Marcus Aurelius",
-        translation: "Đừng lãng phí thêm thời gian tranh luận thế nào là một con người xuất chúng. Hãy bắt tay vào hành động ngay bây giờ.",
-        category: "discipline",
-        tag: "Hành Động Ngay",
-        icon: "fa-solid fa-stopwatch",
-        bgGradient: "from-red-500/20 via-orange-500/10 to-transparent",
-        accentColor: "text-red-400"
+        quote: "Develop a passion for learning. If you do, you will never cease to grow.",
+        author: "Anthony J. D'Angelo",
+        translation: "Hãy thắp lên tình yêu say mê học hỏi. Khi ấy, sự trưởng thành của bạn sẽ chẳng bao giờ lụi tàn.",
+        category: "growth",
+        tag: "Say Mê",
+        icon: "fa-solid fa-heart-pulse",
+        bgGradient: "from-rose-500/20 via-pink-500/10 to-transparent",
+        accentColor: "text-rose-400"
     },
     {
         id: 29,
-        quote: "To learn to read is to light a fire; every syllable that is spelled out is a spark.",
-        author: "Victor Hugo",
-        translation: "Học đọc là thắp lên một ngọn lửa; mỗi âm tiết được đánh vần chính là một tia sáng bừng lên rạng rỡ.",
-        category: "wisdom",
-        tag: "Tia Sáng",
-        icon: "fa-solid fa-book-open-reader",
-        bgGradient: "from-amber-500/20 via-orange-500/10 to-transparent",
-        accentColor: "text-amber-400"
+        quote: "Discipline is the bridge between goals and accomplishment.",
+        author: "Jim Rohn",
+        translation: "Kỷ luật chính là cây cầu vững chắc kết nối những ước mơ với thành tựu đời thực.",
+        category: "discipline",
+        tag: "Cây Cầu Kỷ Luật",
+        icon: "fa-solid fa-bridge",
+        bgGradient: "from-blue-500/20 via-indigo-500/10 to-transparent",
+        accentColor: "text-blue-400"
     },
     {
         id: 30,
-        quote: "The journey of a thousand miles begins with one single step.",
-        author: "Lao Tzu",
-        translation: "Hành trình vạn dặm khởi đầu từ một bước chân vững chãi.",
-        category: "resilience",
-        tag: "Bước Đầu Tiên",
-        icon: "fa-solid fa-shoe-prints",
-        bgGradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
-        accentColor: "text-emerald-400"
+        quote: "Learning is not attained by chance, it must be sought for with ardor and attended to with diligence.",
+        author: "Abigail Adams",
+        translation: "Tri thức không bao giờ gõ cửa do may rủi. Nó phải được khát khao kiếm tìm và bồi đắp bằng sự siêng năng.",
+        category: "wisdom",
+        tag: "Siêng Năng",
+        icon: "fa-solid fa-lightbulb",
+        bgGradient: "from-amber-500/20 via-orange-500/10 to-transparent",
+        accentColor: "text-amber-400"
     },
     {
         id: 31,
         quote: "Change is the end result of all true learning.",
         author: "Leo Buscaglia",
-        translation: "Sự thay đổi và chuyển hóa tích cực chính là kết quả cuối cùng của mọi quá trình học tập chân chính.",
+        translation: "Sự thay đổi bản thân hướng tới phiên bản hoàn hảo hơn chính là đơm hoa kết trái của học tập.",
         category: "growth",
-        tag: "Chuyển Hóa",
-        icon: "fa-solid fa-arrow-progress",
-        bgGradient: "from-cyan-500/20 via-blue-500/10 to-transparent",
-        accentColor: "text-cyan-400"
+        tag: "Thay Đổi",
+        icon: "fa-solid fa-butterfly",
+        bgGradient: "from-purple-500/20 via-pink-500/10 to-transparent",
+        accentColor: "text-purple-400"
     },
     {
         id: 32,
-        quote: "The beautiful thing about learning is that nobody can take it away from you.",
-        author: "B.B. King",
-        translation: "Điều tuyệt vời nhất của việc học tập là tri thức bạn tích lũy sẽ mãi mãi thuộc về bạn, không ai có thể tước đoạt.",
-        category: "wisdom",
-        tag: "Vô Giá",
-        icon: "fa-solid fa-shield-heart",
-        bgGradient: "from-indigo-500/20 via-purple-500/10 to-transparent",
-        accentColor: "text-indigo-400"
+        quote: "If you talk to a man in a language he understands, that goes to his head. If you talk to him in his language, that goes to his heart.",
+        author: "Nelson Mandela",
+        translation: "Nếu bạn nói bằng ngôn ngữ người khác hiểu, lời nói đi vào trí óc. Nhưng nếu bạn nói bằng chính thứ tiếng mẹ đẻ của họ, lời nói sẽ chạm thấu trái tim.",
+        category: "language",
+        tag: "Chạm Trái Tim",
+        icon: "fa-solid fa-comments text-rose-400",
+        bgGradient: "from-rose-500/20 via-amber-500/10 to-transparent",
+        accentColor: "text-rose-400"
     }
 ];
 
 export default {
     setup() {
         const quotes = ref(MOTIVATIONAL_QUOTES);
+        const currentQuoteIndex = ref(0);
         const selectedCategory = ref('all');
-        const currentIndex = ref(Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length));
-        const isSpeaking = ref(false);
+        const favorites = ref(JSON.parse(localStorage.getItem('fav_quotes') || '[]'));
         const isCopied = ref(false);
-        const favorites = ref(JSON.parse(localStorage.getItem('extraquiz_fav_quotes') || '[]'));
         const isFlipping = ref(false);
 
         const currentQuote = computed(() => {
-            return quotes.value[currentIndex.value] || quotes.value[0];
+            return quotes.value[currentQuoteIndex.value] || quotes.value[0];
         });
 
         const filteredQuotes = computed(() => {
@@ -382,18 +381,14 @@ export default {
                 let nextIdx;
                 do {
                     nextIdx = Math.floor(Math.random() * quotes.value.length);
-                } while (nextIdx === currentIndex.value && quotes.value.length > 1);
-                currentIndex.value = nextIdx;
+                } while (nextIdx === currentQuoteIndex.value && quotes.value.length > 1);
+                currentQuoteIndex.value = nextIdx;
                 isFlipping.value = false;
             }, 250);
         };
 
         const selectQuote = (idx) => {
-            isFlipping.value = true;
-            setTimeout(() => {
-                currentIndex.value = idx;
-                isFlipping.value = false;
-            }, 200);
+            currentQuoteIndex.value = idx;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -404,229 +399,215 @@ export default {
             } else {
                 favorites.value.push(id);
             }
-            localStorage.setItem('extraquiz_fav_quotes', JSON.stringify(favorites.value));
+            localStorage.setItem('fav_quotes', JSON.stringify(favorites.value));
         };
 
-        const isFav = (id) => {
-            return favorites.value.includes(id);
-        };
+        const isFav = (id) => favorites.value.includes(id);
 
-        const copyQuote = (quote) => {
-            const textToCopy = `"${quote.quote}" - ${quote.author}\n(${quote.translation})`;
-            navigator.clipboard.writeText(textToCopy).then(() => {
+        const copyQuote = (q) => {
+            const text = `"${q.quote}"\n— ${q.author}\n(${q.translation})`;
+            navigator.clipboard.writeText(text).then(() => {
                 isCopied.value = true;
                 setTimeout(() => { isCopied.value = false; }, 2000);
             });
         };
 
-        const goBack = () => {
-            store.navigate('dashboard');
-        };
+        onMounted(() => {
+            currentQuoteIndex.value = Math.floor(Math.random() * quotes.value.length);
+        });
 
         return {
-            store,
-            quotes,
-            selectedCategory,
-            currentIndex,
-            currentQuote,
-            filteredQuotes,
-            isCopied,
-            isFlipping,
-            nextQuote,
-            selectQuote,
-            favorites,
-            toggleFavorite,
-            isFav,
-            copyQuote,
-            goBack
+            quotes, currentQuoteIndex, currentQuote, selectedCategory,
+            filteredQuotes, favorites, isCopied, isFlipping, nextQuote,
+            selectQuote, toggleFavorite, isFav, copyQuote, store
         };
     },
     template: `
-        <div class="max-w-6xl mx-auto w-full p-4 lg:p-8 animate-fade-in pb-24 select-none">
+        <div class="w-full max-w-full space-y-10 pb-28 select-none px-2 sm:px-6">
             
-            <!-- Top Header -->
-            <div class="flex items-center justify-between mb-8">
-                <div class="flex items-center gap-4">
-                    <button @click="goBack" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white shadow-sm hover:bg-purple-50 transition text-gray-500 hover:text-purple-600 border border-gray-100">
+            <!-- TOP BAR HEADER -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-2">
+                <div class="flex items-center gap-5">
+                    <button @click="store.navigate('dashboard')" class="w-14 h-14 rounded-2xl bg-white border border-gray-100 shadow-md hover:bg-gray-50 flex items-center justify-center text-gray-600 hover:text-indigo-600 transition text-xl font-black">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
-                                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Sparkles/3D/sparkles_3d.png" class="w-8 h-8 object-contain filter drop-shadow-sm">
-                                <span>Góc Động Lực (Daily Motivation)</span>
-                            </h1>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-700 uppercase tracking-wider">Tâm Trí Vững Vàng</span>
+                        <div class="flex items-center gap-3">
+                            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">Góc Động Lực Học Tập</h1>
+                            <span class="px-3.5 py-1 rounded-full text-xs sm:text-sm font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-sparkles text-amber-500"></i>
+                                <span>SPARK 32</span>
+                            </span>
                         </div>
-                        <p class="text-sm text-gray-500 font-medium mt-1">Danh ngôn song ngữ truyền cảm hứng học tập & đánh thức tiềm năng não bộ mỗi ngày</p>
+                        <p class="text-base sm:text-lg text-gray-600 font-semibold mt-1">Truyền cảm hứng rèn luyện trí tuệ, kỷ luật & thói quen kiên trì mỗi ngày</p>
                     </div>
                 </div>
 
-                <button @click="nextQuote" class="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all">
-                    <i class="fa-solid fa-shuffle" :class="isFlipping ? 'animate-spin' : ''"></i>
-                    <span>Đổi Câu Khác</span>
-                </button>
+                <div class="flex items-center gap-4 w-full sm:w-auto">
+                    <button @click="nextQuote" class="flex-1 sm:flex-initial px-7 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-base shadow-xl shadow-indigo-500/30 flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95">
+                        <i class="fa-solid fa-shuffle text-lg"></i>
+                        <span>Đổi Câu Khác</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- HERO SPOTLIGHT QUOTE CARD -->
-            <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-indigo-100/80 bg-gradient-to-br from-[#0F1426] via-[#151A30] to-[#1E1B4B] text-white p-8 lg:p-12 mb-10 transition-all duration-300 transform"
-                 :class="isFlipping ? 'opacity-0 scale-95' : 'opacity-100 scale-100'">
+            <!-- FEATURED HERO QUOTE CARD (SUPER-SIZED) -->
+            <div class="relative overflow-hidden rounded-[36px] p-8 sm:p-14 lg:p-16 text-white shadow-2xl transition-all duration-500"
+                 :class="'bg-gradient-to-br ' + currentQuote.bgGradient"
+                 style="background-color: #0b0f19;">
                 
-                <!-- Ambient Background Glows -->
-                <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-600/30 rounded-full blur-[100px] pointer-events-none"></div>
-                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-600/30 rounded-full blur-[100px] pointer-events-none"></div>
-                
-                <!-- Giant Decorative Quote Mark -->
-                <div class="absolute top-6 right-8 text-8xl lg:text-9xl font-serif text-white/5 pointer-events-none select-none leading-none">“</div>
+                <!-- Background Glow Decor -->
+                <div class="absolute -right-20 -bottom-20 w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute top-4 right-10 text-[160px] lg:text-[200px] font-serif text-white/5 pointer-events-none select-none leading-none">“</div>
 
                 <div class="relative z-10">
                     <!-- Category Tag & Actions -->
-                    <div class="flex items-center justify-between gap-4 mb-6">
-                        <div class="flex items-center gap-2">
-                            <span class="px-3 py-1 rounded-xl text-xs font-black bg-white/10 backdrop-blur-md text-amber-300 border border-white/10 flex items-center gap-1.5 shadow-sm">
-                                <i :class="currentQuote.icon"></i>
+                    <div class="flex items-center justify-between gap-4 mb-8">
+                        <div class="flex items-center gap-3">
+                            <span class="px-5 py-2 rounded-2xl text-sm sm:text-base font-black bg-white/15 backdrop-blur-md text-amber-300 border border-white/20 flex items-center gap-2.5 shadow-sm">
+                                <i :class="currentQuote.icon" class="text-lg"></i>
                                 {{ currentQuote.tag }}
                             </span>
-                            <span class="text-xs text-gray-400 font-mono">#{{ currentQuote.id }} / {{ quotes.length }}</span>
+                            <span class="text-sm sm:text-base text-gray-300 font-mono font-bold">#{{ currentQuote.id }} / {{ quotes.length }}</span>
                         </div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-3">
                             <!-- Copy Button -->
                             <button @click="copyQuote(currentQuote)" 
-                                    class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/10 active:scale-95"
+                                    class="w-13 h-13 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20 active:scale-95 text-lg"
                                     :title="isCopied ? 'Đã sao chép!' : 'Sao chép câu nói'">
-                                <i class="fa-solid text-sm" :class="isCopied ? 'fa-check text-emerald-400' : 'fa-copy'"></i>
+                                <i class="fa-solid" :class="isCopied ? 'fa-check text-emerald-400' : 'fa-copy'"></i>
                             </button>
 
                             <!-- Favorite Button -->
                             <button @click="toggleFavorite(currentQuote.id)" 
-                                    class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all backdrop-blur-md border border-white/10 active:scale-95"
-                                    :class="isFav(currentQuote.id) ? 'text-rose-400 bg-rose-500/20 border-rose-500/30' : 'text-white'"
+                                    class="w-13 h-13 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-all backdrop-blur-md border border-white/20 active:scale-95 text-lg"
+                                    :class="isFav(currentQuote.id) ? 'text-rose-400 bg-rose-500/25 border-rose-500/40' : 'text-white'"
                                     title="Lưu vào mục yêu thích">
-                                <i class="fa-solid fa-heart text-sm" :class="isFav(currentQuote.id) ? 'text-rose-400 scale-110' : ''"></i>
+                                <i class="fa-solid fa-heart" :class="isFav(currentQuote.id) ? 'text-rose-400 scale-110' : ''"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- English Quote -->
-                    <div class="my-4">
-                        <p class="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-snug tracking-tight text-white/95 font-serif italic mb-4">
+                    <!-- English Quote (Super Big typography) -->
+                    <div class="my-8">
+                        <p class="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white font-serif italic mb-8 drop-shadow-md">
                             "{{ currentQuote.quote }}"
                         </p>
                     </div>
 
-                    <!-- Vietnamese Translation -->
-                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md max-w-2xl mb-8">
-                        <p class="text-base sm:text-lg text-indigo-200 font-medium leading-relaxed">
+                    <!-- Vietnamese Translation (Super Big & Clear) -->
+                    <div class="p-6 sm:p-8 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-md max-w-4xl mb-10 shadow-lg">
+                        <p class="text-xl sm:text-2xl lg:text-3xl text-indigo-100 font-bold leading-relaxed">
                             {{ currentQuote.translation }}
                         </p>
                     </div>
 
                     <!-- Author & Shuffle Button -->
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-white/10">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-black text-sm text-white shadow-md">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-6 border-t border-white/20">
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-black text-2xl text-white shadow-xl">
                                 {{ currentQuote.author.charAt(0) }}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white text-base leading-tight">{{ currentQuote.author }}</h4>
-                                <span class="text-xs text-gray-400">Tác giả & Danh nhân</span>
+                                <h4 class="font-black text-white text-xl sm:text-2xl leading-tight">{{ currentQuote.author }}</h4>
+                                <span class="text-sm sm:text-base text-gray-300 font-semibold">Tác giả & Danh nhân</span>
                             </div>
                         </div>
 
-                        <button @click="nextQuote" class="sm:hidden w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30">
-                            <i class="fa-solid fa-shuffle"></i>
+                        <button @click="nextQuote" class="sm:hidden w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-base flex items-center justify-center gap-3 shadow-xl">
+                            <i class="fa-solid fa-shuffle text-lg"></i>
                             Đổi Câu Khác
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- CATEGORY FILTER TABS -->
-            <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
+            <!-- CATEGORY FILTER TABS (Large & Readable) -->
+            <div class="flex items-center gap-3 overflow-x-auto pb-3 scrollbar-hide">
                 <button @click="selectedCategory = 'all'" 
-                        class="px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border"
-                        :class="selectedCategory === 'all' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'">
-                    <i class="fa-solid fa-layer-group"></i> Tất Cả ({{ quotes.length }})
+                        class="px-7 py-3.5 rounded-2xl text-sm sm:text-base font-black transition-all shrink-0 flex items-center gap-3 border shadow-sm"
+                        :class="selectedCategory === 'all' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/25 scale-105' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'">
+                    <i class="fa-solid fa-layer-group text-lg"></i> Tất Cả ({{ quotes.length }})
                 </button>
                 <button @click="selectedCategory = 'discipline'" 
-                        class="px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border"
-                        :class="selectedCategory === 'discipline' ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/20' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'">
-                    <i class="fa-solid fa-fire-flame-curved text-rose-500"></i> Kỷ Luật
+                        class="px-7 py-3.5 rounded-2xl text-sm sm:text-base font-black transition-all shrink-0 flex items-center gap-3 border shadow-sm"
+                        :class="selectedCategory === 'discipline' ? 'bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-500/25 scale-105' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'">
+                    <i class="fa-solid fa-fire-flame-curved text-rose-500 text-lg"></i> Kỷ Luật
                 </button>
                 <button @click="selectedCategory = 'habits'" 
-                        class="px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border"
-                        :class="selectedCategory === 'habits' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-500/20' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'">
-                    <i class="fa-solid fa-chart-line-up text-emerald-500"></i> Thói Quen
+                        class="px-7 py-3.5 rounded-2xl text-sm sm:text-base font-black transition-all shrink-0 flex items-center gap-3 border shadow-sm"
+                        :class="selectedCategory === 'habits' ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/25 scale-105' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'">
+                    <i class="fa-solid fa-chart-line-up text-emerald-500 text-lg"></i> Thói Quen
                 </button>
                 <button @click="selectedCategory = 'growth'" 
-                        class="px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border"
-                        :class="selectedCategory === 'growth' ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-500/20' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'">
-                    <i class="fa-solid fa-bolt text-amber-500"></i> Khởi Đầu & Phát Triển
+                        class="px-7 py-3.5 rounded-2xl text-sm sm:text-base font-black transition-all shrink-0 flex items-center gap-3 border shadow-sm"
+                        :class="selectedCategory === 'growth' ? 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-500/25 scale-105' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'">
+                    <i class="fa-solid fa-bolt text-amber-500 text-lg"></i> Khởi Đầu & Phát Triển
                 </button>
                 <button @click="selectedCategory = 'language'" 
-                        class="px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border"
-                        :class="selectedCategory === 'language' ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'">
-                    <i class="fa-solid fa-earth-americas text-blue-500"></i> Ngôn Ngữ
+                        class="px-7 py-3.5 rounded-2xl text-sm sm:text-base font-black transition-all shrink-0 flex items-center gap-3 border shadow-sm"
+                        :class="selectedCategory === 'language' ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/25 scale-105' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'">
+                    <i class="fa-solid fa-earth-americas text-blue-500 text-lg"></i> Ngôn Ngữ
                 </button>
                 <button @click="selectedCategory = 'fav'" 
-                        class="px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border"
-                        :class="selectedCategory === 'fav' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'">
-                    <i class="fa-solid fa-heart text-rose-500"></i> Yêu Thích ({{ favorites.length }})
+                        class="px-7 py-3.5 rounded-2xl text-sm sm:text-base font-black transition-all shrink-0 flex items-center gap-3 border shadow-sm"
+                        :class="selectedCategory === 'fav' ? 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/25 scale-105' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'">
+                    <i class="fa-solid fa-heart text-rose-500 text-lg"></i> Yêu Thích ({{ favorites.length }})
                 </button>
             </div>
 
-            <!-- QUOTES GRID COLLECTION -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- QUOTES GRID COLLECTION (2-COLUMNS ON DESKTOP FOR WIDE SPACIOUS CARDS!) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 sm:gap-10">
                 <div v-for="(item, idx) in filteredQuotes" :key="item.id"
                      @click="selectQuote(quotes.indexOf(item))"
-                     class="bg-white rounded-3xl p-6 border border-gray-100 hover:border-indigo-300 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
+                     class="bg-white rounded-[32px] p-8 sm:p-10 border-2 border-gray-100 hover:border-indigo-400 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
                     
                     <!-- Top Category & Fav -->
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-indigo-50 text-indigo-700 flex items-center gap-1.5">
-                            <i :class="item.icon"></i>
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-black bg-indigo-50 text-indigo-800 flex items-center gap-2 border border-indigo-100">
+                            <i :class="item.icon" class="text-sm"></i>
                             {{ item.tag }}
                         </span>
                         <button @click.stop="toggleFavorite(item.id)" 
-                                class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                                :class="isFav(item.id) ? 'text-rose-500 bg-rose-50' : 'text-gray-300 hover:text-rose-400 hover:bg-rose-50/50'">
-                            <i class="fa-solid fa-heart text-xs"></i>
+                                class="w-11 h-11 rounded-2xl flex items-center justify-center transition-colors"
+                                :class="isFav(item.id) ? 'text-rose-500 bg-rose-50' : 'text-gray-300 hover:text-rose-400 hover:bg-rose-50/60'">
+                            <i class="fa-solid fa-heart text-lg"></i>
                         </button>
                     </div>
 
-                    <!-- English Text -->
-                    <p class="text-gray-900 font-bold text-base leading-snug font-serif italic mb-3 group-hover:text-indigo-600 transition-colors">
+                    <!-- English Text (Huge & Impactful) -->
+                    <p class="text-gray-900 font-black text-xl sm:text-2xl lg:text-3xl leading-snug font-serif italic mb-5 group-hover:text-indigo-600 transition-colors">
                         "{{ item.quote }}"
                     </p>
 
-                    <!-- Vietnamese Text -->
-                    <p class="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-4">
+                    <!-- Vietnamese Text (Clear & Easy on the eyes) -->
+                    <p class="text-gray-600 text-base sm:text-lg leading-relaxed line-clamp-3 mb-8 font-semibold">
                         {{ item.translation }}
                     </p>
 
                     <!-- Footer Author -->
-                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-                        <span class="font-extrabold text-gray-700">— {{ item.author }}</span>
-                        <span class="text-[11px] text-gray-400 font-mono">#{{ item.id }}</span>
+                    <div class="pt-5 border-t border-gray-100 flex items-center justify-between text-base">
+                        <span class="font-black text-gray-900 text-base sm:text-lg">— {{ item.author }}</span>
+                        <span class="text-xs sm:text-sm text-gray-400 font-mono font-bold">#{{ item.id }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Bottom Motivation Banner -->
-            <div class="mt-12 p-8 rounded-3xl bg-gradient-to-r from-amber-50 via-orange-50 to-indigo-50 border border-amber-200/60 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-                <div class="flex items-center gap-5">
-                    <div class="w-16 h-16 rounded-2xl bg-white p-2 shadow-md shrink-0 flex items-center justify-center text-3xl select-none">
+            <div class="mt-10 p-10 sm:p-12 rounded-[36px] bg-gradient-to-r from-amber-50 via-orange-50 to-indigo-50 border-2 border-amber-200/80 flex flex-col md:flex-row items-center justify-between gap-8 shadow-md">
+                <div class="flex items-center gap-6">
+                    <div class="w-20 h-20 rounded-3xl bg-white p-3 shadow-lg shrink-0 flex items-center justify-center text-5xl select-none">
                         ⭐
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-gray-900">Sức mạnh của 1% mỗi ngày!</h3>
-                        <p class="text-sm text-gray-600 leading-relaxed mt-1">
+                        <h3 class="text-2xl sm:text-3xl font-black text-gray-900">Sức mạnh của 1% mỗi ngày!</h3>
+                        <p class="text-base sm:text-lg text-gray-700 leading-relaxed font-semibold mt-2">
                             Nếu bạn tốt hơn 1% mỗi ngày trong vòng 1 năm, bạn sẽ tiến bộ gấp <b>37 lần</b>. Hãy hoàn thành ngay 1 phiên ôn tập hôm nay để duy trì ngọn lửa!
                         </p>
                     </div>
                 </div>
-                <button @click="store.navigate('dashboard')" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-sm shadow-lg shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all shrink-0">
+                <button @click="store.navigate('dashboard')" class="px-10 py-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-lg shadow-2xl shadow-indigo-500/30 hover:scale-105 active:scale-95 transition-all shrink-0">
                     Bắt Đầu Học Ngay 🚀
                 </button>
             </div>

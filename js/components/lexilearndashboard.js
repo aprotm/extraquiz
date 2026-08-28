@@ -536,16 +536,6 @@ export default {
                         <span>Hướng dẫn</span>
                     </button>
 
-                    <!-- Quotes Button -->
-                    <button @click="store.navigate('quotes')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#0F1528] transition-all group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#131A30] text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-400/10 transition-colors">
-                                <i class="fa-solid fa-quote-left text-sm"></i>
-                            </div>
-                            <span>Góc Động Lực</span>
-                        </div>
-                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white uppercase tracking-wider">Quote</span>
-                    </button>
 
                     <!-- Admin Control Button -->
                     <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'" 

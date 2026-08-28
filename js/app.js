@@ -592,12 +592,16 @@ const App = {
                 <div class="h-[72px] flex items-center px-4 border-b border-gray-100 dark:border-[#1E2540] justify-between cursor-pointer group shrink-0">
                     <div class="flex items-center gap-3 overflow-hidden" @click="store.navigate('dashboard')">
                         <div class="w-10 h-10 shrink-0 transition transform group-hover:scale-105 flex items-center justify-center">
-                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm">
+                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-md">
                         </div>
-                        <span class="text-xl font-black text-gray-900 dark:text-white tracking-tight whitespace-nowrap transition-all duration-300"
-                              :class="isSidebarExpandedVisual ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none w-0'">
-                            Lexi<span class="text-amber-500">Learn</span>
-                        </span>
+                        <div class="whitespace-nowrap transition-all duration-300 overflow-hidden"
+                             :class="isSidebarExpandedVisual ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none w-0'">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-lg font-black text-gray-900 dark:text-white tracking-tight">Lexi<span class="text-amber-500">Learn</span></span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider shadow-sm">PRO</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold tracking-wide">Neuro-Cognitive Lab</p>
+                        </div>
                     </div>
 
                     <!-- Pin/Unpin button (visible when expanded in study mode) -->
@@ -724,23 +728,6 @@ const App = {
                         </span>
                     </button>
 
-                    <!-- Quotes / Spark -->
-                    <button @click="store.navigate('quotes')" 
-                            class="w-full flex items-center rounded-xl text-sm font-semibold transition-all group relative"
-                            :class="[
-                                isSidebarExpandedVisual ? 'px-3 py-2.5 gap-3' : 'justify-center py-3 px-0',
-                                store.currentRoute === 'quotes' 
-                                    ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold' 
-                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
-                            ]"
-                            :title="!isSidebarExpandedVisual ? 'Góc Động Lực' : ''">
-                        <i data-lucide="sparkles" class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" :class="store.currentRoute === 'quotes' ? 'text-amber-500' : 'text-amber-400'"></i>
-                        <span class="flex items-center justify-between flex-1 whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isSidebarExpandedVisual ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 hidden'">
-                            <span>Góc Động Lực</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider">Spark</span>
-                        </span>
-                    </button>
 
                     <!-- Admin Panel Link -->
                     <button v-if="store.user?.email === 'test@test.com' || store.userProfile?.isAdmin || store.userProfile?.role === 'admin'" 
@@ -814,17 +801,23 @@ const App = {
             <!-- Main Content Area -->
             <div class="flex-1 flex flex-col min-w-0 shadow-inner rounded-l-3xl border-l relative transition-colors" :class="store.currentRoute === 'lexilearn-dashboard' ? 'bg-[#0B1020] border-[#1E2540]' : 'bg-white/40 dark:bg-[#0B0F19] backdrop-blur-sm border-white/50 dark:border-[#1E293B]'">
                 <!-- Mobile Header -->
-                <header class="lg:hidden glass-panel-strong sticky top-0 z-40 px-4 py-3 flex justify-between items-center hide-in-focus border-b border-gray-100" v-show="['dashboard'].includes(store.currentRoute)">
-                    <div class="flex items-center gap-3 cursor-pointer" @click="store.navigate('dashboard')">
-                        <div class="w-8 h-8">
-                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm">
+                <header class="lg:hidden glass-panel-strong sticky top-0 z-40 px-4 py-3 flex justify-between items-center hide-in-focus border-b border-gray-100 dark:border-[#1E2540]" v-show="['dashboard'].includes(store.currentRoute)">
+                    <div class="flex items-center gap-2.5 cursor-pointer" @click="store.navigate('dashboard')">
+                        <div class="w-9 h-9 shrink-0">
+                            <img src="./assets/logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-md">
                         </div>
-                        <span class="text-lg font-black text-gray-900">Lexi<span class="text-amber-500">Learn</span></span>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-base font-black text-gray-900 dark:text-white">Lexi<span class="text-amber-500">Learn</span></span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wider shadow-sm">PRO</span>
+                            </div>
+                            <p class="text-[9px] text-gray-500 dark:text-gray-400 font-bold tracking-wide">Neuro-Cognitive Lab</p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-50 border border-amber-100 shadow-sm">
-                            <i data-lucide="gem" class="w-3 h-3 text-amber-500 fill-amber-500"></i>
-                            <span class="font-extrabold text-amber-600 font-mono text-xs">{{ store.userProfile?.lexiCredit || 0 }}</span>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 shadow-sm">
+                            <i data-lucide="gem" class="w-3.5 h-3.5 text-amber-500 fill-amber-500"></i>
+                            <span class="font-black text-amber-600 dark:text-amber-400 font-mono text-xs">{{ store.userProfile?.lexiCredit || 0 }}</span>
                         </div>
                     </div>
                 </header>

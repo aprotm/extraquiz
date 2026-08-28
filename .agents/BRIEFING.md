@@ -1,45 +1,41 @@
-# BRIEFING — 2026-08-25T01:35:25Z
+# BRIEFING — 2026-08-25T11:56:35Z
 
 ## Mission
-Deliver Full Theme Visual Overhaul Engine for Cyber Matrix Neon & Sunset Synthwave 80s themes in LexiStore & Settings.
+Isolate Gemini Image Extraction subsystem into standalone package at E:\testcapture\HSA_EXAM_TOOL\image_extractor with CLI (image_extractor_cli.py), compatibility layer for full pipeline (structured_extractor.py), golden-master characterization test suite, visual debug overlay viewer, and benchmark suite while preserving 100% Gemini logic and bug fixes.
 
 ## 🔒 My Identity
 - Archetype: sentinel
-- Working directory: e:/flashcardbyvanhngo/.agents/sentinel/
-- Orchestrator: 194bb747-f789-46fe-9be4-c5b580e993be
-- Victory Auditor: ef185b4f-a027-4552-bde1-5e4446645b47
+- Working directory: e:/flashcardbyvanhngo/.agents/
+- Target project directory: E:\testcapture\HSA_EXAM_TOOL
+- Orchestrator: 0895d896-1d9b-4915-8f67-6cddcfb4e834
+- Victory Auditor: [TBD - On victory claim]
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
-- Must route per Routing Decision Table
-- Monitor orchestrator progress and liveness via crons
+- Route per Routing Decision Table: General (teamwork_preview_orchestrator)
+- 100% preservation of Gemini API / prompt / parsing / coordinates / heuristics
+- Zero regression on existing pipeline
 
 ## User Context
-- **Last user request**: Build Full Theme Visual Overhaul Engine (Cyber Matrix Neon & Sunset Synthwave 80s), Quick Theme Selector in Settings, high contrast, zero regression.
+- **Last user request**: Refactor & isolate Gemini Image Extractor into standalone module + CLI + test suite + compatibility wrapper in E:\testcapture\HSA_EXAM_TOOL.
 - **Pending clarifications**: none
-- **Delivered results**:
-  - Full Cyber Matrix Neon Theme Engine (Deep Obsidian, Emerald Glow, Circuit Grid)
-  - Full Sunset Synthwave 80s Theme Engine (Outrun Horizon, Hot Pink/Orange/Purple Chrome Laser)
-  - Quick Theme Selector in Settings Modal (UserTool Display Tab)
-  - Two-Way Synchronization between Settings & LexiStore
-  - 100% Zero-Regression across all 10+ core interactive views
-  - WCAG AAA High-Contrast Text Verification
-  - Exhaustive E2E Test Suite (`tests/test_e2e_full_verification.js`) & `TEST_READY.md`
+- **Delivered results**: [none yet - execution in progress]
 
 ## Project Status
-- **Phase**: complete
+- **Phase**: in progress
 - **Route**: General (teamwork_preview_orchestrator)
-- **Active Orchestrator**: 194bb747-f789-46fe-9be4-c5b580e993be (retired upon completion)
+- **Active Orchestrator**: 0895d896-1d9b-4915-8f67-6cddcfb4e834
+- **Progress Cron**: task-27 (*/8 * * * *)
+- **Liveness Cron**: task-29 (*/10 * * * *)
 
 ## Victory Audit Status
-- **Triggered**: yes
-- **Verdict**: VICTORY CONFIRMED
+- **Triggered**: no
+- **Verdict**: pending
 - **Retry count**: 0
 
 ## Artifact Index
-- e:/flashcardbyvanhngo/.agents/ORIGINAL_REQUEST.md — Verbatim user request
-- e:/flashcardbyvanhngo/.agents/BRIEFING.md — Sentinel briefing
-- e:/flashcardbyvanhngo/TEST_READY.md — Verification guide & test matrix
-- e:/flashcardbyvanhngo/PROJECT.md — Project execution plan & milestone log
-- e:/flashcardbyvanhngo/.agents/teamwork_preview_victory_auditor_1/handoff.md — Independent Victory Audit Report
+- e:/flashcardbyvanhngo/.agents/ORIGINAL_REQUEST.md — Authoritative User Request
+- E:/testcapture/HSA_EXAM_TOOL/.agents/ORIGINAL_REQUEST.md — Target Project Copy
+- e:/flashcardbyvanhngo/.agents/BRIEFING.md — Sentinel Working Memory
+- E:/testcapture/HSA_EXAM_TOOL/.agents/teamwork_preview_orchestrator_1/ — Orchestrator Workspace

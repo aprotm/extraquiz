@@ -259,12 +259,9 @@ export default {
                         </div>
                     </div>
                     <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                        <button @click="shuffleQuote" class="w-9 h-9 rounded-xl bg-white hover:bg-amber-50 text-gray-700 hover:text-amber-600 border border-gray-200 shadow-sm flex items-center justify-center transition-all active:scale-95" title="Đổi câu khác">
+                        <button @click="shuffleQuote" class="px-3 py-2 rounded-xl bg-white hover:bg-amber-50 text-gray-700 hover:text-amber-600 border border-gray-200 shadow-sm flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95" title="Đổi câu khác">
                             <i class="fa-solid fa-shuffle text-xs"></i>
-                        </button>
-                        <button @click="store.navigate('quotes')" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-1.5" title="Mở Góc Động Lực">
-                            <span>Góc Động Lực</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            <span>Đổi câu</span>
                         </button>
                     </div>
                 </div>

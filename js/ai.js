@@ -146,55 +146,66 @@ Hãy trả về kết quả dưới định dạng JSON chính xác như sau (kh
     return JSON.parse(cleanText);
 }
 
-export async function generateRoadmap(inputBand, targetBand, timeMonths, purpose, studyHours) {
-    const prompt = `Bạn là một chuyên gia tư vấn học tập IELTS với kinh nghiệm 10+ năm, từng hỗ trợ hàng nghìn học viên đạt band mục tiêu. Nhiệm vụ của bạn là thiết kế một **lộ trình học IELTS chi tiết, cá nhân hóa cao** dựa trên thông tin người học.
+export async function generateRoadmap(inputBand, targetBand, timeMonths, purpose, studyHours, strategyType = 'pull_strategy') {
+    const prompt = `Bạn là một chuyên gia khảo thí và cố vấn học tập IELTS hàng đầu (IELTS Academic Master Coach 10+ năm kinh nghiệm), am hiểu sâu sắc thói quen, điểm mạnh và điểm yếu của học sinh - sinh viên Việt Nam.
+Nhiệm vụ của bạn là thiết kế một **Lộ trình học IELTS cá nhân hóa đỉnh cao** áp dụng **Chiến thuật gánh điểm thông minh (Pull Strategy) chuẩn khảo thí IDP/British Council**.
 
-**THÔNG TIN ĐẦU VÀO:**
-- Band hiện tại (nếu chưa thi thì ước lượng): ${inputBand}
+**THÔNG TIN HỌC VIÊN:**
+- Band hiện tại: ${inputBand}
 - Band mục tiêu: ${targetBand}
-- Thời gian ôn thi (tháng): ${timeMonths}
-- Nhu cầu chính: ${purpose} (ví dụ: du học bậc đại học, xin việc tại công ty đa quốc gia, xét tốt nghiệp THPT, định cư, ...)
-- Thời gian học trung bình mỗi ngày (giờ): ${studyHours}
+- Thời gian ôn luyện: ${timeMonths} tháng
+- Mục đích chính: ${purpose}
+- Thời gian học mỗi ngày: ${studyHours} giờ/ngày
+- Chiến lược định hướng: ${strategyType === 'balanced' ? 'Phát triển đồng đều 4 kỹ năng' : strategyType === 'weakness_boost' ? 'Tập trung bứt phá kỹ năng yếu' : 'Chiến thuật gánh điểm kinh điển cho học sinh Việt Nam (Listening & Reading kéo điểm Writing & Speaking)'}
 
-**YÊU CẦU ĐẦU RA – LỘ TRÌNH PHẢI BAO GỒM:**
+---
 
-### 1. Đánh giá trình độ hiện tại và khoảng cách
-- Phân tích điểm mạnh/yếu của người học dựa trên band đầu vào (nếu có) hoặc ước lượng.
-- Chỉ rõ mức độ chênh lệch giữa band hiện tại và band mục tiêu (khoảng cách).
-- Dự đoán thách thức lớn nhất với từng kỹ năng (Nghe, Nói, Đọc, Viết).
+**QUY TẮC BẮT BUỘC TRONG LỘ TRÌNH:**
 
-### 2. Mục tiêu cụ thể cho từng kỹ năng
-- Đề xuất điểm số cần đạt cho mỗi kỹ năng (Nghe, Nói, Đọc, Viết) để đạt được band tổng mong muốn.
-- Giải thích ngắn gọn lý do phân bổ điểm đó.
+### 1. ĐÁNH GIÁ TRÌNH ĐỘ VÀ KHOẢNG CÁCH (GAP ANALYSIS)
+- Phân tích khoảng cách từ ${inputBand} lên ${targetBand} (chênh lệch +${(Number(targetBand) - Number(inputBand)).toFixed(1)} Band).
+- Chỉ rõ thực trạng học viên Việt Nam: Thế mạnh về ngữ pháp/từ vựng tiếp nhận (Reading/Listening) và rào cản tâm lý khi phản xạ/diễn đạt (Writing/Speaking).
 
-### 3. Lộ trình chi tiết theo giai đoạn (chia theo tháng hoặc tuần)
-Với mỗi giai đoạn, hãy cung cấp:
-- **Mục tiêu giai đoạn:** Cụ thể cho từng kỹ năng.
-- **Nội dung học tập:**
-  - Nghe: Các dạng bài tập (VD: điền từ, bản đồ, matching), số lượng bài nghe/tuần, gợi ý nguồn nghe (BBC, TED, Podcast...).
-  - Đọc: Các dạng bài đọc (True/False/NG, Matching Headings, Summary...), chiến thuật skimming/scanning, luyện tốc độ đọc.
-  - Viết: Phân bổ thời gian cho Task 1 và Task 2, các dạng đề, cấu trúc bài viết, từ vựng học thuật (Academic word list).
-  - Nói: Các chủ đề Part 1, Part 2 (cue card), Part 3, cách phát triển ý, phát âm, ngữ điệu.
-- **Từ vựng:** Chủ đề và số lượng từ cần học mỗi tuần (theo chủ đề: Education, Environment, Technology, Health, etc.).
-- **Ngữ pháp:** Các cấu trúc quan trọng cần ôn (câu điều kiện, mệnh đề quan hệ, đảo ngữ, thì...).
-- **Lịch học gợi ý hàng ngày:** Phân chia thời gian cụ thể cho từng kỹ năng, đảm bảo phù hợp với ${studyHours} giờ mỗi ngày.
+### 2. MỤC TIÊU CỤ THỂ CHO TỪNG KỸ NĂNG (BẢNG PHÂN BỔ ĐIỂM CHIẾN LƯỢC)
+BẮT BUỘC TẠO MỘT BẢNG MARKDOWN ĐỊNH DẠNG CHUẨN như sau:
+Để đạt **Overall ${targetBand}**, chiến thuật thông minh nhất cho học sinh Việt Nam là **kéo mạnh kỹ năng Đọc và Nghe để gánh điểm cho Viết và Nói**.
 
-### 4. Tài liệu và công cụ học tập được đề xuất
-- Danh sách sách (Cambridge IELTS, bộ sách chuyên sâu cho từng kỹ năng...).
-- Ứng dụng/trang web (tự luyện, luyện phát âm, mô phỏng thi).
-- Kênh YouTube / Podcast hữu ích.
+Hãy tính toán mục tiêu Band cụ thể cho từng kỹ năng (Listening, Reading, Writing, Speaking) sao cho trung bình cộng 4 kỹ năng khi chia cho 4 và áp dụng quy tắc làm tròn của IELTS sẽ đạt đúng **Overall ${targetBand}**.
+Ví dụ:
+- Target 6.5: L: 7.0, R: 7.0, W: 6.0, S: 5.5 -> (7.0 + 7.0 + 6.0 + 5.5) / 4 = 6.375 -> Làm tròn thành 6.5
+- Target 7.0: L: 7.5, R: 7.5, W: 6.5, S: 6.0 -> (7.5 + 7.5 + 6.5 + 6.0) / 4 = 6.875 -> Làm tròn thành 7.0
+- Target 7.5: L: 8.0, R: 8.5, W: 6.5, S: 6.5 -> (8.0 + 8.5 + 6.5 + 6.5) / 4 = 7.375 -> Làm tròn thành 7.5
+- Target 8.0: L: 8.5, R: 9.0, W: 7.0, S: 7.0 -> (8.5 + 9.0 + 7.0 + 7.0) / 4 = 7.875 -> Làm tròn thành 8.0
 
-### 5. Lộ trình luyện đề thi thử (mock test)
-- Khi nào bắt đầu làm đề full test?
-- Tần suất (tuần bao nhiêu đề) và cách phân tích kết quả.
+Trình bày bảng Markdown:
+| Kỹ năng | Mục tiêu Band | Lý do chiến lược & Trọng tâm |
+| :--- | :--- | :--- |
+| **Listening** | [Điểm cụ thể] | Kỹ năng dễ tăng điểm nhất nếu nắm vững dạng bài, kỹ thuật bắt Keyword và luyện nghe chủ động (Active Listening). |
+| **Reading** | [Điểm cụ thể] | **Trọng tâm.** Thế mạnh cốt lõi của học sinh Việt Nam. Tận dụng kỹ thuật Skimming/Scanning và cày từ vựng theo cụm để đạt điểm tối đa. |
+| **Writing** | [Điểm cụ thể] | **Trọng tâm an toàn.** Tập trung viết đúng cấu trúc Task 1 & Task 2, ngữ pháp chính xác, dùng từ vựng tự nhiên, tránh lan man. |
+| **Speaking** | [Điểm cụ thể] | Tập trung vào độ trôi chảy (Fluency), phát âm rõ ràng, tư duy mở rộng câu trả lời logic theo mô hình A.R.E.A. |
+| **OVERALL** | **${targetBand}** | **([L] + [R] + [W] + [S]) / 4 = [Điểm TB] → Làm tròn thành ${targetBand}** |
 
-### 6. Lời khuyên chiến lược đặc biệt (dành riêng cho nhu cầu của người học)
-- Nếu nhu cầu là du học: tập trung vào viết học thuật và nói tự nhiên.
-- Nếu nhu cầu là xin việc: ưu tiên kỹ năng giao tiếp (Nói, Viết email/ báo cáo).
-- Nếu yếu một kỹ năng cụ thể: đề xuất kế hoạch cải thiện riêng.
+### 3. LỘ TRÌNH CHI TIẾT THEO GIAI ĐOẠN (${timeMonths} THÁNG)
+Chia lộ trình thành các giai đoạn rõ ràng (ví dụ với 3 tháng: Giai đoạn 1: Xây nền & Nạp từ vựng, Giai đoạn 2: Luyện kỹ năng chuyên sâu từng dạng, Giai đoạn 3: Thực chiến Mock Test & Giải đề dưới áp lực thời gian).
+Trong từng giai đoạn, phân bổ chi tiết:
+- **Tỷ lệ học tập**: 60% thời lượng cho Listening & Reading + 40% cho Writing & Speaking.
+- **Listening & Reading**: Các dạng bài mục tiêu (True/False/NG, Matching Headings, Multiple Choice, Map Labelling...), số lượng bài đọc/nghe mỗi tuần, phương pháp Dictation & Shadowing.
+- **Writing & Speaking**: Cấu trúc bài Task 1/2, phương pháp Brainstorming ý tưởng theo chủ đề (Education, Environment, Tech, Culture...), các dạng câu hỏi Speaking Part 1, 2, 3.
+- **Từ vựng & Ngữ pháp trọng tâm**: Chủ đề từ vựng Academic, collocations đắt giá, cấu trúc câu phức, câu điều kiện, mệnh đề quan hệ rút gọn.
+- **Thời khóa biểu hàng ngày (${studyHours} giờ/ngày)**: Lịch học cụ thể từ Thứ 2 đến Chủ nhật, có ngày Review & nghỉ ngơi.
+
+### 4. BỘ TÀI LIỆU & NGUỒN HỌC THỰC CHIẾN KHUYÊN DÙNG
+- Bộ sách chuẩn: Cambridge IELTS (quyển phù hợp với band), Collins for IELTS, Road to IELTS, Hacker IELTS...
+- Kênh luyện Nghe/Đọc: BBC 6 Minute English, TED Talks, The Guardian, Scientific American, Spotlight English...
+- Công cụ hỗ trợ: LexiLearn Flashcard (học từ vựng Spaced Repetition), Paraphrasing Coach, Dictation Studio.
+
+### 5. KẾ HOẠCH MOCK TEST VÀ CHIẾN THUẬT PHÒNG THI
+- Thời điểm bắt đầu làm full test, tần suất làm đề (1-2 đề/tuần), kỹ thuật phân tích lỗi sai (Error Log).
+- Lời khuyên tâm lý phòng thi và chiến thuật quản lý thời gian 60 phút Reading/Writing.
 
 **ĐỊNH DẠNG ĐẦU RA:**
-Hãy trả lời bằng văn bản có cấu trúc Markdown, với các phần chính được đánh số và in đậm. Lộ trình phải chi tiết, dễ hiểu, thực tế và có thể áp dụng ngay.`;
+Sử dụng định dạng Markdown chuẩn đẹp, các tiêu đề rõ ràng, bảng biểu chi tiết, danh sách gạch đầu dòng mạch lạc, ngôn phong chuyên nghiệp, truyền cảm hứng và dễ theo dõi.`;
 
     const text = await askGemini(prompt);
     return text;
