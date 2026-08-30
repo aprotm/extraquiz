@@ -283,43 +283,82 @@ export default {
                                 <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500" 
                                      :style="'width: ' + currentLevelInfo.progressPercent + '%'"></div>
                             </div>
-                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Còn {{ currentLevelInfo.maxExp - currentLevelInfo.currentExp }} EXP để thăng cấp tiếp theo</p>
+                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Còn {{ currentLevelInfo.neededExp }} EXP để thăng cấp tiếp theo</p>
                         </div>
                     </div>
 
-                    <!-- Persona Snapshot Card -->
-                    <div class="glass-panel p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-sm relative overflow-hidden">
-                        <div class="flex items-center justify-between mb-4">
+                    <!-- Persona Snapshot Card (5-Dimensional Cognitive AI Profiler) -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-sm relative overflow-hidden space-y-4">
+                        <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 font-bold">
                                     <i class="fa-solid fa-brain"></i>
                                 </div>
-                                <h3 class="font-extrabold text-sm text-gray-900 uppercase tracking-wider">Hồ Sơ Tư Duy (Persona)</h3>
+                                <div>
+                                    <h3 class="font-extrabold text-sm text-gray-900 uppercase tracking-wider">Hồ Sơ Tư Duy (Persona)</h3>
+                                    <p class="text-[10px] text-gray-400 font-medium">Chỉ số phân tích phản xạ não bộ AI</p>
+                                </div>
                             </div>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">AI Profiler</span>
+                            <button @click="store.navigate('lexilearn-dashboard')" class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 transition flex items-center gap-1 shadow-sm">
+                                <span>Radar 3D</span>
+                                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                            </button>
                         </div>
 
-                        <!-- Persona Metrics -->
-                        <div class="space-y-3.5">
-                            <!-- Visual vs Auditory Ratio -->
+                        <!-- 5 Persona Metrics -->
+                        <div class="space-y-3">
+                            <!-- Focus -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Trí nhớ Thị giác / Thính giác</span>
-                                    <span class="font-mono text-xs font-extrabold text-indigo-600 dark:text-indigo-400">{{ Math.round(store.userProfile?.learning_persona?.visual_ratio || 50) }}% Thị giác</span>
+                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-eye text-indigo-500 text-[10px]"></i> Khả năng Tập trung (Focus)</span>
+                                    <span class="font-mono text-xs font-extrabold text-indigo-600">{{ Math.round(store.userProfile?.learning_persona?.focus || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-indigo-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.visual_ratio || 50) + '%'"></div>
+                                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-indigo-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.focus || 50) + '%'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Persistence -->
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-500 text-[10px]"></i> Sự Kiên trì (Resilience)</span>
+                                    <span class="font-mono text-xs font-extrabold text-emerald-600">{{ Math.round(store.userProfile?.learning_persona?.persistence || 50) }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-emerald-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.persistence || 50) + '%'"></div>
                                 </div>
                             </div>
 
                             <!-- Metacognition Calibration -->
                             <div>
-                                <div class="flex justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                                    <span>Độ chuẩn tự đánh giá (Metacognition)</span>
-                                    <span class="font-mono text-xs font-extrabold text-purple-600 dark:text-purple-400">{{ Math.round(store.userProfile?.learning_persona?.metacognition || 50) }}%</span>
+                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-purple-500 text-[10px]"></i> Đào sâu bài học (Metacognition)</span>
+                                    <span class="font-mono text-xs font-extrabold text-purple-600">{{ Math.round(store.userProfile?.learning_persona?.metacognition || 50) }}%</span>
                                 </div>
-                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                                     <div class="bg-purple-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.metacognition || 50) + '%'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Exploration -->
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-compass text-amber-500 text-[10px]"></i> Tinh thần Khám phá (Exploration)</span>
+                                    <span class="font-mono text-xs font-extrabold text-amber-600">{{ Math.round(store.userProfile?.learning_persona?.exploration || 50) }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-amber-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.exploration || 50) + '%'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Consistency -->
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-gray-600 mb-1">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-fire text-rose-500 text-[10px]"></i> Tính Ổn định (Consistency)</span>
+                                    <span class="font-mono text-xs font-extrabold text-rose-600">{{ Math.round(store.userProfile?.learning_persona?.consistency || 50) }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-rose-500 h-2 rounded-full transition-all" :style="'width: ' + (store.userProfile?.learning_persona?.consistency || 50) + '%'"></div>
                                 </div>
                             </div>
                         </div>

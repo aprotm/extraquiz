@@ -54,13 +54,18 @@ export function getLevelProgressInfo(totalLC) {
     // How much LC is required to pass THIS LEVEL
     const requiredLC = LC_PER_LEVEL;
     
-    const percent = Math.min(100, (currentProgress / requiredLC) * 100);
+    const percent = Math.min(100, Math.max(0, (currentProgress / requiredLC) * 100));
+    const neededExp = requiredLC - currentProgress;
     
     return {
         currentLevel,
         currentProgress,
         requiredLC,
         percent,
+        progressPercent: percent,
+        currentExp: currentProgress,
+        maxExp: requiredLC,
+        neededExp,
         totalLC,
         currentLevelMinimum,
         nextLevelMinimum
