@@ -1,4 +1,4 @@
-const CACHE_NAME = 'extraquiz-v121';
+const CACHE_NAME = 'extraquiz-v122';
 const ASSETS = [
     './',
     './index.html',

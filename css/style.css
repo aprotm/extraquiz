@@ -1946,14 +1946,13 @@ body.theme-synthwave .markdown-body tr:hover td {
 
 /* ===== PRINT & PDF EXPORT STYLES ===== */
 @media print {
+    /* === CRITICAL: Override ALL layout constraints that block multi-page flow === */
     *, *::before, *::after {
-        background: transparent !important;
-        color: #000000 !important;
         box-shadow: none !important;
         text-shadow: none !important;
     }
 
-    body {
+    html, body {
         background: #ffffff !important;
         font-family: 'Segoe UI', Arial, sans-serif !important;
         color: #111827 !important;
@@ -1961,34 +1960,76 @@ body.theme-synthwave .markdown-body tr:hover td {
         line-height: 1.5 !important;
         padding: 0 !important;
         margin: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: static !important;
+        width: 100% !important;
     }
 
-    aside, header, nav, .mobile-nav, #settings-panel, .no-print, button {
-        display: none !important;
+    /* Override fixed/absolute containers to static flow so content flows across pages */
+    body > div,
+    body > div > div,
+    #app,
+    #app > div,
+    [class*="fixed"],
+    [class*="absolute"] {
+        position: static !important;
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+        inset: auto !important;
     }
 
+    /* Override flex containers that constrain overflow */
+    .flex-1,
+    [class*="overflow-y-auto"],
+    [class*="overflow-x-hidden"],
+    [class*="overflow-hidden"],
+    main,
     #main-content {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+        position: static !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 10px !important;
         width: 100% !important;
         max-width: 100% !important;
     }
 
-    .glass-panel {
+    /* Hide non-content elements */
+    aside, header, nav, .mobile-nav, #settings-panel, .no-print, button,
+    [class*="backdrop-blur"],
+    [class*="blur-"],
+    [class*="pointer-events-none"] {
+        display: none !important;
+    }
+
+    .glass-panel,
+    .glass-panel-strong {
         border: none !important;
         box-shadow: none !important;
         background: #ffffff !important;
-        padding: 0 !important;
+        padding: 8px !important;
+        position: static !important;
+        overflow: visible !important;
     }
 
+    /* Markdown content styling for print */
     .markdown-body {
         font-size: 10.5pt !important;
         line-height: 1.6 !important;
         color: #1e293b !important;
+        overflow: visible !important;
     }
 
     .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-        page-break-after: avoid;
+        page-break-after: avoid !important;
         color: #1e1b4b !important;
         margin-top: 1.2em !important;
         margin-bottom: 0.4em !important;
@@ -1997,15 +2038,30 @@ body.theme-synthwave .markdown-body tr:hover td {
     .markdown-body h1 {
         font-size: 18pt !important;
         border-bottom: 2px solid #6366f1 !important;
+        page-break-before: auto !important;
     }
 
     .markdown-body h2 {
         font-size: 14pt !important;
         border-bottom: 1px solid #cbd5e1 !important;
+        page-break-before: auto !important;
+    }
+
+    .markdown-body h3 {
+        font-size: 12pt !important;
+    }
+
+    .markdown-body p, .markdown-body li {
+        orphans: 3 !important;
+        widows: 3 !important;
+    }
+
+    .markdown-body ul, .markdown-body ol {
+        page-break-inside: avoid !important;
     }
 
     .markdown-body table {
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
         width: 100% !important;
         border-collapse: collapse !important;
         border: 1px solid #cbd5e1 !important;
@@ -2029,10 +2085,27 @@ body.theme-synthwave .markdown-body tr:hover td {
         background-color: #f8fafc !important;
         padding: 6px 12px !important;
         margin: 10px 0 !important;
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
     }
 
+    /* Print header block */
     .print\\:block {
         display: block !important;
+        position: static !important;
+        overflow: visible !important;
+        background-color: #312e81 !important;
+        color: #ffffff !important;
+        padding: 20px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .print\\:block h1,
+    .print\\:block p {
+        color: #ffffff !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 15mm 15mm 15mm 15mm;
     }
 }

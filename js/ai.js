@@ -150,6 +150,8 @@ export async function generateRoadmap(inputBand, targetBand, timeMonths, purpose
     const prompt = `Bạn là một chuyên gia khảo thí và cố vấn học tập IELTS hàng đầu (IELTS Academic Master Coach 10+ năm kinh nghiệm), am hiểu sâu sắc thói quen, điểm mạnh và điểm yếu của học sinh - sinh viên Việt Nam.
 Nhiệm vụ của bạn là thiết kế một **Lộ trình học IELTS cá nhân hóa đỉnh cao** áp dụng **Chiến thuật gánh điểm thông minh (Pull Strategy) chuẩn khảo thí IDP/British Council**.
 
+⚠️ **YÊU CẦU BẮT BUỘC VỀ ĐỘ DÀI & ĐỘ SÂU**: Hãy viết lộ trình **RẤT CHI TIẾT, ĐẦY ĐỦ, KHÔNG LƯỢC BỎ BẤT KỲ PHẦN NÀO**, tối thiểu **2500–3500 từ**. Đảm bảo mỗi giai đoạn, mỗi kỹ năng đều được triển khai chi tiết với ví dụ cụ thể, bài tập mẫu, và timeline rõ ràng. KHÔNG được tóm tắt hay viết sơ sài.
+
 **THÔNG TIN HỌC VIÊN:**
 - Band hiện tại: ${inputBand}
 - Band mục tiêu: ${targetBand}
@@ -165,6 +167,7 @@ Nhiệm vụ của bạn là thiết kế một **Lộ trình học IELTS cá nh
 ### 1. ĐÁNH GIÁ TRÌNH ĐỘ VÀ KHOẢNG CÁCH (GAP ANALYSIS)
 - Phân tích khoảng cách từ ${inputBand} lên ${targetBand} (chênh lệch +${(Number(targetBand) - Number(inputBand)).toFixed(1)} Band).
 - Chỉ rõ thực trạng học viên Việt Nam: Thế mạnh về ngữ pháp/từ vựng tiếp nhận (Reading/Listening) và rào cản tâm lý khi phản xạ/diễn đạt (Writing/Speaking).
+- Phân tích chi tiết từng kỹ năng: điểm mạnh, điểm yếu, thách thức cụ thể, và cách khắc phục.
 
 ### 2. MỤC TIÊU CỤ THỂ CHO TỪNG KỸ NĂNG (BẢNG PHÂN BỔ ĐIỂM CHIẾN LƯỢC)
 BẮT BUỘC TẠO MỘT BẢNG MARKDOWN ĐỊNH DẠNG CHUẨN như sau:
@@ -187,25 +190,55 @@ Trình bày bảng Markdown:
 | **OVERALL** | **${targetBand}** | **([L] + [R] + [W] + [S]) / 4 = [Điểm TB] → Làm tròn thành ${targetBand}** |
 
 ### 3. LỘ TRÌNH CHI TIẾT THEO GIAI ĐOẠN (${timeMonths} THÁNG)
-Chia lộ trình thành các giai đoạn rõ ràng (ví dụ với 3 tháng: Giai đoạn 1: Xây nền & Nạp từ vựng, Giai đoạn 2: Luyện kỹ năng chuyên sâu từng dạng, Giai đoạn 3: Thực chiến Mock Test & Giải đề dưới áp lực thời gian).
-Trong từng giai đoạn, phân bổ chi tiết:
+Chia lộ trình thành các giai đoạn rõ ràng:
+${timeMonths > 12 ? `- Với thời gian ${timeMonths} tháng (lộ trình dài hạn/chắc chắn), hãy chia thành 4 đến 5 giai đoạn rõ ràng (mỗi giai đoạn 3–5 tháng): Xây nền ngữ pháp/phát âm căn bản -> Nạp từ vựng & Phương pháp làm quen từng dạng -> Luyện kỹ năng nâng cao & Chuyên đề -> Luyện giải đề chuyên sâu -> Tối ưu hóa điểm số & Mock Test áp lực thực tế.` : `- Chia thành 3 đến 4 giai đoạn cụ thể: Giai đoạn 1: Xây nền & Nạp từ vựng trọng điểm -> Giai đoạn 2: Luyện kỹ năng chuyên sâu từng dạng bài -> Giai đoạn 3: Thực chiến Mock Test & Giải đề dưới áp lực thời gian.`}
+
+Trong TỪNG giai đoạn, phân bổ chi tiết:
 - **Tỷ lệ học tập**: 60% thời lượng cho Listening & Reading + 40% cho Writing & Speaking.
 - **Listening & Reading**: Các dạng bài mục tiêu (True/False/NG, Matching Headings, Multiple Choice, Map Labelling...), số lượng bài đọc/nghe mỗi tuần, phương pháp Dictation & Shadowing.
 - **Writing & Speaking**: Cấu trúc bài Task 1/2, phương pháp Brainstorming ý tưởng theo chủ đề (Education, Environment, Tech, Culture...), các dạng câu hỏi Speaking Part 1, 2, 3.
 - **Từ vựng & Ngữ pháp trọng tâm**: Chủ đề từ vựng Academic, collocations đắt giá, cấu trúc câu phức, câu điều kiện, mệnh đề quan hệ rút gọn.
-- **Thời khóa biểu hàng ngày (${studyHours} giờ/ngày)**: Lịch học cụ thể từ Thứ 2 đến Chủ nhật, có ngày Review & nghỉ ngơi.
 
-### 4. BỘ TÀI LIỆU & NGUỒN HỌC THỰC CHIẾN KHUYÊN DÙNG
-- Bộ sách chuẩn: Cambridge IELTS (quyển phù hợp với band), Collins for IELTS, Road to IELTS, Hacker IELTS...
-- Kênh luyện Nghe/Đọc: BBC 6 Minute English, TED Talks, The Guardian, Scientific American, Spotlight English...
-- Công cụ hỗ trợ: LexiLearn Flashcard (học từ vựng Spaced Repetition), Paraphrasing Coach, Dictation Studio.
+### 4. THỜI KHÓA BIỂU MẪU HÀNG TUẦN (${studyHours} GIỜ/NGÀY)
+BẮT BUỘC TẠO BẢNG THỜI KHÓA BIỂU HÀNG TUẦN chi tiết theo format Markdown:
+| Thứ | Khung giờ gợi ý | Nội dung học tập chi tiết | Kỹ năng trọng tâm | Phương pháp / Tài liệu |
+| :--- | :--- | :--- | :--- | :--- |
+| Thứ 2 | [Ví dụ: 19:30 - 21:30] | [Chi tiết nội dung] | Listening & Vocab | Nghe chép chính tả + Flashcards |
+| Thứ 3 | [Khung giờ] | [Chi tiết nội dung] | Reading & Grammar | Skimming/Scanning + Collocations |
+| Thứ 4 | [Khung giờ] | [Chi tiết nội dung] | Writing Task 1/2 | Phân tích bài mẫu + Outline |
+| Thứ 5 | [Khung giờ] | [Chi tiết nội dung] | Speaking Part 1/2 | Ghi âm theo AREA + Shadowing |
+| Thứ 6 | [Khung giờ] | [Chi tiết nội dung] | Lis & Read tăng cường | Giải 1 section đề Cam |
+| Thứ 7 | [Khung giờ] | [Chi tiết nội dung] | Mini Mock Test / Tổng hợp | Đánh giá tiến độ tuần |
+| Chủ nhật | [Khung giờ] | Ôn tập thẻ nhớ (Spaced Repetition) & Nghỉ ngơi hồi phục | Review & Relaxation | Flashcard LexiLearn |
 
-### 5. KẾ HOẠCH MOCK TEST VÀ CHIẾN THUẬT PHÒNG THI
-- Thời điểm bắt đầu làm full test, tần suất làm đề (1-2 đề/tuần), kỹ thuật phân tích lỗi sai (Error Log).
-- Lời khuyên tâm lý phòng thi và chiến thuật quản lý thời gian 60 phút Reading/Writing.
+### 5. MILESTONE CHECKPOINTS (CỘT MỐC KIỂM TRA TIẾN ĐỘ)
+BẮT BUỘC TẠO BẢNG CỘT MỐC KIỂM TRA ĐỊNH KỲ:
+| Cột mốc | Listening Target | Reading Target | Writing Target | Speaking Target | Hình thức kiểm tra & Tiêu chí đạt |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Mốc 1 (Sau 20% thời gian) | [Band cụ thể] | [Band cụ thể] | [Band cụ thể] | [Band cụ thể] | Mini test từ vựng & nghe chép |
+| Mốc 2 (Sau 50% thời gian) | [Band cụ thể] | [Band cụ thể] | [Band cụ thể] | [Band cụ thể] | Half Mock Test 2 kỹ năng |
+| Mốc 3 (Sau 80% thời gian) | [Band cụ thể] | [Band cụ thể] | [Band cụ thể] | [Band cụ thể] | Full Mock Test tính giờ thật |
+| Mốc đích (Tháng ${timeMonths}) | **${targetBand}** | **${targetBand}** | **${targetBand}** | **${targetBand}** | Sẵn sàng ngày thi chính thức |
+
+### 6. KẾ HOẠCH MOCK TEST VÀ QUY TRÌNH PHÂN TÍCH LỖI (ERROR LOG)
+- **Thời điểm bắt đầu giải full đề**: Xác định rõ từ tháng thứ mấy bắt đầu bấm giờ 100%.
+- **Tần suất giải đề**: 1–2 đề Cambridge mỗi tuần trong giai đoạn nước rút.
+- **Sổ tay phân tích lỗi sai (Error Log Framework)**: Phân loại 3 nhóm lỗi (Từ vựng chưa biết, Bẫy đề thi/Distractor, Quản lý thời gian/áp lực).
+- **Chiến thuật phòng thi thực tế**: Cách làm bài Listening khi bị miss thông tin, thứ tự làm các Passage trong Reading, chiến lược "thắt lưng buộc bụng" thời gian cho Writing Task 2.
+
+### 7. BỘ TÀI LIỆU & NGUỒN HỌC THỰC CHIẾN KHUYÊN DÙNG
+- **Bộ sách chuẩn**: Cambridge IELTS (quyển phù hợp với band), Collins for IELTS, Road to IELTS, Hacker IELTS...
+- **Kênh luyện Nghe/Đọc**: BBC 6 Minute English, TED Talks, The Guardian, Scientific American, Spotlight English...
+- **Công cụ hỗ trợ**: LexiLearn Flashcard (học từ vựng Spaced Repetition), Paraphrasing Coach, Dictation Studio.
+- **Website làm đề online miễn phí**: IELTS Online Tests, Mini-IELTS.
+
+### 8. LỜI KHUYÊN TÂM LÝ & CHECKLIST NGÀY THI
+- Kỹ thuật giữ nhịp thở và sự tự tin trước giám khảo Speaking.
+- Checklist trước ngày thi: Passport/CCCD, nước lọc bóc nhãn, giấc ngủ và chế độ dinh dưỡng.
 
 **ĐỊNH DẠNG ĐẦU RA:**
-Sử dụng định dạng Markdown chuẩn đẹp, các tiêu đề rõ ràng, bảng biểu chi tiết, danh sách gạch đầu dòng mạch lạc, ngôn phong chuyên nghiệp, truyền cảm hứng và dễ theo dõi.`;
+Sử dụng định dạng Markdown chuẩn đẹp, các tiêu đề rõ ràng (H1, H2, H3), bảng biểu chi tiết (PHẢI CÓ ÍT NHẤT 3-4 BẢNG), danh sách gạch đầu dòng mạch lạc, ngôn phong chuyên nghiệp, truyền cảm hứng và dễ theo dõi.
+Nhắc lại: Viết ĐẦY ĐỦ CHI TIẾT, không tóm tắt, giúp học viên có thể in ra thành bộ cẩm nang học tập dài dặn và chất lượng.`;
 
     const text = await askGemini(prompt);
     return text;

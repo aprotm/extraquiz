@@ -43,13 +43,14 @@ export default {
             { val: 8.5, label: '8.5+', desc: 'Expert' }
         ];
 
-        const monthPresets = [1, 2, 3, 6, 9, 12];
+        const monthPresets = [1, 2, 3, 6, 9, 12, 18, 24];
 
         const hourPresets = [
             { hours: 1, label: '1 Giờ / ngày', desc: 'Thư thái · Tích lũy bền bỉ', icon: 'fa-feather' },
             { hours: 2, label: '2 Giờ / ngày', desc: 'Tiêu chuẩn vàng (Khuyên dùng)', icon: 'fa-bolt', badge: 'Khuyên dùng' },
             { hours: 3, label: '3 Giờ / ngày', desc: 'Tăng tốc · Cường độ cao', icon: 'fa-fire' },
-            { hours: 4, label: '4+ Giờ / ngày', desc: 'Siêu tốc · Bứt phá thần tốc', icon: 'fa-rocket' }
+            { hours: 4, label: '4 Giờ / ngày', desc: 'Siêu tốc · Bứt phá thần tốc', icon: 'fa-rocket' },
+            { hours: 5, label: '5+ Giờ / ngày', desc: 'Toàn thời gian · Cày cấp marathon', icon: 'fa-meteor' }
         ];
 
         const strategyPresets = [
@@ -269,19 +270,8 @@ export default {
             window.print();
         };
 
-        const exportToMarkdown = () => {
-            const content = rawMarkdown.value || aiRoadmapHtml.value.replace(/<[^>]*>?/gm, '');
-            const blob = new Blob(['\ufeff', content], { type: 'text/markdown;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const downloadLink = document.createElement("a");
-            downloadLink.href = url;
-            downloadLink.download = `Lo-Trinh-IELTS-Band-${lastMeta.value.inputBand}-to-${lastMeta.value.targetBand}.md`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(url);
-            showToast("Đã tải xuống file Markdown (.md) thành công!", "success");
-        };
+
+
 
         const exportToWord = () => {
             const dateStr = new Date().toLocaleDateString('vi-VN');
@@ -417,7 +407,7 @@ tr:nth-child(even) td {
             lastMeta, bandDelta, calculatedSkillTargets, inputBandOptions, targetBandOptions, 
             monthPresets, hourPresets, strategyPresets, purposePresets, skillOptions, 
             loadingStepIndex, loadingSteps, toggleSkill, setPurposePreset, createRoadmap, 
-            resetRoadmap, clearSavedRoadmap, copyRoadmap, printRoadmap, exportToMarkdown, exportToWord 
+            resetRoadmap, clearSavedRoadmap, copyRoadmap, printRoadmap, exportToWord 
         };
     },
     template: `
@@ -685,7 +675,7 @@ tr:nth-child(even) td {
                                 <span>Thời Gian Ôn Thi (Tháng)</span>
                                 <span class="text-purple-600 font-bold">{{ formData.months }} Tháng</span>
                             </label>
-                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
                                 <button v-for="m in monthPresets" :key="'month-' + m"
                                         type="button"
                                         @click="formData.months = m"
@@ -839,12 +829,6 @@ tr:nth-child(even) td {
                                 title="Xuất file Microsoft Word (.doc) có định dạng bảng và màu sắc chuẩn">
                             <i class="fa-solid fa-file-word text-blue-600"></i>
                             <span>Xuất Word (.doc)</span>
-                        </button>
-                        <button @click="exportToMarkdown" 
-                                class="px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs rounded-xl border border-purple-200 transition flex items-center gap-1.5 shadow-sm"
-                                title="Tải file Markdown (.md) cho Notion, Obsidian">
-                            <i class="fa-brands fa-markdown text-purple-600"></i>
-                            <span>Tải (.md)</span>
                         </button>
                         <button @click="printRoadmap" 
                                 class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl border border-emerald-200 transition flex items-center gap-1.5 shadow-sm"
