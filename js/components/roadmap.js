@@ -181,7 +181,7 @@ export default {
         });
 
         const createRoadmap = async () => {
-            const apiKey = localStorage.getItem('gemini_api_key');
+            const apiKey = localStorage.getItem('gemini_api_key') || store.userProfile?.geminiApiKey;
             if (!apiKey) {
                 showToast("Vui lòng cấu hình Gemini API Key trong phần Cài đặt trước khi tạo lộ trình.", "error");
                 return;

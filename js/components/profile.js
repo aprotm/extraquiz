@@ -9,25 +9,34 @@ import { computed } from 'vue';
 export default {
     setup() {
         const stats = ref(null);
-        const geminiApiKey = ref(localStorage.getItem('gemini_api_key') || '');
+        const geminiApiKey = ref(localStorage.getItem('gemini_api_key') || store.userProfile?.geminiApiKey || '');
         
         const parsedKeyCount = computed(() => {
             const raw = geminiApiKey.value || '';
             return raw.split(/[\n,;]+/).map(k => k.trim()).filter(k => k.length > 5).length;
         });
 
-        const saveApiKey = () => {
-            if (geminiApiKey.value.trim()) {
-                localStorage.setItem('gemini_api_key', geminiApiKey.value.trim());
+        const saveApiKey = async () => {
+            const keyVal = geminiApiKey.value.trim();
+            if (keyVal) {
+                localStorage.setItem('gemini_api_key', keyVal);
+                if (store.userProfile) store.userProfile.geminiApiKey = keyVal;
+                if (store.user?.uid) {
+                    await updateUserProfile(store.user.uid, { geminiApiKey: keyVal });
+                }
                 const count = parsedKeyCount.value;
                 if (count > 1) {
-                    showToast(`Đã kích hoạt Multi-Key Pool với ${count} API Keys (Tự động cân bằng tải & dự phòng)!`, "success");
+                    showToast(`Đã kích hoạt Multi-Key Pool với ${count} API Keys và lưu trực tiếp vào tài khoản!`, "success");
                 } else {
-                    showToast("Đã lưu API Key thành công!", "success");
+                    showToast("Đã lưu API Key thành công vào tài khoản của bạn!", "success");
                 }
             } else {
                 localStorage.removeItem('gemini_api_key');
-                showToast("Đã xóa API Key.", "success");
+                if (store.userProfile) store.userProfile.geminiApiKey = '';
+                if (store.user?.uid) {
+                    await updateUserProfile(store.user.uid, { geminiApiKey: '' });
+                }
+                showToast("Đã xóa API Key khỏi tài khoản.", "success");
             }
         };
         

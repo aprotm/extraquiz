@@ -89,7 +89,7 @@ export default {
                 error.value = "Vui lòng nhập một câu tiếng Anh.";
                 return;
             }
-            if (!localStorage.getItem('gemini_api_key')) {
+            if (!localStorage.getItem('gemini_api_key') && !store.userProfile?.geminiApiKey) {
                 error.value = "Vui lòng nhập Gemini API Key trong phần Cài đặt trước.";
                 return;
             }

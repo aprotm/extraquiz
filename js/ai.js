@@ -1,3 +1,5 @@
+import { store } from './store.js';
+
 /**
  * Multi-API Key Pool & Smart Load Balancer
  */
@@ -9,7 +11,13 @@ class KeyPoolManager {
 
     // Parses single key or multiple keys separated by comma, newline, or whitespace
     getAllKeys() {
-        const raw = localStorage.getItem('gemini_api_key') || '';
+        let raw = localStorage.getItem('gemini_api_key') || '';
+        if (!raw.trim() && store.userProfile?.geminiApiKey) {
+            raw = store.userProfile.geminiApiKey;
+            try {
+                localStorage.setItem('gemini_api_key', raw);
+            } catch (_) {}
+        }
         if (!raw.trim()) return [];
         return raw
             .split(/[\n,;]+/)

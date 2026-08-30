@@ -32,7 +32,7 @@ export default {
         const currentAiWord = ref('');
 
         const askAI = async (card) => {
-            if (!localStorage.getItem('gemini_api_key')) {
+            if (!localStorage.getItem('gemini_api_key') && !store.userProfile?.geminiApiKey) {
                 showToast("Vui lòng nhập Gemini API Key trong phần Cài đặt.", 'error');
                 return;
             }

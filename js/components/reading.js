@@ -145,7 +145,7 @@ export default {
         });
 
         const startGenerate = async (forceNew = true) => {
-            if (!localStorage.getItem('gemini_api_key')) {
+            if (!localStorage.getItem('gemini_api_key') && !store.userProfile?.geminiApiKey) {
                 showToast("Vui lòng nhập Gemini API Key trong Cài đặt trước khi dùng tính năng này.", "error");
                 return;
             }

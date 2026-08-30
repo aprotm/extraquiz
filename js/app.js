@@ -166,6 +166,18 @@ const App = {
 
                         store.user = user;
                         store.userProfile = profile;
+
+                        // Sync Gemini API Key between user account profile (Firestore) and localStorage
+                        if (profile.geminiApiKey) {
+                            localStorage.setItem('gemini_api_key', profile.geminiApiKey);
+                        } else {
+                            const localKey = localStorage.getItem('gemini_api_key');
+                            if (localKey && localKey.trim()) {
+                                profile.geminiApiKey = localKey.trim();
+                                await updateUserProfile(user.uid, { geminiApiKey: localKey.trim() });
+                            }
+                        }
+
                         store.decks = await fetchDecks(user.uid);
 
                         // Auto-select first deck if activeDeck is missing

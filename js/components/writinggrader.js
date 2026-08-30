@@ -20,7 +20,7 @@ export default {
                 error.value = "Bài viết quá ngắn. Vui lòng nhập ít nhất 50 từ.";
                 return;
             }
-            if (!localStorage.getItem('gemini_api_key')) {
+            if (!localStorage.getItem('gemini_api_key') && !store.userProfile?.geminiApiKey) {
                 error.value = "Vui lòng nhập Gemini API Key trong phần Cài đặt trước.";
                 return;
             }
