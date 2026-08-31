@@ -1111,7 +1111,7 @@ export default {
                                     </div>
                                 </div>
                                 <div class="my-3">
-                                    <span class="text-4xl font-black text-white font-mono tracking-tight">{{ store.userProfile?.totalLexiCredit || store.userProfile?.lexiCredit || 1250 }}</span>
+                                    <span class="text-4xl font-black text-white font-mono tracking-tight">{{ store.userProfile?.lexiCredit || 0 }}</span>
                                     <span class="text-amber-400 ml-1.5 text-base font-black">LC</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3 pt-3 border-t border-[#16203D]">

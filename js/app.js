@@ -178,6 +178,12 @@ const App = {
                             }
                         }
 
+                        // Load study stats from profile to localStorage to prevent data loss
+                        if (profile.studyStats) {
+                            localStorage.setItem(`stats_${user.uid}`, JSON.stringify(profile.studyStats));
+                        }
+
+
                         store.decks = await fetchDecks(user.uid);
 
                         // Auto-select first deck if activeDeck is missing
@@ -191,6 +197,53 @@ const App = {
 
                         // Check retro-active badges
                         await store.checkRetroactiveBadges();
+
+                        // GAMIFICATION MOTIVATION SYSTEM: Punishment & Urgency
+                        const stats = store.getStudyStats() || {};
+                        const today = new Date();
+                        const todayISO = store.getTodayDateStr();
+                        const DAILY_QUOTA = 50;
+
+                        if (stats.lastStudyDate && stats.lastStudyDate !== '') {
+                            const lastDate = new Date(stats.lastStudyDate);
+                            const diffTime = today.getTime() - lastDate.getTime();
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            // 1. Punishment: Missed > 1 day
+                            if (diffDays >= 2 && stats.lastStudyDate !== todayISO) {
+                                // Deduct LexiCredits (e.g. 50 LC per missed day)
+                                const penalty = Math.min((diffDays - 1) * 50, 1000); // Max cap 1000 LC
+                                let currentLC = profile.lexiCredit || 0;
+                                currentLC = Math.max(0, currentLC - penalty);
+                                
+                                // Wipe Streak
+                                stats.streak = 0;
+                                // We don't overwrite lastStudyDate here so they still have 0 words today
+                                
+                                // Save & Sync
+                                store.userProfile.lexiCredit = currentLC;
+                                localStorage.setItem(`stats_${user.uid}`, JSON.stringify(stats));
+                                store.userProfile.studyStats = stats;
+                                
+                                await updateUserProfile(user.uid, { 
+                                    lexiCredit: currentLC,
+                                    studyStats: stats 
+                                });
+                                
+                                setTimeout(() => {
+                                    showToast(`🚨 HỆ THỐNG PHẠT: Bạn đã bỏ học ${diffDays - 1} ngày! Bị trừ ${penalty} LexiCredit và hủy chuỗi Streak.`, "error");
+                                }, 1500);
+                            }
+                        }
+
+                        // 2. Urgency: Check today's quota
+                        const wordsToday = (stats.lastStudyDate === todayISO) ? (stats.todayWords || 0) : 0;
+                        if (wordsToday < DAILY_QUOTA) {
+                            setTimeout(() => {
+                                showToast(`⚠️ KHẨN CẤP: Não bộ đang quên lãng! Bạn cần học tối thiểu ${DAILY_QUOTA - wordsToday} thẻ nữa hôm nay để mở khóa tính năng.`, "error");
+                            }, 3500);
+                        }
+
                     } catch (err) {
                         console.error(err);
                         showToast("Lỗi: " + err.message, 'error');

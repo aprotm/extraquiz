@@ -1,67 +1,63 @@
-# Project: Full Theme Visual Overhaul Engine (Cyber Matrix Neon & Sunset Synthwave 80s)
+# Project: LexiLearn Motivation & Data Integrity System
 
 ## Architecture
-The application is a zero-build client-side Vue 3 Single Page Application (SPA) using native browser ES Modules, Tailwind CSS CDN, FontAwesome 6, and Firebase 10.8.0.
-The Visual Overhaul Engine operates on a 3-layer architecture:
-1. **State & Persistence Layer (`js/store.js`, `js/storeItems.js`)**:
-   - Reactive theme state tracking (`store.userProfile.equippedTheme`, `store.userProfile.inventory.unlockedThemes`).
-   - Cold-start anti-flicker bootstrapping from `localStorage.getItem('active_theme')`.
-   - Dynamic class toggling (`.theme-matrix`, `.theme-synthwave`) on `document.documentElement` and `document.body`.
-   - Safe equipping logic supporting `'default'`, `'theme_matrix'`, and `'theme_synthwave'` with ownership validation.
-2. **UI & Control Layer (`js/components/usertool.js`, `js/components/lexistore.js`)**:
-   - Quick Theme Selector (Theme Picker) integrated into Settings Modal (UserTool) Display Tab.
-   - Real-time two-way synchronization between LexiStore item cards and Settings Theme Picker.
-   - Instant 1-click theme switching without page reload.
-3. **Visual & Styling Engine Layer (`css/style.css`)**:
-   - Full CSS Token and Scoped Rules Engine keyed to `html.theme-matrix, body.theme-matrix` and `html.theme-synthwave, body.theme-synthwave`.
-   - Comprehensive overhaul across all 9 UI modules (Sidebar, Topbar, Dashboard & Pro Hub, Flashcard Study 3D Flip, Arcade Games Arena, LexiStore, Settings & Modals, AI Reading, Roadmap).
-   - High-contrast typography (WCAG AA/AAA >= 4.5:1), glowing neon scanlines/borders, circuit grid backgrounds, chrome laser gradients, and smooth GPU-accelerated micro-interactions.
+- **Client Application**: Vue 3 SPA using native browser ES Modules loaded via `<script type="importmap">` in `index.html`.
+- **Global State & Navigation Choke Point**: `js/store.js` (`store` reactive state, `store.navigate(route, data)` route guard).
+- **Backend & Database**: Firebase 10.8.0 (Firestore `users/{userId}`, `decks/{deckId}`, `cards/{cardId}`).
+- **Memory Decay Engine**: `js/memoryengine.js` (Half-Life Regression & Ebbinghaus Forgetting Curve).
+- **Ranks & Level System**: `js/ranks.js` (25 ranks, XP/Level progression, level demotion on credit deduction).
+- **UI Components**:
+  - `js/app.js`: Root Vue component, topbar header with synchronized LC balance, route views, red urgency banner.
+  - `js/components/lexilearndashboard.js`: Heatmap calendar, retention rate graph, memory decay statistics.
+  - `js/components/profile.js`: User profile, synchronized spendable LexiCredit badge, rank display.
+  - `js/components/study.js`: Flashcard learning mode, daily quota progress tracker.
+  - `js/components/lockdown_modal.js` (or integrated in `app.js`): Red urgency lockdown modal.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| F1 | Cold-Start & Safe Theme State Engine | Immediate theme application on boot, safe default handling, and class synchronization | M1 | Survey (Explorer 2) / R4 |
-| F2 | Quick Theme Selector in Settings (UserTool) | 3-item visual theme picker in Display Tab with active badges, 1-click equip, and LexiStore links | M2 | ORIGINAL_REQUEST §R3 |
-| F3 | LexiStore & Settings Bi-directional Sync | Real-time state reflection between LexiStore item status and Settings picker | M2 | ORIGINAL_REQUEST §R3 |
-| F4 | Cyber Matrix Neon Theme Engine (VIP Hacker) | Deep Obsidian (#040810), Emerald Neon (#00FF9D/#059669), circuit grid, terminal headers, glowing borders across all views | M3 | ORIGINAL_REQUEST §R1 |
-| F5 | Sunset Synthwave 80s Theme Engine (Outrun Laser) | Retro Abyss (#0A0618), Hot Pink (#FF2A85), Synth Purple (#9D00FF), Cam Sunset (#FF7B00), laser horizon, chrome gradients across all views | M4 | ORIGINAL_REQUEST §R2 |
-| F6 | Seamless Theme Isolation & Zero Regression | Scoped CSS architecture ensuring 100% preservation of Default mode, no pointer event blocking, and 0 console errors | M1, M3, M4, M5 | ORIGINAL_REQUEST §R4 |
-| F7 | E2E Visual Contrast & Component Stability Hardening | Comprehensive verification across 10+ interactive views (3D Flip, Boss Fight, Arcade, Reading, Roadmap) | M5 | ORIGINAL_REQUEST Acceptance Criteria |
+| F1 | Firebase Strict Sync & Red Error Alert | Immediate Firestore sync for Heatmap study stats and LexiCredit. Rollback in-memory state on sync failure and show red warning modal/banner. Synchronize Header and Profile spendable LexiCredit display. | M1 | ORIGINAL_REQUEST §R1 |
+| F2 | Ebbinghaus Decay 60-Day Fix | Add inactivity stability attenuation to HLR decay engine, normalize `lastStudiedDate` / `last_reviewed_at`, ensure 60-day inactivity drops retention rate below 20% while keeping $R(h)=0.5$ and $R(0)=1.0$. | M2 | ORIGINAL_REQUEST §R1 |
+| F3 | Motivation Punishment Engine | On app boot, detect missed study days (e.g. 3 days absent). Reset streak to 0, deduct LexiCredit, demote Rank by fixing `normalizeUserStats` level clamp, and sync immediately to Firestore with daily idempotence. | M3 | ORIGINAL_REQUEST §R2 |
+| F4 | Pro & Arcade Route Lockdown | Intercept navigation in `store.navigate()`. If `todayWords < 50`, lock Pro AI routes (`reading`, `writing`, `paraphrase`, `lexilearn-dashboard`) and arcade games, forcing redirect to `study`. | M4 | ORIGINAL_REQUEST §R2 |
+| F5 | Urgency Red Alert UI & Status Bar | Display continuous red urgency modal on app boot when daily quota is not met, topbar sticky red urgency counter, and clear lockdown warning banner. | M4 | ORIGINAL_REQUEST §R2 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M1: State & Theme Engine Hardening | Update `js/store.js` for safe default handling, anti-flicker cold boot, and robust root/body class toggling | none | DONE |
-| 2 | M2: Quick Theme Selector in Settings & Sync | Add Theme Picker to `js/components/usertool.js` Display tab and verify 2-way sync with `js/components/lexistore.js` | M1 | DONE |
-| 3 | M3: Cyber Matrix Neon & Sunset Synthwave 80s VIP Visual Overhaul Engine | Implement full scoped CSS tokens, neon/laser glow, obsidian/synthwave glass, circuit grid/horizon textures, and 9 module skins in `css/style.css` | M1, M2 | DONE |
-| 4 | M4: E2E Verification, Contrast Audit & Regression Hardening | Run automated assertion scripts, verify all 10+ interactive views, test 3D flip, boss battle, and contrast compliance | M3 | DONE |
-
-## Interface Contracts
-### `js/store.js` ↔ UI Components (`usertool.js`, `lexistore.js`, `app.js`)
-- `store.applyActiveTheme(themeId: string): void`:
-  - Strips `.theme-matrix` and `.theme-synthwave` from `document.documentElement` and `document.body`.
-  - If `themeId === 'theme_matrix'` -> adds `theme-matrix` to both root and body.
-  - If `themeId === 'theme_synthwave'` -> adds `theme-synthwave` to both root and body.
-  - Writes to `localStorage.setItem('active_theme', themeId)`.
-- `store.equipTheme(themeId: string): Promise<void>`:
-  - If `themeId !== 'default'`, checks `store.userProfile.inventory.unlockedThemes.includes(themeId)` (or admin override).
-  - Updates `store.userProfile.equippedTheme = themeId`.
-  - Invokes `store.applyActiveTheme(themeId)`.
-  - Persists to Firestore `users/{uid}`.
-
-### Scoped CSS Tokens ↔ DOM Elements
-- Root classes: `html.theme-matrix, body.theme-matrix` and `html.theme-synthwave, body.theme-synthwave`.
-- Target components:
-  - Layout: `body`, `#app`, `aside`, `header.glass-panel-strong`, `main#main-content`, `nav.mobile-nav`.
-  - Glass panels & cards: `.glass-panel`, `.glass-panel-strong`, `.interactive-card`, `#settings-panel`.
-  - Flashcard Study: `.study-card`, `.card-face-front`, `.card-face-back`, `.flashcard-term`, `.study-controls`.
-  - Arcade Games: Boss battle HUD (`#boss-battle`), Cyber Cipher tiles (`#cyber-cipher`), Matching game tiles (`#matching`), AI Arena HUD (`#ai-arena`).
-  - LexiStore: `.store-card`, category tabs, active equipped pills.
-  - Modals: `#settings-panel`, `.level-up-dialog`, inputs, select dropdowns.
+| M1 | Firebase Strict Sync & LexiCredit / Heatmap Integrity | F1: `js/store.js`, `js/db.js`, `js/components/profile.js`, `js/components/lexilearndashboard.js`, `js/app.js` | none | PLANNED |
+| M2 | Ebbinghaus Memory Curve & HLR 60-Day Decay | F2: `js/memoryengine.js`, `js/components/lexilearndashboard.js`, `js/components/study.js` | none | PLANNED |
+| M3 | Motivation Punishment Engine & Rank Demotion | F3: `js/ranks.js`, `js/store.js`, `js/app.js` | M1 | PLANNED |
+| M4 | Pro Feature Lockdown & Urgency Red Alert System | F4, F5: `js/store.js`, `js/app.js`, UI modal & banner | M3 | PLANNED |
+| M5 | Final E2E Test Suite & Adversarial Hardening | Pass 100% E2E test suite (Tiers 1-4) + Tier 5 adversarial stress testing + Forensic Audit | M1, M2, M3, M4 | PLANNED |
 
 ## Code Layout
-- `css/style.css`: Primary stylesheet containing semantic tokens and `.theme-matrix` / `.theme-synthwave` scoped component rules.
-- `js/store.js`: Core reactive state management, theme application, and persistence.
-- `js/components/usertool.js`: Settings modal and Quick Theme Selector UI.
-- `js/components/lexistore.js`: LexiStore theme purchasing and equipping interface.
-- `tests/`: Automated test assertion and verification scripts.
+- `js/store.js`: Global reactive store, `recordStudyActivity()`, `addLexiCredit()`, `checkMissedDaysAndPunish()`, `store.navigate()` route guard.
+- `js/db.js`: Firestore CRUD functions, `fetchUserProfile()`, `updateUserProfile()`, `saveStudyStats()`.
+- `js/ranks.js`: Rank calculations, `normalizeUserStats()`, dynamic level/rank demotion.
+- `js/memoryengine.js`: `calculateRetentionProb()`, `calculateRetentionRate()`, `resolveCardLastStudied()`.
+- `js/app.js`: Top-level app, urgent alert modal, red urgency top banner, route mounting.
+- `js/components/profile.js`: Profile view with synchronized spendable LexiCredit.
+- `js/components/lexilearndashboard.js`: Heatmap calendar, Ebbinghaus memory curve SVG chart.
+- `tests/`: Automated test suites for all milestones and E2E verification.
+
+## Interface Contracts
+### `store.recordStudyActivity(wordsCount, timeMinutes)`
+- Input: `wordsCount: number`, `timeMinutes: number`
+- Behavior: Updates local stats AND immediately awaits `updateUserProfile(uid, { studyStats })`. On error, displays red alert and rolls back local stats.
+
+### `store.addLexiCredit(amount, reason)`
+- Input: `amount: number`, `reason: string`
+- Behavior: Sends write to Firestore first; on success updates state; on error shows red alert and preserves true server state.
+
+### `calculateRetentionRate(cardOrDate, now)`
+- Input: `cardOrDate: object | Date | string | number`, `now?: number`
+- Output: `number` between 0.0 and 1.0. For `lastStudiedDate` 60 days in past, returns $< 0.20$.
+
+### `store.checkMissedDaysAndPunish()`
+- Input: None (invoked during `onAuthStateChanged`)
+- Behavior: Compares `stats.lastStudyDate` with today. If $\ge 2$ days difference, resets streak to 0, deducts LC per missed day, demotes rank, sets `lastPunishedDate = today`, and syncs to Firestore.
+
+### `store.navigate(route, data)`
+- Input: `route: string`, `data?: any`
+- Behavior: If `todayWords < 50` and `route` is in `LOCKED_PRO_ROUTES`, displays Lockdown Red Modal, redirects to `'study'`.

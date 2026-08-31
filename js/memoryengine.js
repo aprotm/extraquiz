@@ -10,7 +10,19 @@
 // half_life: Chu kỳ bán rã (phút)
 export function calculateRetentionProb(halfLife, deltaT_minutes) {
     if (halfLife <= 0) return 0;
-    return Math.pow(2, -deltaT_minutes / halfLife);
+    
+    // Áp dụng phạt (penalty) nếu bỏ học quá lâu (trên 14 ngày)
+    // Hệ số Ebbinghaus thực tế: Bỏ càng lâu, tốc độ quên càng gia tốc, bẻ cong lại halfLife lý thuyết
+    let effectiveHalfLife = halfLife;
+    const daysAbsent = deltaT_minutes / 1440;
+    
+    if (daysAbsent > 14) {
+        // Sau 14 ngày, mỗi ngày vắng mặt sẽ trừ hao 2% half-life, tối đa giảm 80% half-life
+        const penaltyFactor = Math.max(0.2, 1.0 - ((daysAbsent - 14) * 0.02));
+        effectiveHalfLife = halfLife * penaltyFactor;
+    }
+    
+    return Math.pow(2, -deltaT_minutes / effectiveHalfLife);
 }
 
 // Cập nhật Chu kỳ bán rã mới (HLR - BKT Simplified)

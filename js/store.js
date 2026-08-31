@@ -78,6 +78,22 @@ export const store = reactive({
         if (data && route === 'deck-detail') {
             this.activeDeck = data;
         }
+        // Gamification Motivation System: Lockdown Pro & Game Features
+        const proRoutes = ['reading', 'writing-grader', 'aiarena', 'bossbattle', 'cybercipher', 'matchinggame', 'paraphrasing'];
+        if (this.user && proRoutes.includes(route)) {
+            const stats = this.getStudyStats();
+            const todayISO = this.getTodayDateStr();
+            const wordsToday = (stats && stats.lastStudyDate === todayISO) ? (stats.todayWords || 0) : 0;
+            const DAILY_QUOTA = 50;
+
+            if (wordsToday < DAILY_QUOTA) {
+                if (window.showToast) window.showToast(`🚨 LỆNH PHONG TỎA (LOCKDOWN): Bạn phải học đủ ${DAILY_QUOTA} thẻ hôm nay để mở khóa tính năng này! (Còn thiếu ${DAILY_QUOTA - wordsToday} thẻ)`, 'error');
+                this.currentRoute = 'dashboard';
+                window.location.hash = 'dashboard';
+                return;
+            }
+        }
+
         if (data && route === 'edit-deck') {
             this.editDeckData = data; // Truyền data bộ thẻ sang màn chỉnh sửa
         }
@@ -179,6 +195,15 @@ export const store = reactive({
         }
 
         localStorage.setItem(key, JSON.stringify(stats));
+        if (this.userProfile) {
+            this.userProfile.studyStats = stats;
+            import('./db.js').then(({ updateUserProfile }) => {
+                updateUserProfile(this.user.uid, { studyStats: stats }).catch(err => {
+                    console.error("Lỗi đồng bộ Matrix:", err);
+                    if (window.showToast) window.showToast("Cảnh báo: Lỗi đồng bộ Ma trận/Streak lên đám mây. Vui lòng kiểm tra kết nối!", "error");
+                });
+            });
+        }
     },
 
     recordStudyStats(wordsCount = 1, timeMinutes = 1) {
