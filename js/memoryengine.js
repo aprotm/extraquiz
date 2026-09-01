@@ -11,18 +11,22 @@
 export function calculateRetentionProb(halfLife, deltaT_minutes) {
     if (halfLife <= 0) return 0;
     
-    // Áp dụng phạt (penalty) nếu bỏ học quá lâu (trên 14 ngày)
-    // Hệ số Ebbinghaus thực tế: Bỏ càng lâu, tốc độ quên càng gia tốc, bẻ cong lại halfLife lý thuyết
-    let effectiveHalfLife = halfLife;
     const daysAbsent = deltaT_minutes / 1440;
     
-    if (daysAbsent > 14) {
-        // Sau 14 ngày, mỗi ngày vắng mặt sẽ trừ hao 2% half-life, tối đa giảm 80% half-life
-        const penaltyFactor = Math.max(0.2, 1.0 - ((daysAbsent - 14) * 0.02));
-        effectiveHalfLife = halfLife * penaltyFactor;
+    // Tính toán tỷ lệ nhớ cơ bản (Base Pr)
+    let pr = Math.pow(2, -deltaT_minutes / halfLife);
+
+    // CHẾ ĐỘ KỶ LUẬT THÉP (Hardcore Decay Penalty):
+    // Bỏ mặc từ vựng quá 7 ngày (1 tuần) sẽ bắt đầu trừ thẳng vào trí nhớ thực tế
+    // Không quan tâm half-life cao tới đâu.
+    if (daysAbsent > 7) {
+        // Mỗi ngày vắng mặt sau 1 tuần sẽ trừ 3% tỷ lệ nhớ
+        const directPenalty = (daysAbsent - 7) * 0.03; 
+        pr = pr - directPenalty;
     }
     
-    return Math.pow(2, -deltaT_minutes / effectiveHalfLife);
+    // Đảm bảo không vượt quá 100% và không tụt dưới 10% (ít nhất vẫn còn mang máng)
+    return Math.min(1.0, Math.max(0.1, pr));
 }
 
 // Cập nhật Chu kỳ bán rã mới (HLR - BKT Simplified)
