@@ -467,7 +467,7 @@ export default {
 
         return { 
             store, stats, levelProgress, currentRank, firstName, activeTab, 
-            badges, heatmapWeeks, months, currentTheme, cycleTheme, totalWords, 
+            badges, heatmapWeeks, dynamicMonths, currentTheme, cycleTheme, totalWords, 
             aiCoachStats, startReview, dailyMissions, completedMissionsCount,
             getBadgeIcon, getBadgeTitle, getBadge3D, userCards, isLoadingCards,
             velocity7Days, cognitiveRadar

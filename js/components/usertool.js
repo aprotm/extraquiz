@@ -598,7 +598,7 @@ export default {
                                         :class="store.settings.showLevelUpNotification !== false ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'">
                                     <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform" 
                                           :class="store.settings.showLevelUpNotification !== false ? 'translate-x-5' : 'translate-x-1'"></span>
-                                </div>
+                                </button>
                             </div>
                         </div>
 
