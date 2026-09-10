@@ -153,39 +153,72 @@ export default {
                 historyMap[todayISO] = Math.max(historyMap[todayISO] || 0, realStats.todayWords);
             }
 
-            for (let i = 0; i < 52; i++) {
-                const week = [];
-                for (let j = 0; j < 7; j++) {
-                    const daysAgo = (51 - i) * 7 + (6 - j);
-                    const cellDate = new Date(today);
-                    cellDate.setDate(today.getDate() - daysAgo);
-
-                    const y = cellDate.getFullYear();
-                    const m = (cellDate.getMonth() + 1).toString().padStart(2, '0');
-                    const d = cellDate.getDate().toString().padStart(2, '0');
-                    const isoDate = `${y}-${m}-${d}`;
-                    const displayDate = `${d}/${m}/${y}`;
-
-                    const wordCount = historyMap[isoDate] || 0;
-                    
-                    let val = 0;
-                    if (wordCount > 50) val = 4;
-                    else if (wordCount > 20) val = 3;
-                    else if (wordCount > 10) val = 2;
-                    else if (wordCount > 0) val = 1;
-
-                    week.push({
-                        level: val,
-                        words: wordCount,
-                        date: displayDate,
-                        isoDate: isoDate
-                    });
-                }
-                weeks.push(week);
+            // Generate exactly 365 days ending today
+            const days = [];
+            for (let i = 364; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                days.push(d);
             }
+
+            let currentWeek = [];
+            
+            // Pad first week to align Monday = 0
+            const firstDayIndex = (days[0].getDay() + 6) % 7; 
+            for (let i = 0; i < firstDayIndex; i++) {
+                currentWeek.push(null);
+            }
+
+            days.forEach(cellDate => {
+                const y = cellDate.getFullYear();
+                const m = (cellDate.getMonth() + 1).toString().padStart(2, '0');
+                const d = cellDate.getDate().toString().padStart(2, '0');
+                const isoDate = `${y}-${m}-${d}`;
+                const displayDate = `${d}/${m}/${y}`;
+
+                const wordCount = historyMap[isoDate] || 0;
+                
+                let val = 0;
+                if (wordCount > 50) val = 4;
+                else if (wordCount > 20) val = 3;
+                else if (wordCount > 10) val = 2;
+                else if (wordCount > 0) val = 1;
+
+                currentWeek.push({
+                    level: val,
+                    words: wordCount,
+                    date: displayDate,
+                    isoDate: isoDate
+                });
+
+                if (currentWeek.length === 7) {
+                    weeks.push(currentWeek);
+                    currentWeek = [];
+                }
+            });
+
+            // Pad last week
+            if (currentWeek.length > 0) {
+                while (currentWeek.length < 7) {
+                    currentWeek.push(null);
+                }
+                weeks.push(currentWeek);
+            }
+
             return weeks;
         });
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+
+        // Dynamic Months array ending with the current month
+        const dynamicMonths = computed(() => {
+            const mNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const curMonth = new Date().getMonth();
+            const res = [];
+            // Generate 12 months backwards to get a full year spread
+            for (let i = 11; i >= 0; i--) {
+                res.push(mNames[(curMonth - i + 12) % 12]);
+            }
+            return res;
+        });
 
         // Real-time HLR AI Memory Engine & Decay Telemetry
         const aiCoachStats = computed(() => {
@@ -1149,7 +1182,7 @@ export default {
                             <div class="overflow-x-auto custom-scrollbar pb-2 pt-4">
                                 <div class="min-w-[700px]">
                                     <div class="flex text-[10px] text-gray-500 font-bold mb-2 ml-8 justify-between pr-4">
-                                        <span v-for="(m, i) in months" :key="i">{{m}}</span>
+                                        <span v-for="(m, i) in dynamicMonths" :key="i">{{m}}</span>
                                     </div>
                                     <div class="flex gap-2">
                                         <div class="flex flex-col gap-[6px] text-[10px] text-gray-500 font-bold mt-1">
@@ -1158,15 +1191,16 @@ export default {
                                         <div class="flex gap-1.5 flex-1">
                                             <div v-for="(week, wI) in heatmapWeeks" :key="wI" class="flex flex-col gap-1.5">
                                                 <div v-for="(day, dI) in week" :key="dI" 
-                                                     class="w-3 h-3 rounded-sm border transition-all hover:scale-125 cursor-pointer relative group hover:z-50"
+                                                     class="w-3 h-3 rounded-sm relative"
                                                      :class="[
-                                                         day.level === 0 ? 'bg-[#0E1528] border-[#18223D]' : '',
-                                                         day.level === 1 ? 'bg-[#064E3B] border-[#064E3B]' : '',
-                                                         day.level === 2 ? 'bg-[#047857] border-[#047857]' : '',
-                                                         day.level === 3 ? 'bg-[#10B981] border-[#10B981]' : '',
-                                                         day.level === 4 ? 'bg-[#34D399] border-[#34D399]' : ''
+                                                         !day ? 'bg-transparent' : 'border transition-all cursor-pointer group hover:scale-125 hover:z-50',
+                                                         day?.level === 0 ? 'bg-[#0E1528] border-[#18223D]' : '',
+                                                         day?.level === 1 ? 'bg-[#064E3B] border-[#064E3B]' : '',
+                                                         day?.level === 2 ? 'bg-[#047857] border-[#047857]' : '',
+                                                         day?.level === 3 ? 'bg-[#10B981] border-[#10B981]' : '',
+                                                         day?.level === 4 ? 'bg-[#34D399] border-[#34D399]' : ''
                                                      ]">
-                                                     <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-[#090D18] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl border border-[#1E294A] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                                                     <div v-if="day" class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-[#090D18] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl border border-[#1E294A] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
                                                          {{ day.words }} từ học ngày {{ day.date }}
                                                      </div>
                                                 </div>
