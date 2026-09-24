@@ -1,19 +1,10 @@
-/* ===== DESIGN TOKENS (LEXI-UI V2 / CYBER-DARK & GLASSMORPHISM) ===== */
+/* ===== DESIGN TOKENS (LEXI-UI V2 / MODERN DUAL THEME) ===== */
 :root {
-    /* Colors - Light Theme (Legacy fallback) */
-    --color-bg: #070A13;
-    --color-bg-secondary: #090D18;
-    --color-surface: #0E1528;
-    --color-surface-hover: #141C35;
-    
-    /* Cyber-Dark Palette Tokens */
-    --cyber-bg-base: #070A13;
-    --cyber-bg-card: #0D1326;
-    --cyber-bg-surface: #0A0F1E;
-    --cyber-bg-elevated: #111933;
-    --cyber-border-subtle: #16203D;
-    --cyber-border-highlight: #223158;
-    --cyber-border-active: #384C80;
+    /* Colors - Clean Modern Light Theme Default */
+    --color-bg: #F8FAFC;
+    --color-bg-secondary: #F1F5F9;
+    --color-surface: #FFFFFF;
+    --color-surface-hover: #F8FAFC;
     
     /* Cyber Accents (Neon Vibrancy) */
     --cyber-cyan: #06B6D4;
@@ -32,21 +23,30 @@
     /* Primary (Brand) */
     --color-primary: #6366F1; /* Indigo-500 */
     --color-primary-hover: #4F46E5; /* Indigo-600 */
-    --color-primary-light: #1E1B4B; /* Indigo-950 */
+    --color-primary-light: #EEF2FF; /* Indigo-50 */
     
     /* Secondary (Action) */
-    --color-secondary: #06B6D4; /* Cyan-500 */
+    --color-secondary: #0F172A; /* Slate-900 */
     
     /* Text */
-    --color-text: #F3F4F6; /* Gray-100 */
-    --color-text-muted: #9CA3AF; /* Gray-400 */
-    --color-text-light: #6B7280; /* Gray-500 */
+    --color-text: #0F172A; /* Slate-900 */
+    --color-text-muted: #64748B; /* Slate-500 */
+    --color-text-light: #94A3B8; /* Slate-400 */
     
     /* Utility */
-    --color-border: #18223D;
-    --color-danger: #F43F5E;
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
+    --color-border: #E2E8F0; /* Slate-200 */
+    --color-danger: #EF4444; /* Red-500 */
+    --color-success: #10B981; /* Emerald-500 */
+    --color-warning: #F59E0B; /* Amber-500 */
+
+    /* Cyber-Dark Palette Tokens */
+    --cyber-bg-base: #070A13;
+    --cyber-bg-card: #0D1326;
+    --cyber-bg-surface: #0A0F1E;
+    --cyber-bg-elevated: #111933;
+    --cyber-border-subtle: #16203D;
+    --cyber-border-highlight: #223158;
+    --cyber-border-active: #384C80;
 
     /* Spacing (4/8dp standard scale) */
     --space-1: 0.25rem;  /* 4px */
@@ -82,6 +82,17 @@
 
     /* Focus Rings */
     --focus-ring: 0 0 0 2px rgba(99, 102, 241, 0.6);
+}
+
+.dark, html.dark, body.dark {
+    --color-bg: #070A13;
+    --color-bg-secondary: #0D1326;
+    --color-surface: #0E1528;
+    --color-surface-hover: #131C35;
+    --color-text: #F1F5F9;
+    --color-text-muted: #94A3B8;
+    --color-text-light: #64748B;
+    --color-border: #1E2540;
 }
 
 /* ===== CYBER GLASSMORPHISM UTILITY CLASSES ===== */
@@ -765,16 +776,39 @@ img[src*="logo.png"] {
     box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.08);
 }
 
+.dark .arcade-hub-container,
+html.dark .arcade-hub-container,
+body.dark .arcade-hub-container {
+    background: linear-gradient(135deg, rgba(14, 21, 40, 0.95) 0%, rgba(10, 15, 30, 0.98) 100%);
+    border-color: rgba(30, 41, 64, 0.9);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+}
+
 .arcade-game-btn {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
+.dark .arcade-game-btn,
+html.dark .arcade-game-btn,
+body.dark .arcade-game-btn {
+    background: #0D1424;
+    border-color: #1E293B;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 @media (hover: hover) {
     .arcade-game-btn:hover {
         border-color: #C7D2FE;
         box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+    }
+    .dark .arcade-game-btn:hover,
+    html.dark .arcade-game-btn:hover,
+    body.dark .arcade-game-btn:hover {
+        background: #111B32;
+        border-color: #384C80;
+        box-shadow: 0 10px 24px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(99, 102, 241, 0.25);
     }
 }
 

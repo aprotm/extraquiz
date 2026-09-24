@@ -5,7 +5,7 @@ Tái cấu trúc và đại tu toàn diện thiết kế giao diện UI/UX của
 
 ## 🔒 My Identity
 - Archetype: sentinel
-- Working directory: e:\flashcardbyvanhngo\.agents\sentinel\
+- Working directory: e:\flashcardbyvanhngo\.agents\teamwork\sentinel\
 - Orchestrator: a8cc961b-74e2-4b05-856b-9a806c8eb36a
 - Victory Auditor: [to be spawned on victory claim]
 
@@ -18,11 +18,14 @@ Tái cấu trúc và đại tu toàn diện thiết kế giao diện UI/UX của
 ## User Context
 - **Last user request**: Tái cấu trúc và đại tu toàn diện thiết kế giao diện UI/UX của hệ thống LexiLearn Flashcard Web App sang phong cách Modern Cyber-Dark & Glassmorphism (Neuroscience & AI Lab theme), responsive, micro-interactions, loại bỏ emoji thay bằng vector icon.
 - **Pending clarifications**: none
-- **Delivered results**: []
+- **Delivered results**: Initial dispatch confirmed to parent.
 
 ## Project Status
 - **Phase**: in progress
 - **Routing Decision**: General -> teamwork_preview_orchestrator (ID: a8cc961b-74e2-4b05-856b-9a806c8eb36a)
+- **Crons**:
+  - Cron 1 (Progress Reporting): task-32 (*/8 * * * *)
+  - Cron 2 (Liveness Check): task-34 (*/10 * * * *)
 
 ## Victory Audit Status
 - **Triggered**: no
@@ -30,5 +33,5 @@ Tái cấu trúc và đại tu toàn diện thiết kế giao diện UI/UX của
 - **Retry count**: 0
 
 ## Artifact Index
-- e:\flashcardbyvanhngo\.agents\ORIGINAL_REQUEST.md — Verbatim user request
-- e:\flashcardbyvanhngo\.agents\sentinel\BRIEFING.md — Sentinel persistent briefing
+- e:\flashcardbyvanhngo\.agents\teamwork\ORIGINAL_REQUEST.md — Verbatim user request
+- e:\flashcardbyvanhngo\.agents\teamwork\sentinel\BRIEFING.md — Sentinel persistent briefing
