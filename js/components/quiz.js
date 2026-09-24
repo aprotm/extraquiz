@@ -154,10 +154,12 @@ export default {
 
             <!-- Score result -->
             <div v-if="isSubmitted" class="glass-panel-strong p-8 rounded-3xl text-center space-y-4 animate-scale-in">
-                <div class="text-6xl mb-2">
-                    {{ scorePercent() >= 80 ? '🏆' : scorePercent() >= 60 ? '👏' : '📚' }}
+                <div class="text-5xl mb-2">
+                    <i v-if="scorePercent() >= 80" class="fa-solid fa-trophy text-amber-400 animate-bounce"></i>
+                    <i v-else-if="scorePercent() >= 60" class="fa-solid fa-thumbs-up text-indigo-400"></i>
+                    <i v-else class="fa-solid fa-book-open text-rose-400"></i>
                 </div>
-                <h2 class="text-3xl font-extrabold text-gray-900">Hoàn thành!</h2>
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Hoàn thành!</h2>
                 <div class="flex items-center justify-center gap-4">
                     <div class="text-center">
                         <div class="text-4xl font-extrabold" style="color: #6d55d1;">{{ score }}</div>
@@ -165,7 +167,7 @@ export default {
                     </div>
                     <div class="text-2xl text-gray-300 font-light">/</div>
                     <div class="text-center">
-                        <div class="text-4xl font-extrabold text-gray-700">{{ questions.length }}</div>
+                        <div class="text-4xl font-extrabold text-gray-700 dark:text-gray-200">{{ questions.length }}</div>
                         <div class="text-xs text-gray-500 mt-1">Tổng</div>
                     </div>
                     <div class="text-center ml-4">
@@ -176,8 +178,9 @@ export default {
                 <div class="progress-bar-track max-w-xs mx-auto mt-4">
                     <div class="progress-bar-fill" :style="{ width: scorePercent() + '%' }"></div>
                 </div>
-                <p v-if="score < questions.length" class="text-amber-600 text-xs font-semibold bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 inline-block">
-                    ⚠ Các câu sai đã được đánh dấu "Cần ôn lại"
+                <p v-if="score < questions.length" class="text-amber-600 text-xs font-semibold bg-amber-50 dark:bg-amber-950/50 px-4 py-2 rounded-xl border border-amber-200 dark:border-amber-800 inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                    <span>Các câu sai đã được đánh dấu "Cần ôn lại"</span>
                 </p>
             </div>
 

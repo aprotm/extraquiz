@@ -488,14 +488,18 @@ export default {
 
                         <!-- Timer & Streak Indicator -->
                         <div class="flex items-center gap-4 text-xs font-mono font-bold">
-                            <span v-if="streak > 1" class="text-amber-400 animate-combo-pop">🔥 {{ streak }}x COMBO</span>
+                            <span v-if="streak > 1" class="text-amber-400 animate-combo-pop flex items-center gap-1">
+                                <i class="fa-solid fa-fire text-amber-400"></i> {{ streak }}x COMBO
+                            </span>
                             
                             <span v-if="gameMode === 'time_attack'" 
-                                  class="px-2.5 py-0.5 rounded-lg border font-mono font-black"
+                                  class="px-2.5 py-0.5 rounded-lg border font-mono font-black flex items-center gap-1"
                                   :class="timeLeft <= 10 ? 'bg-rose-500/30 border-rose-500 text-rose-300 animate-pulse' : 'bg-amber-500/20 border-amber-500/40 text-amber-300'">
-                                ⏳ {{ timeLeft }}s
+                                <i class="fa-solid fa-hourglass-half"></i> {{ timeLeft }}s
                             </span>
-                            <span v-else class="text-gray-400">⏱️ {{ timerSeconds }}s</span>
+                            <span v-else class="text-gray-400 flex items-center gap-1">
+                                <i class="fa-solid fa-stopwatch text-cyan-400"></i> {{ timerSeconds }}s
+                            </span>
                         </div>
                     </div>
 
@@ -625,7 +629,10 @@ export default {
                     </div>
                     <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
                         <div class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">Max Combo</div>
-                        <div class="text-xl font-black text-amber-400">{{ maxStreak }}x 🔥</div>
+                        <div class="text-xl font-black text-amber-400 flex items-center justify-center gap-1">
+                            <span>{{ maxStreak }}x</span>
+                            <i class="fa-solid fa-fire text-amber-400 text-sm"></i>
+                        </div>
                     </div>
                     <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
                         <div class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">Thưởng LC</div>

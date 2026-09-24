@@ -246,8 +246,9 @@ export default {
             <div v-if="gameState === 'select'" class="space-y-6 animate-fade-in">
                 <div class="glass-panel-strong p-8 rounded-3xl text-center bg-gradient-to-b from-[#0F1426] via-[#151A30] to-[#1E1B4B] border border-purple-500/30 text-white shadow-2xl space-y-6">
                     <div>
-                        <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-500/40 uppercase tracking-widest mb-3 inline-block">
-                            🤖 Chọn Đối Thủ AI
+                        <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-500/40 uppercase tracking-widest mb-3 inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-robot text-purple-300"></i>
+                            <span>Chọn Đối Thủ AI</span>
                         </span>
                         <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Sàn Đấu Trí Tuệ 1v1</h2>
                         <p class="text-sm text-gray-300 max-w-md mx-auto mt-1">Tranh tài phản xạ từ vựng thời gian thực với các bộ não nhân tạo!</p>
@@ -265,8 +266,8 @@ export default {
                             <h3 class="text-base font-black text-white">{{ bot.name }}</h3>
                             <p class="text-xs text-purple-300 font-bold mb-3">{{ bot.rank }}</p>
                             <div class="text-[10px] text-gray-400 space-y-1 font-mono">
-                                <div>🎯 Độ chính xác: {{ Math.round(bot.accuracy * 100) }}%</div>
-                                <div>⚡ Phản xạ: {{ (bot.speedMin/1000).toFixed(1) }}s - {{ (bot.speedMax/1000).toFixed(1) }}s</div>
+                                <div><i class="fa-solid fa-crosshairs text-purple-400 mr-1"></i> Độ chính xác: {{ Math.round(bot.accuracy * 100) }}%</div>
+                                <div><i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Phản xạ: {{ (bot.speedMin/1000).toFixed(1) }}s - {{ (bot.speedMax/1000).toFixed(1) }}s</div>
                             </div>
                         </div>
                     </div>
@@ -290,7 +291,7 @@ export default {
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/50 flex items-center justify-center p-1">
                                 <img v-if="store.userProfile?.avatar" :src="store.userProfile.avatar" class="w-full h-full rounded-xl object-cover">
-                                <span v-else class="text-xl">👤</span>
+                                <i v-else class="fa-solid fa-user text-indigo-300 text-lg"></i>
                             </div>
                             <div>
                                 <div class="text-xs font-black text-indigo-300 uppercase">Bạn</div>
@@ -303,8 +304,8 @@ export default {
                             <span class="px-3 py-1 rounded-full text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/40 font-mono">
                                 ROUND {{ currentRound }} / {{ maxRounds }}
                             </span>
-                            <div v-if="streak > 1" class="text-xs font-bold text-amber-400 mt-1 animate-bounce">
-                                🔥 {{ streak }}x Streak
+                            <div v-if="streak > 1" class="text-xs font-bold text-amber-400 mt-1 animate-bounce flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-fire text-amber-400"></i> {{ streak }}x Streak
                             </div>
                         </div>
 
@@ -328,18 +329,19 @@ export default {
 
                     <!-- AI Speech Bubble -->
                     <div v-if="botSpeech" class="mt-4 p-3 rounded-2xl bg-white/5 border border-white/10 text-xs font-medium text-purple-200 flex items-center gap-2">
-                        <span class="text-base">💬</span>
+                        <i class="fa-solid fa-message text-purple-300 text-sm"></i>
                         <span class="italic font-mono">"{{ botSpeech }}"</span>
                     </div>
                 </div>
 
                 <!-- QUESTION BOARD -->
-                <div v-if="currentCard" class="glass-panel p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-xl text-center space-y-6">
+                <div v-if="currentCard" class="glass-panel p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0E152B] border border-gray-100 dark:border-[#1E294B] shadow-xl text-center space-y-6">
                     <div>
-                        <div class="inline-flex items-center gap-2 mb-2 bg-purple-50 px-3 py-1 rounded-full border border-purple-100 text-[10px] font-black text-purple-700 uppercase tracking-wider">
-                            Ai Bấm Nhanh Hơn Sẽ Chiến Thắng!
+                        <div class="inline-flex items-center gap-1.5 mb-2 bg-purple-50 dark:bg-purple-950/60 px-3 py-1 rounded-full border border-purple-100 dark:border-purple-800 text-[10px] font-black text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+                            <i class="fa-solid fa-bolt text-amber-500"></i>
+                            <span>Ai Bấm Nhanh Hơn Sẽ Chiến Thắng!</span>
                         </div>
-                        <h2 class="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">{{ currentCard.term }}</h2>
+                        <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{{ currentCard.term }}</h2>
                     </div>
 
                     <!-- Options Grid -->
@@ -350,11 +352,11 @@ export default {
                                 class="p-4 rounded-2xl border-2 text-left font-bold text-sm transition-all flex items-center gap-3 relative overflow-hidden"
                                 :class="[
                                     isRoundLocked && opt.isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30' :
-                                    isRoundLocked && !opt.isCorrect ? 'bg-gray-50 border-gray-200 text-gray-400 opacity-50' :
-                                    'bg-white border-gray-200 text-gray-800 hover:border-purple-500 hover:bg-purple-50 hover:shadow-md active:scale-98'
+                                    isRoundLocked && !opt.isCorrect ? 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 opacity-50' :
+                                    'bg-white dark:bg-[#131B33] border-gray-200 dark:border-[#223158] text-gray-800 dark:text-gray-100 hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/40 hover:shadow-md active:scale-98'
                                 ]">
                             <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0"
-                                  :class="isRoundLocked && opt.isCorrect ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'">
+                                  :class="isRoundLocked && opt.isCorrect ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'">
                                 {{ ['A', 'B', 'C', 'D'][idx] }}
                             </span>
                             <span class="leading-snug">{{ opt.text }}</span>

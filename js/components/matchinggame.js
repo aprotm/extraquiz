@@ -394,8 +394,9 @@ export default {
                 <div class="p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-[#1E2540] shadow-sm flex items-center justify-between overflow-hidden relative">
                     <div>
                         <div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 dark:text-gray-500">Combo Streak</div>
-                        <div class="text-lg sm:text-2xl font-black" :class="combo > 1 ? 'text-amber-500 animate-combo-pop' : 'text-gray-400 dark:text-gray-600'">
-                            {{ combo > 1 ? combo + 'x 🔥' : '1x' }}
+                        <div class="text-lg sm:text-2xl font-black flex items-center gap-1" :class="combo > 1 ? 'text-amber-500 animate-combo-pop' : 'text-gray-400 dark:text-gray-600'">
+                            <span>{{ combo > 1 ? combo + 'x' : '1x' }}</span>
+                            <i v-if="combo > 1" class="fa-solid fa-fire text-amber-400 text-sm"></i>
                         </div>
                     </div>
                     <div v-if="combo >= 3" class="text-[10px] font-black uppercase tracking-widest bg-gradient-to-r from-orange-500 to-amber-500 text-white px-2 py-0.5 rounded-md shadow-sm animate-pulse">
@@ -509,7 +510,10 @@ export default {
                     <!-- Max Combo -->
                     <div class="p-3 rounded-2xl bg-gray-50 dark:bg-[#0B1020] border border-gray-100 dark:border-[#1E2540]">
                         <div class="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-0.5">Max Combo</div>
-                        <div class="text-lg font-black text-amber-500">{{ maxCombo }}x 🔥</div>
+                        <div class="text-lg font-black text-amber-500 flex items-center justify-center gap-1">
+                            <span>{{ maxCombo }}x</span>
+                            <i class="fa-solid fa-fire text-amber-400 text-sm"></i>
+                        </div>
                     </div>
 
                     <!-- Accuracy -->

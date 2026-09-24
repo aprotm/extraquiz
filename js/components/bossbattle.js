@@ -397,8 +397,9 @@ export default {
                     <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
                     
                     <div class="relative z-10">
-                        <div class="inline-block px-3 py-1 rounded-full text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/40 uppercase tracking-widest mb-4">
-                            ⚔️ Sẵn Sàng Khiêu Chiến
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/40 uppercase tracking-widest mb-4">
+                            <i class="fa-solid fa-swords text-rose-400"></i>
+                            <span>Sẵn Sàng Khiêu Chiến</span>
                         </div>
 
                         <!-- 3D Boss Avatar with Breathing Animation -->
@@ -423,7 +424,7 @@ export default {
                             <div class="w-px h-4 bg-white/20"></div>
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-400">Mạng:</span>
-                                <span class="text-red-400 font-extrabold text-sm">3 ❤️</span>
+                                <span class="text-rose-400 font-extrabold text-sm flex items-center gap-1">3 <i class="fa-solid fa-heart text-rose-500 text-xs"></i></span>
                             </div>
                         </div>
 
@@ -462,9 +463,9 @@ export default {
                                 <img :src="currentBoss.image3d" class="w-full h-full object-contain filter drop-shadow-md">
                                 
                                 <!-- Floating Damage Popup -->
-                                <div v-if="floatingDmg" class="absolute -top-6 left-1/2 -translate-x-1/2 animate-float-score whitespace-nowrap z-20 pointer-events-none font-black"
+                                <div v-if="floatingDmg" class="absolute -top-6 left-1/2 -translate-x-1/2 animate-float-score whitespace-nowrap z-20 pointer-events-none font-black flex items-center gap-1"
                                      :class="floatingDmg.isCrit ? 'text-amber-300 text-xl' : 'text-rose-400 text-base'">
-                                    -{{ floatingDmg.value }} {{ floatingDmg.isCrit ? '💥 CRIT!' : '' }}
+                                    -{{ floatingDmg.value }} <span v-if="floatingDmg.isCrit" class="text-xs text-amber-400 font-bold uppercase"><i class="fa-solid fa-bolt text-amber-300"></i> CRIT!</span>
                                 </div>
                             </div>
                             <div>
@@ -480,8 +481,8 @@ export default {
                         <div class="flex items-center gap-4">
                             <!-- Player Hearts -->
                             <div class="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-xl border border-white/10">
-                                <span v-for="h in maxPlayerHp" :key="h" class="text-base transition-transform" :class="h <= playerHp ? 'text-rose-500 scale-105' : 'text-gray-600 grayscale opacity-40'">
-                                    ❤️
+                                <span v-for="h in maxPlayerHp" :key="h" class="text-sm transition-transform" :class="h <= playerHp ? 'text-rose-500 scale-105' : 'text-gray-600 opacity-40'">
+                                    <i class="fa-solid fa-heart"></i>
                                 </span>
                             </div>
 
@@ -503,26 +504,26 @@ export default {
                 </div>
 
                 <!-- COMBO STREAK BAR -->
-                <div v-if="combo > 1" class="flex items-center justify-between px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-300/40 text-amber-900 animate-combo-pop">
+                <div v-if="combo > 1" class="flex items-center justify-between px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-300/40 text-amber-300 animate-combo-pop">
                     <div class="flex items-center gap-2">
-                        <span class="text-lg font-black text-amber-600 animate-bounce">🔥 {{ combo }}x COMBO!</span>
-                        <span class="text-xs font-bold text-amber-700">(+{{ Math.round((combo * 15)) }}% Sát Thương)</span>
+                        <span class="text-base font-black text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-fire text-amber-400"></i> {{ combo }}x COMBO!</span>
+                        <span class="text-xs font-bold text-amber-300/80">(+{{ Math.round((combo * 15)) }}% Sát Thương)</span>
                     </div>
-                    <span class="text-xs font-bold text-orange-600 uppercase tracking-wider">⚡ Tốc Độ Chiến Đấu</span>
+                    <span class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1"><i class="fa-solid fa-bolt text-xs"></i> Tốc Độ Chiến Đấu</span>
                 </div>
 
                 <!-- QUESTION BOARD -->
-                <div v-if="currentQuestion" class="glass-panel p-6 sm:p-8 rounded-3xl bg-white border border-gray-100 shadow-xl relative overflow-hidden">
+                <div v-if="currentQuestion" class="glass-panel p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0E152B] border border-gray-100 dark:border-[#1E294B] shadow-xl relative overflow-hidden">
                     <div class="text-center mb-6">
                         <div class="inline-flex items-center gap-2 mb-2">
-                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
                                 Chọn Nghĩa Chuẩn Xác
                             </span>
-                            <button @click="speakEnglishText(currentQuestion.term)" class="w-6 h-6 rounded-full bg-gray-100 hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 flex items-center justify-center transition" title="Nghe phát âm">
+                            <button @click="speakEnglishText(currentQuestion.term)" class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 flex items-center justify-center transition" title="Nghe phát âm">
                                 <i class="fa-solid fa-volume-high text-xs"></i>
                             </button>
                         </div>
-                        <h2 class="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">{{ currentQuestion.term }}</h2>
+                        <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{{ currentQuestion.term }}</h2>
                         <p v-if="currentQuestion.pronunciation" class="text-sm text-gray-400 font-mono mt-0.5">{{ currentQuestion.pronunciation }}</p>
                     </div>
 
@@ -533,13 +534,13 @@ export default {
                                 :disabled="isAnswered || disabledOptions.includes(idx)"
                                 class="p-4 rounded-2xl border-2 text-left font-bold text-sm transition-all relative overflow-hidden flex items-center gap-3"
                                 :class="[
-                                    disabledOptions.includes(idx) ? 'opacity-20 border-gray-200 bg-gray-50 line-through cursor-not-allowed' :
+                                    disabledOptions.includes(idx) ? 'opacity-20 border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 line-through cursor-not-allowed' :
                                     isAnswered && opt.isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30' :
-                                    isAnswered && !opt.isCorrect ? 'bg-rose-50 border-rose-200 text-rose-700 opacity-60' :
-                                    'bg-white border-gray-200 text-gray-800 hover:border-indigo-500 hover:bg-indigo-50/50 hover:shadow-md active:scale-98'
+                                    isAnswered && !opt.isCorrect ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 opacity-60' :
+                                    'bg-white dark:bg-[#131B33] border-gray-200 dark:border-[#223158] text-gray-800 dark:text-gray-100 hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 hover:shadow-md active:scale-98'
                                 ]">
                             <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0"
-                                  :class="isAnswered && opt.isCorrect ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'">
+                                  :class="isAnswered && opt.isCorrect ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'">
                                 {{ ['A', 'B', 'C', 'D'][idx] }}
                             </span>
                             <span class="leading-snug">{{ opt.text }}</span>
@@ -548,13 +549,13 @@ export default {
                 </div>
 
                 <!-- USABLE SKILLS HOTBAR -->
-                <div class="p-4 rounded-3xl bg-gray-900 text-white border border-gray-800 shadow-xl flex items-center justify-around gap-2">
+                <div class="p-4 rounded-3xl bg-gray-900 dark:bg-[#0A0E1F] text-white border border-gray-800 dark:border-[#1E294B] shadow-xl flex items-center justify-around gap-2">
                     <!-- Freeze Skill -->
                     <button @click="useFreeze" 
                             :disabled="skills.freeze.count <= 0 || isTimeFrozen"
                             class="flex-1 p-2.5 rounded-2xl border flex items-center justify-center gap-2.5 transition-all relative overflow-hidden"
                             :class="skills.freeze.count > 0 && !isTimeFrozen ? 'bg-cyan-950/60 border-cyan-500/50 hover:bg-cyan-900/80 active:scale-95 text-cyan-300' : 'bg-gray-800 border-gray-700 text-gray-500 opacity-50 cursor-not-allowed'">
-                        <span class="text-xl">❄️</span>
+                        <i class="fa-solid fa-snowflake text-lg text-cyan-300"></i>
                         <div class="text-left">
                             <div class="text-xs font-black flex items-center gap-1">
                                 <span>Đóng Băng</span>
@@ -569,7 +570,7 @@ export default {
                             :disabled="skills.laser.count <= 0 || isAnswered"
                             class="flex-1 p-2.5 rounded-2xl border flex items-center justify-center gap-2.5 transition-all relative overflow-hidden"
                             :class="skills.laser.count > 0 && !isAnswered ? 'bg-rose-950/60 border-rose-500/50 hover:bg-rose-900/80 active:scale-95 text-rose-300' : 'bg-gray-800 border-gray-700 text-gray-500 opacity-50 cursor-not-allowed'">
-                        <span class="text-xl">🎯</span>
+                        <i class="fa-solid fa-crosshairs text-lg text-rose-300"></i>
                         <div class="text-left">
                             <div class="text-xs font-black flex items-center gap-1">
                                 <span>Laser 50/50</span>
@@ -584,7 +585,7 @@ export default {
                             :disabled="skills.overdrive.count <= 0 || isOverdrive"
                             class="flex-1 p-2.5 rounded-2xl border flex items-center justify-center gap-2.5 transition-all relative overflow-hidden"
                             :class="skills.overdrive.count > 0 && !isOverdrive ? 'bg-amber-950/60 border-amber-500/50 hover:bg-amber-900/80 active:scale-95 text-amber-300' : 'bg-gray-800 border-gray-700 text-gray-500 opacity-50 cursor-not-allowed'">
-                        <span class="text-xl">⚡</span>
+                        <i class="fa-solid fa-bolt text-lg text-amber-300"></i>
                         <div class="text-left">
                             <div class="text-xs font-black flex items-center gap-1">
                                 <span>Cuồng Nộ x3</span>
