@@ -589,8 +589,8 @@ export default {
                             <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                                 <i class="fa-solid fa-chart-line text-indigo-400"></i> Chỉ Số Lab
                             </span>
-                            <span class="text-[10px] font-extrabold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
-                                🔥 {{ stats?.streak || 1 }} ngày
+                            <span class="text-[10px] font-extrabold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
+                                <i class="fa-solid fa-fire text-amber-400 text-[10px]"></i> {{ stats?.streak || 1 }} ngày
                             </span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 pt-1 border-t border-[#192340]">

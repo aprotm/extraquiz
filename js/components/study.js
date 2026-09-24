@@ -272,11 +272,11 @@ export default {
 
             <!-- Finished State -->
             <div v-if="finished" class="glass-panel-strong p-8 sm:p-12 rounded-3xl text-center space-y-6 mt-10 max-w-2xl mx-auto animate-scale-in">
-                <div class="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl animate-bounce-in" style="background: linear-gradient(135deg, #10b981, #059669);">
-                    🎉
+                <div class="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center animate-bounce-in shadow-xl shadow-emerald-500/20" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="fa-solid fa-trophy text-white text-3xl"></i>
                 </div>
-                <h2 class="text-3xl font-extrabold text-gray-900">Hoàn thành phiên học!</h2>
-                <p class="text-gray-500 text-sm">Bạn đã xem qua tất cả {{ cardsToStudy.length }} thẻ.</p>
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Hoàn thành phiên học!</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Bạn đã xem qua tất cả {{ cardsToStudy.length }} thẻ.</p>
                 
                 <!-- AI Insight Card -->
                 <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 text-left relative overflow-hidden">
@@ -408,13 +408,13 @@ export default {
                 <!-- Controls -->
                 <div class="mt-6 w-full max-w-3xl">
                     <!-- Keyboard hint -->
-                    <div class="text-center text-xs text-gray-400 font-medium mb-4 hidden sm:block">
-                        <kbd class="px-2 py-0.5 bg-white border rounded-md shadow-sm">Space</kbd> lật thẻ &nbsp;·&nbsp;
-                        <kbd class="px-2 py-0.5 bg-white border rounded-md shadow-sm">1</kbd> Chưa nhớ &nbsp;·&nbsp;
-                        <kbd class="px-2 py-0.5 bg-white border rounded-md shadow-sm">2</kbd> Đã thuộc
+                    <div class="text-center text-xs text-gray-400 dark:text-gray-500 font-medium mb-4 hidden sm:block">
+                        <kbd class="px-2 py-0.5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md shadow-sm">Space</kbd> lật thẻ &nbsp;·&nbsp;
+                        <kbd class="px-2 py-0.5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md shadow-sm">1</kbd> Chưa nhớ &nbsp;·&nbsp;
+                        <kbd class="px-2 py-0.5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md shadow-sm">2</kbd> Đã thuộc
                     </div>
                     
-                    <div class="study-controls flex items-center justify-between bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div class="study-controls flex items-center justify-between bg-white dark:bg-[#131B2E] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-[#263554]">
                         <!-- Wrong -->
                         <button @click.stop="handleStudyScore(1)" 
                                 class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 text-sm border-2"
@@ -425,11 +425,11 @@ export default {
                         
                         <!-- Prev / Counter / Next -->
                         <div class="flex items-center gap-3">
-                            <button @click="prevCard()" class="icon-button w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 transition" aria-label="Previous card">
+                            <button @click="prevCard()" class="icon-button w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition" aria-label="Previous card">
                                 <i class="fa-solid fa-chevron-left text-xs"></i>
                             </button>
                             <span class="text-sm text-gray-400 font-semibold w-16 text-center">{{ studyIndex + 1 }} / {{ cardsToStudy.length }}</span>
-                            <button @click="nextCard()" class="icon-button w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 transition" aria-label="Next card">
+                            <button @click="nextCard()" class="icon-button w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition" aria-label="Next card">
                                 <i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
                         </div>

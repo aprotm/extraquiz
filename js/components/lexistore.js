@@ -213,7 +213,7 @@ export default {
                                 </span>
                             </div>
                             <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-                                Cửa Hàng & Trao Đổi Vật Phẩm 🏬
+                                Cửa Hàng & Trao Đổi Vật Phẩm <i class="fa-solid fa-store text-amber-400 text-2xl"></i>
                             </h1>
                             <p class="text-xs sm:text-sm text-gray-300 max-w-xl leading-relaxed">
                                 Đổi điểm thưởng <b class="text-amber-300 font-extrabold">LexiCredit (LC)</b> để mở khóa các bộ từ vựng cao cấp, vật phẩm bảo vệ chuỗi Streak và hiệu ứng độc quyền.
@@ -256,7 +256,7 @@ export default {
                     <div class="relative min-w-[240px]">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                         <input v-model="searchQuery" type="text" placeholder="Tìm bộ thẻ, vật phẩm..." 
-                               class="w-full bg-white dark:bg-[#0E152B] border border-gray-200 dark:border-[#192445] rounded-2xl py-2.5 pl-9 pr-4 text-xs text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/60 shadow-sm transition-all">
+                                class="w-full bg-white dark:bg-[#0E152B] border border-gray-200 dark:border-[#192445] rounded-2xl py-2.5 pl-9 pr-4 text-xs text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/60 shadow-sm transition-all">
                     </div>
                 </div>
 
@@ -267,11 +267,11 @@ export default {
                             <i class="fa-solid fa-briefcase text-indigo-500"></i> Túi Đồ Của Bạn (Active Inventory)
                         </div>
                         <div class="flex items-center gap-3">
-                            <span v-if="store.userProfile?.equippedTheme" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                                🎨 Theme: {{ store.userProfile.equippedTheme }}
+                            <span v-if="store.userProfile?.equippedTheme" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1">
+                                <i class="fa-solid fa-palette text-indigo-400 text-[10px]"></i> Theme: {{ store.userProfile.equippedTheme }}
                             </span>
-                            <span v-if="store.userProfile?.equippedAvatarFrame" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                👑 Khung: {{ store.userProfile.equippedAvatarFrame }}
+                            <span v-if="store.userProfile?.equippedAvatarFrame" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                                <i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> Khung: {{ store.userProfile.equippedAvatarFrame }}
                             </span>
                         </div>
                     </div>
